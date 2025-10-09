@@ -1,9 +1,9 @@
 import { ChatOpenAI, type ClientOptions } from '@langchain/openai';
 import {
-	NodeConnectionTypes,
 	type INodeType,
 	type INodeTypeDescription,
 	type ISupplyDataFunctions,
+	NodeConnectionTypes,
 	type SupplyData,
 } from 'n8n-workflow';
 
@@ -11,10 +11,9 @@ import { getProxyAgent } from '@utils/httpProxyAgent';
 import { getConnectionHintNoticeField } from '@utils/sharedFields';
 
 import { searchModels } from './methods/loadModels';
-import { makeN8nLlmFailedAttemptHandler } from '../n8nLlmFailedAttemptHandler';
-import { N8nLlmTracing } from '../N8nLlmTracing';
+import { makeN8nLlmFailedAttemptHandler } from '@utils/n8nLlmFailedAttemptHandler';
+import { N8nLlmTracing } from '@utils/N8nLlmTracing';
 import { openAiFailedAttemptHandler } from './error-handling';
-
 
 export class LmChatYandexGpt implements INodeType {
 	methods = {
@@ -69,7 +68,7 @@ export class LmChatYandexGpt implements INodeType {
 				displayName: 'Model',
 				name: 'model',
 				type: 'resourceLocator',
-				default: { mode: 'list'},
+				default: { mode: 'list' },
 				required: true,
 				modes: [
 					{
@@ -103,8 +102,7 @@ export class LmChatYandexGpt implements INodeType {
 						displayName: 'Maximum Number of Tokens',
 						name: 'maxTokens',
 						default: 2000,
-						description:
-							'The maximum number of tokens to generate in the completion',
+						description: 'The maximum number of tokens to generate in the completion',
 						type: 'number',
 						typeOptions: {
 							maxValue: 8000,
@@ -181,4 +179,3 @@ export class LmChatYandexGpt implements INodeType {
 		};
 	}
 }
-
