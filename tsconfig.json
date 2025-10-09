@@ -3,28 +3,39 @@
 		"strict": true,
 		"module": "commonjs",
 		"moduleResolution": "node",
-		"target": "es2019",
-		"lib": ["es2019", "es2020", "es2022.error"],
+		"target": "es2021",
+		"lib": ["es2021", "es2022.error", "dom"],
 		"removeComments": true,
-		"useUnknownInCatchVariables": false,
 		"forceConsistentCasingInFileNames": true,
 		"noImplicitAny": true,
 		"noImplicitReturns": true,
 		"noUnusedLocals": true,
+		"noUnusedParameters": true,
 		"strictNullChecks": true,
 		"preserveConstEnums": true,
 		"esModuleInterop": true,
 		"resolveJsonModule": true,
 		"incremental": true,
-		"declaration": true,
+		"declaration": false,
 		"sourceMap": true,
 		"skipLibCheck": true,
 		"outDir": "./dist/",
+		"baseUrl": ".",
+		"paths": {
+			"@utils/*": ["./utils/*"]
+		},
+		"typeRoots": ["./node_modules/@types"],
+		"experimentalDecorators": true,
+		// TODO: remove all options below this line
+		"useUnknownInCatchVariables": false
 	},
 	"include": [
 		"credentials/**/*",
 		"nodes/**/*",
 		"nodes/**/*.json",
-		"package.json",
+		"utils/**/*",
+		"types/**/*.ts",
+		"package.json"
 	],
+	"exclude": ["nodes/**/*.test.ts", "utils/**/*.test.ts", "utils/**/tests/**", "test/**"]
 }
