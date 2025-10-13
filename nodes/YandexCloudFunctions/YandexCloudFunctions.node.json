@@ -1,0 +1,20 @@
+{
+	"node": "n8n-nodes-base.yandexCloudFunctions",
+	"nodeVersion": "1.0",
+	"codexVersion": "1.0",
+	"categories": ["Utility", "Development"],
+	"resources": {
+		"credentialDocumentation": [
+			{
+				"url": "https://yandex.cloud/ru/docs/iam/concepts/authorization/service-account"
+			}
+		],
+		"primaryDocumentation": [
+			{
+				"url": "https://yandex.cloud/ru/docs/functions/"
+			}
+		]
+	},
+	"alias": ["Serverless", "Cloud Functions", "YC Functions"]
+}
+

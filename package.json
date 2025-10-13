@@ -34,12 +34,14 @@
 		"n8nNodesApiVersion": 1,
 		"credentials": [
 			"dist/credentials/YandexCloudGptApi.credentials.js",
-			"dist/credentials/YandexCloudPostboxApi.credentials.js"
+			"dist/credentials/YandexCloudPostboxApi.credentials.js",
+			"dist/credentials/YandexCloudApi.credentials.js"
 		],
 		"nodes": [
 			"dist/nodes/YandexCloudGpt/YandexCloudGpt.node.js",
 			"dist/nodes/LMChatYandexGpt/LmChatYandexGpt.node.js",
-			"dist/nodes/YandexCloudPostbox/YandexCloudPostbox.node.js"
+			"dist/nodes/YandexCloudPostbox/YandexCloudPostbox.node.js",
+			"dist/nodes/YandexCloudFunctions/YandexCloudFunctions.node.js"
 		]
 	},
 	"devDependencies": {
@@ -61,6 +63,7 @@
 		"@langchain/community": "^0.3.22",
 		"@langchain/openai": "0.6.14",
 		"@n8n/json-schema-to-zod": "^1.1.0",
+		"@yandex-cloud/nodejs-sdk": "3.0.0-beta.1",
 		"generate-schema": "^2.6.0",
 		"langchain": "0.3.35",
 		"lodash": "^4.17.21",
