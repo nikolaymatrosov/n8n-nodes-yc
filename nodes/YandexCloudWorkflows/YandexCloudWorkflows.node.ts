@@ -51,7 +51,7 @@ export class YandexCloudWorkflows implements INodeType {
 		outputs: ['main'],
 		credentials: [
 			{
-				name: 'yandexCloudApi',
+				name: 'yandexCloudAuthorized',
 				required: true,
 			},
 		],
@@ -142,7 +142,7 @@ export class YandexCloudWorkflows implements INodeType {
 	methods = {
 		loadOptions: {
 			async loadWorkflows(this: ILoadOptionsFunctions): Promise<INodePropertyOptions[]> {
-				const credentials = await this.getCredentials('yandexCloudApi');
+				const credentials = await this.getCredentials('yandexCloudAuthorized');
 
 				// Parse service account JSON
 				let serviceAccountJson: IIAmCredentials;
@@ -210,7 +210,7 @@ export class YandexCloudWorkflows implements INodeType {
 		const operation = this.getNodeParameter('operation', 0) as string;
 
 		// Get credentials
-		const credentials = await this.getCredentials('yandexCloudApi');
+		const credentials = await this.getCredentials('yandexCloudAuthorized');
 
 		// Parse service account JSON
 		let serviceAccountJson: IIAmCredentials;

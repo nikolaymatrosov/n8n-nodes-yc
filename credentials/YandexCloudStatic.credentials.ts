@@ -3,12 +3,12 @@ import type {
 	INodeProperties,
 } from 'n8n-workflow';
 
-export class YandexCloudPostboxApi implements ICredentialType {
-	name = 'yandexCloudPostboxApi';
+export class YandexCloudStatic implements ICredentialType {
+	name = 'yandexCloudStatic';
 
-	displayName = 'Yandex Cloud Postbox API';
+	displayName = 'Yandex Cloud Static Access Key';
 
-	documentationUrl = 'https://yandex.cloud/ru/docs/postbox/quickstart';
+	documentationUrl = 'https://yandex.cloud/ru/docs/iam/concepts/authorization/access-key';
 
 	properties: INodeProperties[] = [
 		{

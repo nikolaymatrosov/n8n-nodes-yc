@@ -23,7 +23,7 @@ export class YandexCloudPostbox implements INodeType {
 		outputs: ['main'],
 		credentials: [
 			{
-				name: 'yandexCloudPostboxApi',
+				name: 'yandexCloudStatic',
 				required: true,
 			},
 		],
@@ -152,7 +152,7 @@ export class YandexCloudPostbox implements INodeType {
 		const operation = this.getNodeParameter('operation', 0) as string;
 
 		// Get credentials
-		const credentials = await this.getCredentials('yandexCloudPostboxApi');
+		const credentials = await this.getCredentials('yandexCloudStatic');
 
 		// Create SES client
 		const client = new SESv2Client({
