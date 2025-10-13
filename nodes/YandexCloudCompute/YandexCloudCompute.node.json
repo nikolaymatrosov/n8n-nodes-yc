@@ -1,0 +1,20 @@
+{
+	"node": "n8n-nodes-base.yandexCloudCompute",
+	"nodeVersion": "1.0",
+	"codexVersion": "1.0",
+	"categories": ["Utility", "Development"],
+	"resources": {
+		"credentialDocumentation": [
+			{
+				"url": "https://yandex.cloud/ru/docs/iam/concepts/authorization/service-account"
+			}
+		],
+		"primaryDocumentation": [
+			{
+				"url": "https://yandex.cloud/ru/docs/compute/"
+			}
+		]
+	},
+	"alias": ["VM", "Compute", "YC Compute", "Virtual Machine"]
+}
+
