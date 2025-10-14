@@ -1,0 +1,145 @@
+---
+globs: *.test.ts,*.spec.ts,**/__tests__/**/*.ts,**/test/**/*.ts
+description: Guidelines for writing unit and integration tests for n8n nodes
+---
+
+# Testing Guidelines for n8n Nodes
+
+## Core Testing Principles
+
+### Test Organization
+- Use `.test.ts` extension for test files
+- Place tests in `test/` or `__tests__/` directories
+- Group tests by functionality using `describe()` blocks
+- Test concrete operations and resources
+- Use descriptive test names that explain expected behavior
+
+### Essential Rules
+- **Don't add useless comments** such as "Arrange, Assert, Act" or "Mock something"
+- **Always work from within the package directory** when running tests
+- **Use `npm test` or `pnpm test`** for running tests
+- **Mock all external dependencies** in unit tests (AWS SDK, external APIs, etc.)
+- **Confirm test cases with user** before writing unit tests
+
+### Test Categories
+Always include tests for:
+- **Happy Path**: Normal operation with valid inputs
+- **Error Handling**: Invalid inputs, API failures, network errors
+- **Edge Cases**: Empty data, null values, boundary conditions
+- **Parameter Validation**: Required vs optional parameters
+- **Binary Data**: File uploads, downloads, data streams (if applicable)
+- **Authentication**: Credential handling, token refresh
+- **Data Transformation**: Input/output data processing
+
+## Mocking Strategies
+
+### Mock n8n Interfaces
+```typescript
+import { mock, mockDeep } from 'jest-mock-extended';
+import type { IExecuteFunctions } from 'n8n-workflow';
+
+const mockExecuteFunctions = mockDeep<IExecuteFunctions>();
+```
+
+### Mock External SDKs
+```typescript
+// Mock AWS SDK
+jest.mock('@aws-sdk/client-kinesis');
+const mockSend = jest.fn();
+(KinesisClient as jest.Mock).mockImplementation(() => ({
+  send: mockSend,
+}));
+```
+
+### Mock HTTP Requests
+```typescript
+import nock from 'nock';
+
+beforeEach(() => {
+  nock('https://api.example.com')
+    .get('/endpoint')
+    .reply(200, mockResponse);
+});
+
+afterEach(() => {
+  nock.cleanAll();
+});
+```
+
+## Test Structure Pattern
+
+```typescript
+describe('NodeName', () => {
+  let mockExecuteFunctions: Partial<IExecuteFunctions>;
+  let mockSend: jest.Mock;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockExecuteFunctions = {
+      getInputData: jest.fn().mockReturnValue([{ json: {} }]),
+      getNodeParameter: jest.fn(),
+      getCredentials: jest.fn().mockResolvedValue({
+        accessKeyId: 'test-key',
+        secretAccessKey: 'test-secret',
+      }),
+      continueOnFail: jest.fn().mockReturnValue(false),
+    };
+  });
+
+  describe('Operation Name', () => {
+    it('should handle success case', async () => {
+      // Setup
+      mockSend.mockResolvedValue({ /* response */ });
+
+      // Execute
+      const result = await node.execute.call(mockExecuteFunctions);
+
+      // Assert
+      expect(result[0][0].json).toMatchObject({ /* expected */ });
+    });
+
+    it('should handle error with continueOnFail', async () => {
+      mockExecuteFunctions.continueOnFail.mockReturnValue(true);
+      mockSend.mockRejectedValue(new Error('API Error'));
+
+      const result = await node.execute.call(mockExecuteFunctions);
+
+      expect(result[0][0].json).toMatchObject({
+        error: 'API Error',
+        success: false,
+      });
+    });
+  });
+});
+```
+
+## Test Coverage Goals
+- Aim for **>85% code coverage**
+- Test all public methods and exported functions
+- Cover all conditional branches and edge cases
+- Test both success and failure paths
+
+## Common Anti-Patterns to Avoid
+1. Don't use real external APIs in unit tests
+2. Don't skip error handling tests
+3. Don't test implementation details - focus on behavior
+4. Don't ignore async operations - always await promises
+5. Don't create tests that depend on each other
+6. Don't use hardcoded production data
+
+## Running Tests
+```bash
+# Run all tests
+npm test
+
+# Run specific test file
+npm test -- NodeName.test.ts
+
+# Run with coverage
+npm test:coverage
+
+# Watch mode
+npm test:watch
+```
+
+See [TESTING_PROMPT.md](mdc:docs/TESTING_PROMPT.md) for detailed unit test guidelines.
