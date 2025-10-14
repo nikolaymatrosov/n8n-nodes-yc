@@ -1,0 +1,20 @@
+{
+	"node": "n8n-nodes-base.yandexCloudDataStreams",
+	"nodeVersion": "1.0",
+	"codexVersion": "1.0",
+	"categories": ["Development", "Data & Storage", "Streaming"],
+	"resources": {
+		"credentialDocumentation": [
+			{
+				"url": "https://yandex.cloud/ru/docs/iam/concepts/authorization/access-key"
+			}
+		],
+		"primaryDocumentation": [
+			{
+				"url": "https://yandex.cloud/ru/docs/data-streams/"
+			}
+		]
+	},
+	"alias": ["Kinesis", "Data Streams", "YC Data Streams", "YDS", "Stream"]
+}
+

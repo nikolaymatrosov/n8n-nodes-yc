@@ -25,6 +25,9 @@
 		"format": "prettier nodes credentials --write",
 		"lint": "eslint nodes credentials package.json",
 		"lintfix": "eslint nodes credentials package.json --fix",
+		"test": "jest",
+		"test:watch": "jest --watch",
+		"test:coverage": "jest --coverage",
 		"prepublishOnly": "npm run build && npm run lint -c .eslintrc.prepublish.js nodes credentials package.json"
 	},
 	"files": [
@@ -43,11 +46,14 @@
 			"dist/nodes/YandexCloudPostbox/YandexCloudPostbox.node.js",
 			"dist/nodes/YandexCloudMessageQueue/YandexCloudMessageQueue.node.js",
 			"dist/nodes/YandexCloudMessageQueue/YandexCloudMessageQueueTrigger.node.js",
+			"dist/nodes/YandexCloudDataStreams/YandexCloudDataStreams.node.js",
+			"dist/nodes/YandexCloudDataStreams/YandexCloudDataStreamsTrigger.node.js",
 			"dist/nodes/YandexCloudFunctions/YandexCloudFunctions.node.js",
 			"dist/nodes/YandexCloudObjectStorage/YandexCloudObjectStorage.node.js"
 		]
 	},
 	"devDependencies": {
+		"@types/jest": "^30.0.0",
 		"@types/lodash": "^4.17.20",
 		"@types/node": "24.7.0",
 		"@types/proxy-from-env": "^1.0.4",
@@ -58,10 +64,12 @@
 		"gulp": "^5.0.0",
 		"jest": "^30.2.0",
 		"prettier": "^3.5.3",
+		"ts-jest": "^29.4.5",
 		"tsc-alias": "^1.8.10",
 		"typescript": "^5.9.3"
 	},
 	"dependencies": {
+		"@aws-sdk/client-kinesis": "^3.908.0",
 		"@aws-sdk/client-s3": "^3.908.0",
 		"@aws-sdk/client-sesv2": "^3.821.0",
 		"@aws-sdk/client-sqs": "^3.821.0",
