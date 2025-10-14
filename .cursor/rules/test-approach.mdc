@@ -9,7 +9,7 @@ description: Step-by-step approach for writing tests using AI assistance
 ### Step 1: Create the Test File
 Decide which node you want to test and create a test file with the corresponding name in the test folder.
 
-Example: For a node in `nodes/NodeA/NodeA.node.ts`, create `nodes/NodeA/NodeA.node.test.ts`
+Example: For a node in `nodes/NodeA/NodeA.node.ts`, create `nodes/NodeA/test/NodeA.node.test.ts`
 
 ### Step 2: Use AI Assistance
 Send this prompt to your AI tool (Cursor, Copilot, Claude, etc.):
@@ -41,7 +41,7 @@ Workflow tests use predefined workflows in JSON format with NodeTestHarness. Thi
 
 ### Step 1: Create Test Files
 Create both:
-1. Test file: `nodes/NodeA/NodeA.node.test.ts`
+1. Test file: `nodes/NodeA/test/NodeA.node.test.ts`
 2. Workflow files: `nodes/NodeA/test/*.workflow.json`
 
 ### Step 2: Use AI with Credentials Schema

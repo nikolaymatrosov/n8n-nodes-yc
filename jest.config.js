@@ -6,8 +6,18 @@ module.exports = {
 		'**/__tests__/**/*.ts',
 		'**/?(*.)+(spec|test).ts',
 	],
+	testPathIgnorePatterns: [
+		'/node_modules/',
+		'/dist/',
+		'/docs/',
+	],
 	transform: {
-		'^.+\\.ts$': 'ts-jest',
+		'^.+\\.ts$': ['ts-jest', {
+			tsconfig: {
+				esModuleInterop: true,
+				allowSyntheticDefaultImports: true,
+			},
+		}],
 	},
 	collectCoverageFrom: [
 		'nodes/**/*.ts',
@@ -23,14 +33,6 @@ module.exports = {
 	moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'node'],
 	moduleNameMapper: {
 		'^@/(.*)$': '<rootDir>/$1',
-	},
-	globals: {
-		'ts-jest': {
-			tsconfig: {
-				esModuleInterop: true,
-				allowSyntheticDefaultImports: true,
-			},
-		},
 	},
 	testTimeout: 10000,
 	verbose: true,

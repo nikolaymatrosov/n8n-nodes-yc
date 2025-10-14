@@ -2,8 +2,8 @@ import { mock } from 'jest-mock-extended';
 import type { IExecuteFunctions } from 'n8n-workflow';
 import { NodeConnectionTypes } from 'n8n-workflow';
 
-import { getOptionalOutputParser } from './N8nOutputParser';
-import type { N8nStructuredOutputParser } from './N8nStructuredOutputParser';
+import { getOptionalOutputParser } from '../N8nOutputParser';
+import type { N8nStructuredOutputParser } from '../N8nStructuredOutputParser';
 
 describe('getOptionalOutputParser', () => {
 	let mockContext: jest.Mocked<IExecuteFunctions>;

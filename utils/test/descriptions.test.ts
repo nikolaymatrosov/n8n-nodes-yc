@@ -1,4 +1,4 @@
-import { buildInputSchemaField } from './descriptions';
+import { buildInputSchemaField } from '../descriptions';
 
 describe('buildInputSchemaField', () => {
 	it('should create input schema field with noDataExpression set to false', () => {

@@ -1,5 +1,5 @@
 import { KinesisClient, ListStreamsCommand } from '@aws-sdk/client-kinesis';
-import { createKinesisClient, formatStreamName, loadStreams } from './GenericFunctions';
+import { createKinesisClient, formatStreamName, loadStreams } from '../GenericFunctions';
 import type { ILoadOptionsFunctions } from 'n8n-workflow';
 
 // Mock AWS SDK
