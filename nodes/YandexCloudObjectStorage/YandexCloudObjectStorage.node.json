@@ -1,0 +1,5 @@
+{
+	"node": "dist/nodes/YandexCloudObjectStorage/YandexCloudObjectStorage.node.js",
+	"nodeVersion": "1"
+}
+

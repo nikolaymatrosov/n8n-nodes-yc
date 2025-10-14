@@ -43,7 +43,8 @@
 			"dist/nodes/YandexCloudPostbox/YandexCloudPostbox.node.js",
 			"dist/nodes/YandexCloudMessageQueue/YandexCloudMessageQueue.node.js",
 			"dist/nodes/YandexCloudMessageQueue/YandexCloudMessageQueueTrigger.node.js",
-			"dist/nodes/YandexCloudFunctions/YandexCloudFunctions.node.js"
+			"dist/nodes/YandexCloudFunctions/YandexCloudFunctions.node.js",
+			"dist/nodes/YandexCloudObjectStorage/YandexCloudObjectStorage.node.js"
 		]
 	},
 	"devDependencies": {
@@ -61,8 +62,10 @@
 		"typescript": "^5.9.3"
 	},
 	"dependencies": {
+		"@aws-sdk/client-s3": "^3.908.0",
 		"@aws-sdk/client-sesv2": "^3.821.0",
 		"@aws-sdk/client-sqs": "^3.821.0",
+		"@aws-sdk/s3-request-presigner": "^3.908.0",
 		"@langchain/community": "^0.3.22",
 		"@langchain/openai": "0.6.14",
 		"@n8n/json-schema-to-zod": "^1.1.0",
