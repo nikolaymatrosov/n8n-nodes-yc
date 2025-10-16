@@ -7,25 +7,25 @@ import type {
 import { NodeOperationError } from 'n8n-workflow';
 
 import {
-	ListBucketsCommand,
+	CopyObjectCommand,
 	CreateBucketCommand,
 	DeleteBucketCommand,
-	HeadBucketCommand,
-	PutBucketVersioningCommand,
-	PutBucketAclCommand,
-	GetBucketLocationCommand,
-	PutObjectCommand,
-	GetObjectCommand,
 	DeleteObjectCommand,
-	ListObjectsV2Command,
+	GetBucketLocationCommand,
+	GetObjectCommand,
+	HeadBucketCommand,
 	HeadObjectCommand,
-	CopyObjectCommand,
+	ListBucketsCommand,
+	ListObjectsV2Command,
+	PutBucketAclCommand,
+	PutBucketVersioningCommand,
 	PutObjectAclCommand,
+	PutObjectCommand,
 } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { Readable } from 'stream';
 
-import { loadBuckets, loadObjects, createS3Client, streamToBuffer } from './GenericFunctions';
+import { createS3Client, loadBuckets, loadObjects, streamToBuffer } from './GenericFunctions';
 
 export class YandexCloudObjectStorage implements INodeType {
 	description: INodeTypeDescription = {
@@ -355,7 +355,6 @@ export class YandexCloudObjectStorage implements INodeType {
 				displayName: 'Object Key',
 				name: 'objectKey',
 				type: 'string',
-				typeOptions: { password: true },
 				required: true,
 				displayOptions: {
 					show: {
@@ -511,7 +510,6 @@ export class YandexCloudObjectStorage implements INodeType {
 										displayName: 'Key',
 										name: 'key',
 										type: 'string',
-										typeOptions: { password: true },
 										default: '',
 										description: 'Metadata key',
 									},
@@ -568,7 +566,6 @@ export class YandexCloudObjectStorage implements INodeType {
 				displayName: 'Object Key',
 				name: 'objectKey',
 				type: 'string',
-				typeOptions: { password: true },
 				required: true,
 				displayOptions: {
 					show: {
@@ -731,7 +728,6 @@ export class YandexCloudObjectStorage implements INodeType {
 				displayName: 'Source Object Key',
 				name: 'sourceObjectKey',
 				type: 'string',
-				typeOptions: { password: true },
 				required: true,
 				displayOptions: {
 					show: {
@@ -777,7 +773,6 @@ export class YandexCloudObjectStorage implements INodeType {
 				displayName: 'Destination Object Key',
 				name: 'destinationObjectKey',
 				type: 'string',
-				typeOptions: { password: true },
 				required: true,
 				displayOptions: {
 					show: {
@@ -1015,7 +1010,10 @@ export class YandexCloudObjectStorage implements INodeType {
 								contentType = 'application/json';
 							}
 						} else {
-							throw new NodeOperationError(this.getNode(), `Unknown input data type: ${inputDataType}`);
+							throw new NodeOperationError(
+								this.getNode(),
+								`Unknown input data type: ${inputDataType}`,
+							);
 						}
 
 						const params: any = {
@@ -1310,4 +1308,3 @@ export class YandexCloudObjectStorage implements INodeType {
 		return [returnData];
 	}
 }
-

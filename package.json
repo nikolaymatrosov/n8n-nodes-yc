@@ -1,6 +1,6 @@
 {
 	"name": "@nikolaymatrosov/n8n-nodes-yc",
-	"version": "0.1.0",
+	"version": "0.1.1",
 	"description": "n8n nodes for Yandex Cloud services",
 	"keywords": [
 		"n8n-community-node-package"
