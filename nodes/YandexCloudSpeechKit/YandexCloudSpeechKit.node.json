@@ -1,0 +1,18 @@
+{
+	"node": "dist/nodes/YandexCloudSpeechKit/YandexCloudSpeechKit.node.js",
+	"codex": {
+		"categories": ["AI", "Communication"],
+		"subcategories": {
+			"AI": ["Text to Speech"],
+			"Communication": ["Audio"]
+		},
+		"resources": {
+			"primaryDocumentation": [
+				{
+					"url": "https://cloud.yandex.com/en/docs/speechkit/tts/"
+				}
+			]
+		}
+	}
+}
+
