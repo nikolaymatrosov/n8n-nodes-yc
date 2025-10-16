@@ -7,7 +7,7 @@ export async function loadQueues(
 	this: ILoadOptionsFunctions,
 	filter?: string,
 ): Promise<INodeListSearchResult> {
-	const credentials = await this.getCredentials('yandexCloudStatic');
+	const credentials = await this.getCredentials('yandexCloudStaticApi');
 
 	// Create SQS client
 	const client = new SQSClient({

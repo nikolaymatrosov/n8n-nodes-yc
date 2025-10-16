@@ -30,7 +30,7 @@ export class YandexCloudMessageQueueTrigger implements INodeType {
 		outputs: [NodeConnectionTypes.Main],
 		credentials: [
 			{
-				name: 'yandexCloudStatic',
+				name: 'yandexCloudStaticApi',
 				required: true,
 			},
 		],
@@ -129,7 +129,7 @@ export class YandexCloudMessageQueueTrigger implements INodeType {
 	};
 
 	async poll(this: IPollFunctions): Promise<INodeExecutionData[][] | null> {
-		const credentials = await this.getCredentials('yandexCloudStatic');
+		const credentials = await this.getCredentials('yandexCloudStaticApi');
 		const queueUrl = this.getNodeParameter('queueUrl', '', { extractValue: true }) as string;
 		const options = this.getNodeParameter('options', {}) as {
 			batchSize?: number;

@@ -43,7 +43,7 @@ export class YandexCloudObjectStorage implements INodeType {
 		outputs: ['main'],
 		credentials: [
 			{
-				name: 'yandexCloudStatic',
+				name: 'yandexCloudStaticApi',
 				required: true,
 			},
 		],
@@ -355,6 +355,7 @@ export class YandexCloudObjectStorage implements INodeType {
 				displayName: 'Object Key',
 				name: 'objectKey',
 				type: 'string',
+				typeOptions: { password: true },
 				required: true,
 				displayOptions: {
 					show: {
@@ -510,6 +511,7 @@ export class YandexCloudObjectStorage implements INodeType {
 										displayName: 'Key',
 										name: 'key',
 										type: 'string',
+										typeOptions: { password: true },
 										default: '',
 										description: 'Metadata key',
 									},
@@ -566,6 +568,7 @@ export class YandexCloudObjectStorage implements INodeType {
 				displayName: 'Object Key',
 				name: 'objectKey',
 				type: 'string',
+				typeOptions: { password: true },
 				required: true,
 				displayOptions: {
 					show: {
@@ -706,7 +709,6 @@ export class YandexCloudObjectStorage implements INodeType {
 						operation: ['copy', 'move'],
 					},
 				},
-				description: 'The source bucket',
 				modes: [
 					{
 						displayName: 'From List',
@@ -729,6 +731,7 @@ export class YandexCloudObjectStorage implements INodeType {
 				displayName: 'Source Object Key',
 				name: 'sourceObjectKey',
 				type: 'string',
+				typeOptions: { password: true },
 				required: true,
 				displayOptions: {
 					show: {
@@ -752,7 +755,6 @@ export class YandexCloudObjectStorage implements INodeType {
 						operation: ['copy', 'move'],
 					},
 				},
-				description: 'The destination bucket',
 				modes: [
 					{
 						displayName: 'From List',
@@ -775,6 +777,7 @@ export class YandexCloudObjectStorage implements INodeType {
 				displayName: 'Destination Object Key',
 				name: 'destinationObjectKey',
 				type: 'string',
+				typeOptions: { password: true },
 				required: true,
 				displayOptions: {
 					show: {
@@ -803,7 +806,7 @@ export class YandexCloudObjectStorage implements INodeType {
 		const operation = this.getNodeParameter('operation', 0) as string;
 
 		// Get credentials
-		const credentials = await this.getCredentials('yandexCloudStatic');
+		const credentials = await this.getCredentials('yandexCloudStaticApi');
 
 		// Create S3 client
 		const client = createS3Client({

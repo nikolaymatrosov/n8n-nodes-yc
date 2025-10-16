@@ -240,7 +240,7 @@ describe('YandexCloudDataStreams - GenericFunctions', () => {
 
 			await loadStreams.call(mockContext as ILoadOptionsFunctions);
 
-			expect(mockContext.getCredentials).toHaveBeenCalledWith('yandexCloudStatic');
+			expect(mockContext.getCredentials).toHaveBeenCalledWith('yandexCloudStaticApi');
 		});
 	});
 });

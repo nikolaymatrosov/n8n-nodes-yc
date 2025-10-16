@@ -43,7 +43,7 @@ describe('YandexCloudDataStreams Node', () => {
 		it('should have correct credentials configuration', () => {
 			expect(node.description.credentials).toHaveLength(1);
 			expect(node.description.credentials?.[0]).toEqual({
-				name: 'yandexCloudStatic',
+				name: 'yandexCloudStaticApi',
 				required: true,
 			});
 		});

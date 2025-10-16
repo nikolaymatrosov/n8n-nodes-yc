@@ -32,7 +32,7 @@ export class YandexCloudDataStreams implements INodeType {
 		outputs: ['main'],
 		credentials: [
 			{
-				name: 'yandexCloudStatic',
+				name: 'yandexCloudStaticApi',
 				required: true,
 			},
 		],
@@ -218,6 +218,7 @@ export class YandexCloudDataStreams implements INodeType {
 				displayName: 'Partition Key',
 				name: 'partitionKey',
 				type: 'string',
+				typeOptions: { password: true },
 				required: true,
 				displayOptions: {
 					show: {
@@ -246,6 +247,7 @@ export class YandexCloudDataStreams implements INodeType {
 						displayName: 'Explicit Hash Key',
 						name: 'explicitHashKey',
 						type: 'string',
+						typeOptions: { password: true },
 						default: '',
 						description: 'Hash value for shard routing',
 					},
@@ -319,6 +321,7 @@ export class YandexCloudDataStreams implements INodeType {
 								displayName: 'Partition Key',
 								name: 'partitionKey',
 								type: 'string',
+								typeOptions: { password: true },
 								default: '',
 								description: 'Key to determine which shard to send data to',
 							},
@@ -326,6 +329,7 @@ export class YandexCloudDataStreams implements INodeType {
 								displayName: 'Explicit Hash Key',
 								name: 'explicitHashKey',
 								type: 'string',
+								typeOptions: { password: true },
 								default: '',
 								description: 'Hash value for shard routing (optional)',
 							},
@@ -352,6 +356,7 @@ export class YandexCloudDataStreams implements INodeType {
 				displayName: 'Partition Key Field',
 				name: 'partitionKeyField',
 				type: 'string',
+				typeOptions: { password: true },
 				required: true,
 				displayOptions: {
 					show: {
@@ -368,6 +373,7 @@ export class YandexCloudDataStreams implements INodeType {
 				displayName: 'Explicit Hash Key Field',
 				name: 'explicitHashKeyField',
 				type: 'string',
+				typeOptions: { password: true },
 				displayOptions: {
 					show: {
 						resource: ['record'],
@@ -402,10 +408,9 @@ export class YandexCloudDataStreams implements INodeType {
 						type: 'number',
 						typeOptions: {
 							minValue: 1,
-							maxValue: 10000,
 						},
-						default: 100,
-						description: 'Maximum number of streams to return',
+						default: 50,
+						description: 'Max number of results to return',
 					},
 				],
 			},
@@ -425,7 +430,7 @@ export class YandexCloudDataStreams implements INodeType {
 		const operation = this.getNodeParameter('operation', 0) as string;
 
 		// Get credentials
-		const credentials = await this.getCredentials('yandexCloudStatic');
+		const credentials = await this.getCredentials('yandexCloudStaticApi');
 
 		// Create Kinesis client
 		const client = createKinesisClient({

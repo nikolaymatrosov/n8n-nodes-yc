@@ -32,7 +32,7 @@ export class YandexCloudDataStreamsTrigger implements INodeType {
 		outputs: [NodeConnectionTypes.Main],
 		credentials: [
 			{
-				name: 'yandexCloudStatic',
+				name: 'yandexCloudStaticApi',
 				required: true,
 			},
 		],
@@ -68,92 +68,92 @@ export class YandexCloudDataStreamsTrigger implements INodeType {
 				type: 'collection',
 				placeholder: 'Add Option',
 				default: {},
-				options: [
-					{
-						displayName: 'Iterator Type',
-						name: 'iteratorType',
-						type: 'options',
-						options: [
-							{
-								name: 'Latest',
-								value: 'LATEST',
-								description: 'Start reading from the latest records',
-							},
-							{
-								name: 'Trim Horizon',
-								value: 'TRIM_HORIZON',
-								description: 'Start reading from the oldest available records',
-							},
-							{
-								name: 'At Timestamp',
-								value: 'AT_TIMESTAMP',
-								description: 'Start reading from a specific timestamp',
-							},
-						],
-						default: 'LATEST',
-						description: 'Where to start reading records from',
-					},
-					{
-						displayName: 'Timestamp',
-						name: 'timestamp',
-						type: 'dateTime',
-						displayOptions: {
-							show: {
-								iteratorType: ['AT_TIMESTAMP'],
-							},
+			options: [
+				{
+					displayName: 'Iterator Type',
+					name: 'iteratorType',
+					type: 'options',
+					options: [
+						{
+							name: 'Latest',
+							value: 'LATEST',
+							description: 'Start reading from the latest records',
 						},
-						default: '',
-						description: 'Timestamp to start reading from (only for AT_TIMESTAMP iterator type)',
-					},
-					{
-						displayName: 'Max Records Per Poll',
-						name: 'maxRecordsPerPoll',
-						type: 'number',
-						typeOptions: {
-							minValue: 1,
-							maxValue: 10000,
+						{
+							name: 'Trim Horizon',
+							value: 'TRIM_HORIZON',
+							description: 'Start reading from the oldest available records',
 						},
-						default: 100,
-						description: 'Maximum records to fetch per shard in one poll',
-					},
-					{
-						displayName: 'Shard Iteration Strategy',
-						name: 'shardIterationStrategy',
-						type: 'options',
-						options: [
-							{
-								name: 'Round Robin',
-								value: 'roundRobin',
-								description: 'Cycle through shards one at a time',
-							},
-							{
-								name: 'All Shards',
-								value: 'allShards',
-								description: 'Poll all shards each time',
-							},
-							{
-								name: 'Specific Shard',
-								value: 'specificShard',
-								description: 'Poll only one specific shard',
-							},
-						],
-						default: 'allShards',
-						description: 'How to iterate through shards',
-					},
-					{
-						displayName: 'Shard ID',
-						name: 'shardId',
-						type: 'string',
-						displayOptions: {
-							show: {
-								shardIterationStrategy: ['specificShard'],
-							},
+						{
+							name: 'At Timestamp',
+							value: 'AT_TIMESTAMP',
+							description: 'Start reading from a specific timestamp',
 						},
-						default: '',
-						placeholder: 'shard-000000',
-						description: 'Specific shard ID to poll (only for Specific Shard strategy)',
+					],
+					default: 'LATEST',
+					description: 'Where to start reading records from',
+				},
+				{
+					displayName: 'Max Records Per Poll',
+					name: 'maxRecordsPerPoll',
+					type: 'number',
+					typeOptions: {
+						minValue: 1,
+						maxValue: 10000,
 					},
-				],
+					default: 100,
+					description: 'Maximum records to fetch per shard in one poll',
+				},
+				{
+					displayName: 'Shard ID',
+					name: 'shardId',
+					type: 'string',
+					displayOptions: {
+						show: {
+							shardIterationStrategy: ['specificShard'],
+						},
+					},
+					default: '',
+					placeholder: 'shard-000000',
+					description: 'Specific shard ID to poll (only for Specific Shard strategy)',
+				},
+				{
+					displayName: 'Shard Iteration Strategy',
+					name: 'shardIterationStrategy',
+					type: 'options',
+					options: [
+						{
+							name: 'Round Robin',
+							value: 'roundRobin',
+							description: 'Cycle through shards one at a time',
+						},
+						{
+							name: 'All Shards',
+							value: 'allShards',
+							description: 'Poll all shards each time',
+						},
+						{
+							name: 'Specific Shard',
+							value: 'specificShard',
+							description: 'Poll only one specific shard',
+						},
+					],
+					default: 'allShards',
+					description: 'How to iterate through shards',
+				},
+				{
+					displayName: 'Timestamp',
+					name: 'timestamp',
+					type: 'dateTime',
+					displayOptions: {
+						show: {
+							iteratorType: ['AT_TIMESTAMP'],
+						},
+					},
+					default: '',
+					description: 'Timestamp to start reading from (only for AT_TIMESTAMP iterator type)',
+				},
+			],
 			},
 			{
 				displayName: 'Options',
@@ -188,7 +188,7 @@ export class YandexCloudDataStreamsTrigger implements INodeType {
 	};
 
 	async poll(this: IPollFunctions): Promise<INodeExecutionData[][] | null> {
-		const credentials = await this.getCredentials('yandexCloudStatic');
+		const credentials = await this.getCredentials('yandexCloudStaticApi');
 		const streamName = this.getNodeParameter('streamName', '', { extractValue: true }) as string;
 		const pollingOptions = this.getNodeParameter('pollingOptions', {}) as {
 			iteratorType?: ShardIteratorType;

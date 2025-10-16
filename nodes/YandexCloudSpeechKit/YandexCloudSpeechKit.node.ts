@@ -69,7 +69,7 @@ export class YandexCloudSpeechKit implements INodeType {
 		outputs: ['main'],
 		credentials: [
 			{
-				name: 'yandexCloudAuthorized',
+				name: 'yandexCloudAuthorizedApi',
 				required: true,
 			},
 		],
@@ -337,7 +337,7 @@ export class YandexCloudSpeechKit implements INodeType {
 		const operation = this.getNodeParameter('operation', 0) as string;
 
 		// Get credentials
-		const credentials = await this.getCredentials('yandexCloudAuthorized');
+		const credentials = await this.getCredentials('yandexCloudAuthorizedApi');
 
 		// Parse service account JSON
 		let serviceAccountJson: IIAmCredentials;
@@ -346,13 +346,22 @@ export class YandexCloudSpeechKit implements INodeType {
 
 			// Validate required fields
 			if (!serviceAccountJson.serviceAccountId) {
-				throw new Error('service_account_id or serviceAccountId is required');
+				throw new NodeOperationError(
+					this.getNode(),
+					'service_account_id or serviceAccountId is required',
+				);
 			}
 			if (!serviceAccountJson.accessKeyId) {
-				throw new Error('id or accessKeyId is required');
+				throw new NodeOperationError(
+					this.getNode(),
+					'id or accessKeyId is required',
+				);
 			}
 			if (!serviceAccountJson.privateKey) {
-				throw new Error('private_key or privateKey is required');
+				throw new NodeOperationError(
+					this.getNode(),
+					'private_key or privateKey is required',
+				);
 			}
 		} catch (error) {
 			throw new NodeOperationError(

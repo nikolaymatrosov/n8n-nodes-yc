@@ -3,10 +3,10 @@ import type {
 	INodeProperties,
 } from 'n8n-workflow';
 
-export class YandexCloudStatic implements ICredentialType {
-	name = 'yandexCloudStatic';
+export class YandexCloudStaticApi implements ICredentialType {
+	name = 'yandexCloudStaticApi';
 
-	displayName = 'Yandex Cloud Static Access Key';
+	displayName = 'Yandex Cloud Static Access Key API';
 
 	documentationUrl = 'https://yandex.cloud/ru/docs/iam/concepts/authorization/access-key';
 

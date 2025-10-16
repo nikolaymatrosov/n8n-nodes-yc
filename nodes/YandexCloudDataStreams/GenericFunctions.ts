@@ -50,7 +50,7 @@ export async function loadStreams(
 	this: ILoadOptionsFunctions,
 	filter?: string,
 ): Promise<INodeListSearchResult> {
-	const credentials = await this.getCredentials('yandexCloudStatic');
+	const credentials = await this.getCredentials('yandexCloudStaticApi');
 
 	const client = createKinesisClient({
 		accessKeyId: credentials.accessKeyId as string,

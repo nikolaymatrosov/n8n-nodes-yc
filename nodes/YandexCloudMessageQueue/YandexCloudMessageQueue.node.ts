@@ -25,7 +25,7 @@ export class YandexCloudMessageQueue implements INodeType {
 		outputs: ['main'],
 		credentials: [
 			{
-				name: 'yandexCloudStatic',
+				name: 'yandexCloudStaticApi',
 				required: true,
 			},
 		],
@@ -227,7 +227,7 @@ export class YandexCloudMessageQueue implements INodeType {
 		const operation = this.getNodeParameter('operation', 0) as string;
 
 		// Get credentials
-		const credentials = await this.getCredentials('yandexCloudStatic');
+		const credentials = await this.getCredentials('yandexCloudStaticApi');
 
 		// Create SQS client
 		const client = new SQSClient({

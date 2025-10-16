@@ -52,7 +52,7 @@ describe('YandexCloudMessageQueue Node', () => {
 		it('should have correct credentials configuration', () => {
 			expect(node.description.credentials).toHaveLength(1);
 			expect(node.description.credentials?.[0]).toEqual({
-				name: 'yandexCloudStatic',
+				name: 'yandexCloudStaticApi',
 				required: true,
 			});
 		});
@@ -308,7 +308,7 @@ describe('YandexCloudMessageQueue Node', () => {
 										value: 'John Doe',
 									},
 									{
-										name: 'priority',
+										name: 'Priority',
 										dataType: 'Number',
 										value: '5',
 									},

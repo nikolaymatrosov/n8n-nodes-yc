@@ -37,5 +37,5 @@
 		"types/**/*.ts",
 		"package.json"
 	],
-	"exclude": ["nodes/**/*.test.ts", "utils/**/*.test.ts", "utils/**/tests/**", "test/**"]
+	"exclude": []
 }

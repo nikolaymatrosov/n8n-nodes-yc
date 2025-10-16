@@ -3,8 +3,8 @@ import type {
 	INodeProperties,
 } from 'n8n-workflow';
 
-export class YandexCloudAuthorized implements ICredentialType {
-	name = 'yandexCloudAuthorized';
+export class YandexCloudAuthorizedApi implements ICredentialType {
+	name = 'yandexCloudAuthorizedApi';
 
 	displayName = 'Yandex Cloud Authorized API';
 

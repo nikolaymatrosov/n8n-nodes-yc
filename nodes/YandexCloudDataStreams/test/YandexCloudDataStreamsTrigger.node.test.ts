@@ -51,10 +51,10 @@ describe('YandexCloudDataStreamsTrigger Node', () => {
 			expect(node.description.outputs).toHaveLength(1);
 		});
 
-		it('should require yandexCloudStatic credentials', () => {
+		it('should require yandexCloudStaticApi credentials', () => {
 			expect(node.description.credentials).toHaveLength(1);
 			expect(node.description.credentials?.[0]).toEqual({
-				name: 'yandexCloudStatic',
+				name: 'yandexCloudStaticApi',
 				required: true,
 			});
 		});

@@ -41,7 +41,7 @@ export async function loadBuckets(
 	this: ILoadOptionsFunctions,
 	filter?: string,
 ): Promise<INodeListSearchResult> {
-	const credentials = await this.getCredentials('yandexCloudStatic');
+	const credentials = await this.getCredentials('yandexCloudStaticApi');
 
 	const client = createS3Client({
 		accessKeyId: credentials.accessKeyId as string,
@@ -84,7 +84,7 @@ export async function loadObjects(
 	this: ILoadOptionsFunctions,
 	filter?: string,
 ): Promise<INodeListSearchResult> {
-	const credentials = await this.getCredentials('yandexCloudStatic');
+	const credentials = await this.getCredentials('yandexCloudStaticApi');
 
 	// Get bucket name from node parameters
 	let bucketName: string;

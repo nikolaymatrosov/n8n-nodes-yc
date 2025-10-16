@@ -51,7 +51,7 @@ export class YandexCloudWorkflows implements INodeType {
 		outputs: ['main'],
 		credentials: [
 			{
-				name: 'yandexCloudAuthorized',
+				name: 'yandexCloudAuthorizedApi',
 				required: true,
 			},
 		],
@@ -103,7 +103,7 @@ export class YandexCloudWorkflows implements INodeType {
 			description: 'Folder ID to list workflows from. Defaults to the folder ID from credentials.',
 		},
 			{
-				displayName: 'Workflow',
+				displayName: 'Workflow Name or ID',
 				name: 'workflowId',
 				type: 'options',
 				typeOptions: {
@@ -118,7 +118,7 @@ export class YandexCloudWorkflows implements INodeType {
 					},
 				},
 				default: '',
-				description: 'The workflow to execute',
+				description: 'The workflow to execute. Choose from the list, or specify an ID using an <a href="https://docs.n8n.io/code/expressions/">expression</a>.',
 			},
 			{
 				displayName: 'Input Data',
@@ -142,7 +142,7 @@ export class YandexCloudWorkflows implements INodeType {
 	methods = {
 		loadOptions: {
 			async loadWorkflows(this: ILoadOptionsFunctions): Promise<INodePropertyOptions[]> {
-				const credentials = await this.getCredentials('yandexCloudAuthorized');
+				const credentials = await this.getCredentials('yandexCloudAuthorizedApi');
 
 				// Parse service account JSON
 				let serviceAccountJson: IIAmCredentials;
@@ -151,13 +151,22 @@ export class YandexCloudWorkflows implements INodeType {
 
 					// Validate required fields
 					if (!serviceAccountJson.serviceAccountId) {
-						throw new Error('service_account_id or serviceAccountId is required');
+						throw new NodeOperationError(
+							this.getNode(),
+							'service_account_id or serviceAccountId is required',
+						);
 					}
 					if (!serviceAccountJson.accessKeyId) {
-						throw new Error('id or accessKeyId is required');
+						throw new NodeOperationError(
+							this.getNode(),
+							'id or accessKeyId is required',
+						);
 					}
 					if (!serviceAccountJson.privateKey) {
-						throw new Error('private_key or privateKey is required');
+						throw new NodeOperationError(
+							this.getNode(),
+							'private_key or privateKey is required',
+						);
 					}
 				} catch (error) {
 					throw new NodeOperationError(
@@ -210,7 +219,7 @@ export class YandexCloudWorkflows implements INodeType {
 		const operation = this.getNodeParameter('operation', 0) as string;
 
 		// Get credentials
-		const credentials = await this.getCredentials('yandexCloudAuthorized');
+		const credentials = await this.getCredentials('yandexCloudAuthorizedApi');
 
 		// Parse service account JSON
 		let serviceAccountJson: IIAmCredentials;
@@ -219,13 +228,22 @@ export class YandexCloudWorkflows implements INodeType {
 
 			// Validate required fields
 			if (!serviceAccountJson.serviceAccountId) {
-				throw new Error('service_account_id or serviceAccountId is required');
+				throw new NodeOperationError(
+					this.getNode(),
+					'service_account_id or serviceAccountId is required',
+				);
 			}
 			if (!serviceAccountJson.accessKeyId) {
-				throw new Error('id or accessKeyId is required');
+				throw new NodeOperationError(
+					this.getNode(),
+					'id or accessKeyId is required',
+				);
 			}
 			if (!serviceAccountJson.privateKey) {
-				throw new Error('private_key or privateKey is required');
+				throw new NodeOperationError(
+					this.getNode(),
+					'private_key or privateKey is required',
+				);
 			}
 		} catch (error) {
 			throw new NodeOperationError(
