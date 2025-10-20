@@ -94,6 +94,8 @@
 		"undici": "^7.16.0"
 	},
 	"peerDependencies": {
-		"n8n-workflow": "*"
+		"n8n-workflow": "*",
+    "@langchain/anthropic": "<1.0.0",
+    "@langchain/core": "<1.0.0"
 	}
 }
