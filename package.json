@@ -1,6 +1,6 @@
 {
 	"name": "@nikolaymatrosov/n8n-nodes-yc",
-	"version": "0.1.1",
+	"version": "0.1.2",
 	"description": "n8n nodes for Yandex Cloud services",
 	"keywords": [
 		"n8n-community-node-package"
@@ -77,17 +77,17 @@
 		"typescript": "^5.9.3"
 	},
 	"dependencies": {
-		"@aws-sdk/client-kinesis": "^3.908.0",
-		"@aws-sdk/client-s3": "^3.908.0",
-		"@aws-sdk/client-sesv2": "^3.821.0",
-		"@aws-sdk/client-sqs": "^3.821.0",
-		"@aws-sdk/s3-request-presigner": "^3.908.0",
-		"@langchain/community": "^0.3.22",
-		"@langchain/openai": "0.6.14",
+		"@aws-sdk/client-kinesis": "^3.913.0",
+		"@aws-sdk/client-s3": "^3.913.0",
+		"@aws-sdk/client-sesv2": "^3.913.0",
+		"@aws-sdk/client-sqs": "^3.913.0",
+		"@aws-sdk/s3-request-presigner": "^3.913.0",
+		"@langchain/community": "^0.3.33",
+		"@langchain/openai": "^0.6.16",
 		"@n8n/json-schema-to-zod": "^1.1.0",
 		"@yandex-cloud/nodejs-sdk": "3.0.0-beta.1",
 		"generate-schema": "^2.6.0",
-		"langchain": "0.3.35",
+		"langchain": "^0.3.33",
 		"lodash": "^4.17.21",
 		"proxy-from-env": "^1.1.0",
 		"tmp-promise": "^3.0.3",
