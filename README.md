@@ -33,7 +33,7 @@ Integration package for working with Yandex Cloud services in n8n.
 | **Timeout** | Number | Request timeout in milliseconds (default 60000) |
 | **Max Retries** | Number | Maximum number of retry attempts (default 2) |
 
-**Authentication:** Uses API key via `yandexCloudGptApi` credentials with folder ID passed in `x-folder-id` header. Supports base API URL configuration (default `https://api.studio.yandex-team.ru/v1`). The node is compatible with OpenAI API protocol, allowing use of standard LangChain tools. Ideal for creating chatbots, RAG systems, and AI agents using Russian language models.
+**Authentication:** Uses API key via `yandexCloudGptApi` credentials with folder ID passed in `x-folder-id` header. Supports base API URL configuration. The node is compatible with OpenAI API protocol, allowing use of standard LangChain tools. Ideal for creating chatbots, RAG systems, and AI agents using Russian language models.
 
 ---
 
