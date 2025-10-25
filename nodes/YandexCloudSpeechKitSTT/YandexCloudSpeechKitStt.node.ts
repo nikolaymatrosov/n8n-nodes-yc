@@ -166,89 +166,94 @@ export class YandexCloudSpeechKitStt implements INodeType {
 						name: 'Spanish',
 						value: 'es-ES',
 					},
-					{
-						name: 'Swedish',
-						value: 'sv-SE',
-					},
-					{
-						name: 'Turkish',
-						value: 'tr-TR',
-					},
-					{
-						name: 'Uzbek (Latin)',
-						value: 'uz-UZ',
-					},
-				],
-				default: 'ru-RU',
-				description: 'Language code for recognition',
+			{
+				name: 'Swedish',
+				value: 'sv-SE',
 			},
 			{
-				displayName: 'Recognition Options',
-				name: 'recognitionOptions',
-				type: 'collection',
-				placeholder: 'Add Option',
-				default: {},
-				displayOptions: {
-					show: {
-						operation: ['recognizeAudio'],
-					},
-				},
-				options: [
-					{
-						displayName: 'Audio Channel Count',
-						name: 'audioChannelCount',
-						type: 'number',
-						default: 1,
-						description: 'Number of audio channels',
-						typeOptions: {
-							minValue: 1,
-							maxValue: 8,
-						},
-					},
-					{
-						displayName: 'Audio Format',
-						name: 'audioFormat',
-						type: 'options',
-						options: [
-							{
-								name: 'LPCM',
-								value: 'LPCM',
-							},
-							{
-								name: 'OGG Opus',
-								value: 'OGG_OPUS',
-							},
-							{
-								name: 'MP3',
-								value: 'MP3',
-							},
-						],
-						default: 'LPCM',
-						description: 'Audio file format',
-					},
-					{
-						displayName: 'Literature Text',
-						name: 'literatureText',
-						type: 'boolean',
-						default: false,
-						description: 'Whether to use literature text normalization',
-					},
-					{
-						displayName: 'Profanity Filter',
-						name: 'profanityFilter',
-						type: 'boolean',
-						default: false,
-						description: 'Whether to filter profanity in results',
-					},
-					{
-						displayName: 'Sample Rate',
-						name: 'sampleRate',
-						type: 'number',
-						default: 8000,
-						description: 'Sample rate in Hz (e.g., 8000, 16000, 48000)',
-					},
-				],
+				name: 'Turkish',
+				value: 'tr-TR',
 			},
+			{
+				name: 'Uzbek (Latin)',
+				value: 'uz-UZ',
+			},
+		],
+		default: 'ru-RU',
+		description: 'Language code for recognition',
+	},
+	{
+		displayName: 'Audio Format',
+		name: 'audioFormat',
+		type: 'options',
+		displayOptions: {
+			show: {
+				operation: ['recognizeAudio'],
+			},
+		},
+		options: [
+			{
+				name: 'LPCM',
+				value: 'LPCM',
+			},
+			{
+				name: 'OGG Opus',
+				value: 'OGG_OPUS',
+			},
+			{
+				name: 'MP3',
+				value: 'MP3',
+			},
+		],
+		default: 'LPCM',
+		description: 'Audio file format',
+	},
+	{
+		displayName: 'Recognition Options',
+		name: 'recognitionOptions',
+		type: 'collection',
+		placeholder: 'Add Option',
+		default: {},
+		displayOptions: {
+			show: {
+				operation: ['recognizeAudio'],
+			},
+		},
+		options: [
+			{
+				displayName: 'Audio Channel Count',
+				name: 'audioChannelCount',
+				type: 'number',
+				default: 1,
+				description: 'Number of audio channels',
+				typeOptions: {
+					minValue: 1,
+					maxValue: 8,
+				},
+			},
+			{
+				displayName: 'Literature Text',
+				name: 'literatureText',
+				type: 'boolean',
+				default: false,
+				description: 'Whether to use literature text normalization',
+			},
+			{
+				displayName: 'Profanity Filter',
+				name: 'profanityFilter',
+				type: 'boolean',
+				default: false,
+				description: 'Whether to filter profanity in results',
+			},
+			{
+				displayName: 'Sample Rate',
+				name: 'sampleRate',
+				type: 'number',
+				default: 8000,
+				description: 'Sample rate in Hz (e.g., 8000, 16000, 48000)',
+			},
+		],
+	},
 
 			// =====================================
 			// STT: Get Recognition Results
@@ -360,16 +365,16 @@ export class YandexCloudSpeechKitStt implements INodeType {
 				// =====================================
 				// STT: Recognize Audio
 				// =====================================
-				if (operation === 'recognizeAudio') {
-					const audioUrl = this.getNodeParameter('audioUrl', i) as string;
-					const languageCode = this.getNodeParameter('languageCode', i) as string;
-					const recognitionOptions = this.getNodeParameter('recognitionOptions', i, {}) as {
-						audioFormat?: string;
-						sampleRate?: number;
-						audioChannelCount?: number;
-						profanityFilter?: boolean;
-						literatureText?: boolean;
-					};
+			if (operation === 'recognizeAudio') {
+				const audioUrl = this.getNodeParameter('audioUrl', i) as string;
+				const languageCode = this.getNodeParameter('languageCode', i) as string;
+				const audioFormat = this.getNodeParameter('audioFormat', i) as string;
+				const recognitionOptions = this.getNodeParameter('recognitionOptions', i, {}) as {
+					sampleRate?: number;
+					audioChannelCount?: number;
+					profanityFilter?: boolean;
+					literatureText?: boolean;
+				};
 
 					// Model is hardcoded to 'general'
 					const model = 'general';
@@ -380,33 +385,33 @@ export class YandexCloudSpeechKitStt implements INodeType {
 						'stt.api.cloud.yandex.net:443',
 					);
 
-					// Build audio format options
-					let audioFormat: stt.AudioFormatOptions | undefined;
-					if (recognitionOptions.audioFormat) {
-						const formatMap: Record<string, any> = {
-							LPCM: {
-								rawAudio: stt.RawAudio.fromPartial({
-									audioEncoding: stt.RawAudio_AudioEncoding.LINEAR16_PCM,
-									sampleRateHertz: recognitionOptions.sampleRate || 8000,
-									audioChannelCount: recognitionOptions.audioChannelCount || 1,
-								}),
-							},
-							OGG_OPUS: {
-								containerAudio: stt.ContainerAudio.fromPartial({
-									containerAudioType: stt.ContainerAudio_ContainerAudioType.OGG_OPUS,
-								}),
-							},
-							MP3: {
-								containerAudio: stt.ContainerAudio.fromPartial({
-									containerAudioType: stt.ContainerAudio_ContainerAudioType.MP3,
-								}),
-							},
-						};
+				// Build audio format options
+				let audioFormatOptions: stt.AudioFormatOptions | undefined;
+				if (audioFormat) {
+					const formatMap: Record<string, any> = {
+						LPCM: {
+							rawAudio: stt.RawAudio.fromPartial({
+								audioEncoding: stt.RawAudio_AudioEncoding.LINEAR16_PCM,
+								sampleRateHertz: recognitionOptions.sampleRate || 8000,
+								audioChannelCount: recognitionOptions.audioChannelCount || 1,
+							}),
+						},
+						OGG_OPUS: {
+							containerAudio: stt.ContainerAudio.fromPartial({
+								containerAudioType: stt.ContainerAudio_ContainerAudioType.OGG_OPUS,
+							}),
+						},
+						MP3: {
+							containerAudio: stt.ContainerAudio.fromPartial({
+								containerAudioType: stt.ContainerAudio_ContainerAudioType.MP3,
+							}),
+						},
+					};
 
-						audioFormat = stt.AudioFormatOptions.fromPartial(
-							formatMap[recognitionOptions.audioFormat] || formatMap.LPCM,
-						);
-					}
+					audioFormatOptions = stt.AudioFormatOptions.fromPartial(
+						formatMap[audioFormat] || formatMap.LPCM,
+					);
+				}
 
 					// Build language restriction
 					const languageRestriction = stt.LanguageRestrictionOptions.fromPartial({
@@ -422,15 +427,15 @@ export class YandexCloudSpeechKitStt implements INodeType {
 						literatureText: recognitionOptions.literatureText || false,
 					});
 
-					// Build recognition model options
-					const recognitionModel = stt.RecognitionModelOptions.fromPartial({
-						model,
-						audioFormat,
-						textNormalization,
-						languageRestriction,
-						audioProcessingType:
-							stt.RecognitionModelOptions_AudioProcessingType.FULL_DATA,
-					});
+				// Build recognition model options
+				const recognitionModel = stt.RecognitionModelOptions.fromPartial({
+					model,
+					audioFormat: audioFormatOptions,
+					textNormalization,
+					languageRestriction,
+					audioProcessingType:
+						stt.RecognitionModelOptions_AudioProcessingType.FULL_DATA,
+				});
 
 					// Build recognition request
 					const request = stt.RecognizeFileRequest.fromPartial({

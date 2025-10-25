@@ -140,24 +140,25 @@ describe('YandexCloudSpeechKitStt Node', () => {
 	});
 
 	describe('Credential Validation', () => {
-		it('should validate service account JSON with snake_case format', async () => {
-			(mockExecuteFunctions.getNodeParameter as jest.Mock)
-				.mockReturnValueOnce('recognizeAudio')
-				.mockReturnValueOnce('https://storage.yandexcloud.net/bucket/audio.wav')
-				.mockReturnValueOnce('ru-RU')
-				.mockReturnValueOnce({});
+	it('should validate service account JSON with snake_case format', async () => {
+		(mockExecuteFunctions.getNodeParameter as jest.Mock)
+			.mockReturnValueOnce('recognizeAudio')
+			.mockReturnValueOnce('https://storage.yandexcloud.net/bucket/audio.wav')
+			.mockReturnValueOnce('ru-RU')
+			.mockReturnValueOnce('LPCM')
+			.mockReturnValueOnce({});
 
-			mockAsyncRecognizerClient.recognizeFile.mockResolvedValue({
-				id: 'operation-123',
-			});
-
-			await node.execute.call(mockExecuteFunctions as IExecuteFunctions);
-
-			expect(mockSession.client).toHaveBeenCalledWith(
-				expect.anything(),
-				'stt.api.cloud.yandex.net:443',
-			);
+		mockAsyncRecognizerClient.recognizeFile.mockResolvedValue({
+			id: 'operation-123',
 		});
+
+		await node.execute.call(mockExecuteFunctions as IExecuteFunctions);
+
+		expect(mockSession.client).toHaveBeenCalledWith(
+			expect.anything(),
+			'stt.api.cloud.yandex.net:443',
+		);
+	});
 
 		it('should throw error for missing service_account_id', async () => {
 			(mockExecuteFunctions.getCredentials as jest.Mock).mockResolvedValue({
@@ -215,125 +216,127 @@ describe('YandexCloudSpeechKitStt Node', () => {
 				.mockReturnValueOnce('recognizeAudio');
 		});
 
-		it('should start audio recognition with minimal parameters', async () => {
-			(mockExecuteFunctions.getNodeParameter as jest.Mock)
-				.mockReturnValueOnce('https://storage.yandexcloud.net/bucket/audio.wav')
-				.mockReturnValueOnce('ru-RU')
-				.mockReturnValueOnce({});
+	it('should start audio recognition with minimal parameters', async () => {
+		(mockExecuteFunctions.getNodeParameter as jest.Mock)
+			.mockReturnValueOnce('https://storage.yandexcloud.net/bucket/audio.wav')
+			.mockReturnValueOnce('ru-RU')
+			.mockReturnValueOnce('LPCM')
+			.mockReturnValueOnce({});
 
-			mockAsyncRecognizerClient.recognizeFile.mockResolvedValue({
-				id: 'operation-123',
-			});
-
-			const result = await node.execute.call(mockExecuteFunctions as IExecuteFunctions);
-
-			expect(result[0]).toHaveLength(1);
-			expect(result[0][0].json).toMatchObject({
-				success: true,
-				operationId: 'operation-123',
-				audioUrl: 'https://storage.yandexcloud.net/bucket/audio.wav',
-				model: 'general',
-				languageCode: 'ru-RU',
-				status: 'RUNNING',
-			});
+		mockAsyncRecognizerClient.recognizeFile.mockResolvedValue({
+			id: 'operation-123',
 		});
 
-		it('should start recognition with LPCM audio format', async () => {
-			(mockExecuteFunctions.getNodeParameter as jest.Mock)
-				.mockReturnValueOnce('https://storage.yandexcloud.net/bucket/audio.wav')
-				.mockReturnValueOnce('ru-RU')
-				.mockReturnValueOnce({
-					audioFormat: 'LPCM',
-					sampleRate: 16000,
-					audioChannelCount: 2,
-				});
+		const result = await node.execute.call(mockExecuteFunctions as IExecuteFunctions);
 
-			mockAsyncRecognizerClient.recognizeFile.mockResolvedValue({
-				id: 'operation-456',
+		expect(result[0]).toHaveLength(1);
+		expect(result[0][0].json).toMatchObject({
+			success: true,
+			operationId: 'operation-123',
+			audioUrl: 'https://storage.yandexcloud.net/bucket/audio.wav',
+			model: 'general',
+			languageCode: 'ru-RU',
+			status: 'RUNNING',
+		});
+	});
+
+	it('should start recognition with LPCM audio format', async () => {
+		(mockExecuteFunctions.getNodeParameter as jest.Mock)
+			.mockReturnValueOnce('https://storage.yandexcloud.net/bucket/audio.wav')
+			.mockReturnValueOnce('ru-RU')
+			.mockReturnValueOnce('LPCM')
+			.mockReturnValueOnce({
+				sampleRate: 16000,
+				audioChannelCount: 2,
 			});
 
-			const result = await node.execute.call(mockExecuteFunctions as IExecuteFunctions);
-
-			expect(mockAsyncRecognizerClient.recognizeFile).toHaveBeenCalled();
-			expect(result[0][0].json.success).toBe(true);
-			expect(result[0][0].json.operationId).toBe('operation-456');
+		mockAsyncRecognizerClient.recognizeFile.mockResolvedValue({
+			id: 'operation-456',
 		});
 
-		it('should start recognition with OGG_OPUS format', async () => {
-			(mockExecuteFunctions.getNodeParameter as jest.Mock)
-				.mockReturnValueOnce('https://storage.yandexcloud.net/bucket/audio.ogg')
-				.mockReturnValueOnce('en-US')
-				.mockReturnValueOnce({
-					audioFormat: 'OGG_OPUS',
-				});
+		const result = await node.execute.call(mockExecuteFunctions as IExecuteFunctions);
 
-			mockAsyncRecognizerClient.recognizeFile.mockResolvedValue({
-				id: 'operation-789',
+		expect(mockAsyncRecognizerClient.recognizeFile).toHaveBeenCalled();
+		expect(result[0][0].json.success).toBe(true);
+		expect(result[0][0].json.operationId).toBe('operation-456');
+	});
+
+	it('should start recognition with OGG_OPUS format', async () => {
+		(mockExecuteFunctions.getNodeParameter as jest.Mock)
+			.mockReturnValueOnce('https://storage.yandexcloud.net/bucket/audio.ogg')
+			.mockReturnValueOnce('en-US')
+			.mockReturnValueOnce('OGG_OPUS')
+			.mockReturnValueOnce({});
+
+		mockAsyncRecognizerClient.recognizeFile.mockResolvedValue({
+			id: 'operation-789',
+		});
+
+		const result = await node.execute.call(mockExecuteFunctions as IExecuteFunctions);
+
+		expect(result[0][0].json).toMatchObject({
+			success: true,
+			operationId: 'operation-789',
+			model: 'general',
+			languageCode: 'en-US',
+		});
+	});
+
+	it('should start recognition with profanity filter enabled', async () => {
+		(mockExecuteFunctions.getNodeParameter as jest.Mock)
+			.mockReturnValueOnce('https://storage.yandexcloud.net/bucket/audio.mp3')
+			.mockReturnValueOnce('ru-RU')
+			.mockReturnValueOnce('MP3')
+			.mockReturnValueOnce({
+				profanityFilter: true,
+				literatureText: true,
 			});
 
-			const result = await node.execute.call(mockExecuteFunctions as IExecuteFunctions);
-
-			expect(result[0][0].json).toMatchObject({
-				success: true,
-				operationId: 'operation-789',
-				model: 'general',
-				languageCode: 'en-US',
-			});
+		mockAsyncRecognizerClient.recognizeFile.mockResolvedValue({
+			id: 'operation-999',
 		});
 
-		it('should start recognition with profanity filter enabled', async () => {
-			(mockExecuteFunctions.getNodeParameter as jest.Mock)
-				.mockReturnValueOnce('https://storage.yandexcloud.net/bucket/audio.mp3')
-				.mockReturnValueOnce('ru-RU')
-				.mockReturnValueOnce({
-					audioFormat: 'MP3',
-					profanityFilter: true,
-					literatureText: true,
-				});
+		const result = await node.execute.call(mockExecuteFunctions as IExecuteFunctions);
 
-			mockAsyncRecognizerClient.recognizeFile.mockResolvedValue({
-				id: 'operation-999',
-			});
+		expect(result[0][0].json.success).toBe(true);
+	});
 
-			const result = await node.execute.call(mockExecuteFunctions as IExecuteFunctions);
+	it('should handle API error in recognizeAudio', async () => {
+		(mockExecuteFunctions.getNodeParameter as jest.Mock)
+			.mockReturnValueOnce('https://storage.yandexcloud.net/bucket/audio.wav')
+			.mockReturnValueOnce('ru-RU')
+			.mockReturnValueOnce('LPCM')
+			.mockReturnValueOnce({});
 
-			expect(result[0][0].json.success).toBe(true);
+		mockAsyncRecognizerClient.recognizeFile.mockRejectedValue(
+			new Error('API Error: Invalid audio URL'),
+		);
+
+		await expect(
+			node.execute.call(mockExecuteFunctions as IExecuteFunctions),
+		).rejects.toThrow('API Error: Invalid audio URL');
+	});
+
+	it('should handle error with continueOnFail enabled', async () => {
+		(mockExecuteFunctions.getNodeParameter as jest.Mock)
+			.mockReturnValueOnce('https://storage.yandexcloud.net/bucket/audio.wav')
+			.mockReturnValueOnce('ru-RU')
+			.mockReturnValueOnce('LPCM')
+			.mockReturnValueOnce({});
+
+		(mockExecuteFunctions.continueOnFail as jest.Mock).mockReturnValue(true);
+
+		mockAsyncRecognizerClient.recognizeFile.mockRejectedValue(
+			new Error('Network error'),
+		);
+
+		const result = await node.execute.call(mockExecuteFunctions as IExecuteFunctions);
+
+		expect(result[0][0].json).toMatchObject({
+			error: 'Network error',
+			success: false,
 		});
-
-		it('should handle API error in recognizeAudio', async () => {
-			(mockExecuteFunctions.getNodeParameter as jest.Mock)
-				.mockReturnValueOnce('https://storage.yandexcloud.net/bucket/audio.wav')
-				.mockReturnValueOnce('ru-RU')
-				.mockReturnValueOnce({});
-
-			mockAsyncRecognizerClient.recognizeFile.mockRejectedValue(
-				new Error('API Error: Invalid audio URL'),
-			);
-
-			await expect(
-				node.execute.call(mockExecuteFunctions as IExecuteFunctions),
-			).rejects.toThrow('API Error: Invalid audio URL');
-		});
-
-		it('should handle error with continueOnFail enabled', async () => {
-			(mockExecuteFunctions.getNodeParameter as jest.Mock)
-				.mockReturnValueOnce('https://storage.yandexcloud.net/bucket/audio.wav')
-				.mockReturnValueOnce('ru-RU')
-				.mockReturnValueOnce({});
-
-			(mockExecuteFunctions.continueOnFail as jest.Mock).mockReturnValue(true);
-
-			mockAsyncRecognizerClient.recognizeFile.mockRejectedValue(
-				new Error('Network error'),
-			);
-
-			const result = await node.execute.call(mockExecuteFunctions as IExecuteFunctions);
-
-			expect(result[0][0].json).toMatchObject({
-				error: 'Network error',
-				success: false,
-			});
-		});
+	});
 	});
 
 	describe('Operation: getResults', () => {
@@ -534,62 +537,66 @@ describe('YandexCloudSpeechKitStt Node', () => {
 	});
 
 	describe('Multiple Items Processing', () => {
-		it('should process multiple recognition requests', async () => {
-			(mockExecuteFunctions.getInputData as jest.Mock).mockReturnValue([
-				{ json: {} },
-				{ json: {} },
-			]);
+	it('should process multiple recognition requests', async () => {
+		(mockExecuteFunctions.getInputData as jest.Mock).mockReturnValue([
+			{ json: {} },
+			{ json: {} },
+		]);
 
-			(mockExecuteFunctions.getNodeParameter as jest.Mock)
-				.mockReturnValueOnce('recognizeAudio')
-				.mockReturnValueOnce('https://storage.yandexcloud.net/bucket/audio1.wav')
-				.mockReturnValueOnce('ru-RU')
-				.mockReturnValueOnce({})
-				.mockReturnValueOnce('recognizeAudio')
-				.mockReturnValueOnce('https://storage.yandexcloud.net/bucket/audio2.wav')
-				.mockReturnValueOnce('en-US')
-				.mockReturnValueOnce({});
+		(mockExecuteFunctions.getNodeParameter as jest.Mock)
+			.mockReturnValueOnce('recognizeAudio')
+			.mockReturnValueOnce('https://storage.yandexcloud.net/bucket/audio1.wav')
+			.mockReturnValueOnce('ru-RU')
+			.mockReturnValueOnce('LPCM')
+			.mockReturnValueOnce({})
+			.mockReturnValueOnce('recognizeAudio')
+			.mockReturnValueOnce('https://storage.yandexcloud.net/bucket/audio2.wav')
+			.mockReturnValueOnce('en-US')
+			.mockReturnValueOnce('LPCM')
+			.mockReturnValueOnce({});
 
-			mockAsyncRecognizerClient.recognizeFile
-				.mockResolvedValueOnce({ id: 'op-1' })
-				.mockResolvedValueOnce({ id: 'op-2' });
+		mockAsyncRecognizerClient.recognizeFile
+			.mockResolvedValueOnce({ id: 'op-1' })
+			.mockResolvedValueOnce({ id: 'op-2' });
 
-			const result = await node.execute.call(mockExecuteFunctions as IExecuteFunctions);
+		const result = await node.execute.call(mockExecuteFunctions as IExecuteFunctions);
 
-			expect(result[0]).toHaveLength(2);
-			expect(result[0][0].json.operationId).toBe('op-1');
-			expect(result[0][1].json.operationId).toBe('op-2');
-		});
+		expect(result[0]).toHaveLength(2);
+		expect(result[0][0].json.operationId).toBe('op-1');
+		expect(result[0][1].json.operationId).toBe('op-2');
+	});
 
-		it('should handle mixed success and failure with continueOnFail', async () => {
-			(mockExecuteFunctions.getInputData as jest.Mock).mockReturnValue([
-				{ json: {} },
-				{ json: {} },
-			]);
+	it('should handle mixed success and failure with continueOnFail', async () => {
+		(mockExecuteFunctions.getInputData as jest.Mock).mockReturnValue([
+			{ json: {} },
+			{ json: {} },
+		]);
 
-			(mockExecuteFunctions.continueOnFail as jest.Mock).mockReturnValue(true);
+		(mockExecuteFunctions.continueOnFail as jest.Mock).mockReturnValue(true);
 
-			(mockExecuteFunctions.getNodeParameter as jest.Mock)
-				.mockReturnValueOnce('recognizeAudio')
-				.mockReturnValueOnce('https://storage.yandexcloud.net/bucket/audio1.wav')
-				.mockReturnValueOnce('ru-RU')
-				.mockReturnValueOnce({})
-				.mockReturnValueOnce('recognizeAudio')
-				.mockReturnValueOnce('https://storage.yandexcloud.net/bucket/audio2.wav')
-				.mockReturnValueOnce('en-US')
-				.mockReturnValueOnce({});
+		(mockExecuteFunctions.getNodeParameter as jest.Mock)
+			.mockReturnValueOnce('recognizeAudio')
+			.mockReturnValueOnce('https://storage.yandexcloud.net/bucket/audio1.wav')
+			.mockReturnValueOnce('ru-RU')
+			.mockReturnValueOnce('LPCM')
+			.mockReturnValueOnce({})
+			.mockReturnValueOnce('recognizeAudio')
+			.mockReturnValueOnce('https://storage.yandexcloud.net/bucket/audio2.wav')
+			.mockReturnValueOnce('en-US')
+			.mockReturnValueOnce('LPCM')
+			.mockReturnValueOnce({});
 
-			mockAsyncRecognizerClient.recognizeFile
-				.mockResolvedValueOnce({ id: 'op-1' })
-				.mockRejectedValueOnce(new Error('API Error'));
+		mockAsyncRecognizerClient.recognizeFile
+			.mockResolvedValueOnce({ id: 'op-1' })
+			.mockRejectedValueOnce(new Error('API Error'));
 
-			const result = await node.execute.call(mockExecuteFunctions as IExecuteFunctions);
+		const result = await node.execute.call(mockExecuteFunctions as IExecuteFunctions);
 
-			expect(result[0]).toHaveLength(2);
-			expect(result[0][0].json.success).toBe(true);
-			expect(result[0][1].json.success).toBe(false);
-			expect(result[0][1].json.error).toBe('API Error');
-		});
+		expect(result[0]).toHaveLength(2);
+		expect(result[0][0].json.success).toBe(true);
+		expect(result[0][1].json.success).toBe(false);
+		expect(result[0][1].json.error).toBe('API Error');
+	});
 	});
 });
 
