@@ -1,0 +1,90 @@
+---
+alwaysApply: false
+---
+# New Node Documentation Checklist
+
+## When Adding a New Node
+
+Whenever you create a new n8n node for Yandex Cloud, you MUST update the following files to maintain consistency across the project:
+
+### 1. Bug Report Template
+File: `.github/ISSUE_TEMPLATE/bug_report.md`
+
+**Action**: Add the new node to the "Affected Node" checklist section.
+
+**Location**: Find the section starting with `**Affected Node**` and add your node in alphabetical order:
+```markdown
+- [ ] YandexCloudNewService
+```
+
+### 2. README Files
+Update BOTH English and Russian versions:
+- `README.md` (English)
+- `README.ru.md` (Russian)
+
+**Actions**:
+1. Add node to the "Included Nodes" list with a brief description
+2. Add usage example if the node has unique features
+3. Update any feature count numbers if mentioned
+4. Ensure both language versions have consistent information
+
+### 3. Package.json
+File: `package.json`
+
+**Action**: Ensure the new node is registered in the `n8n.nodes` array:
+```json
+"dist/nodes/YandexCloudNewService/YandexCloudNewService.node.js"
+```
+
+### 4. Commit Message Scope (Optional)
+File: `.cursor/rules/commit-message-format.mdc`
+
+**Action**: Consider adding a scope abbreviation for the new node to the "Scopes" section if it will have multiple commits:
+```markdown
+- **newservice**: YandexCloudNewService node
+```
+
+## Verification Checklist
+
+Before considering a new node complete, verify:
+
+- [ ] Node is added to bug report template checklist
+- [ ] Node is documented in both README.md and README.ru.md
+- [ ] Node is registered in package.json
+- [ ] Node has proper icon (SVG file in node directory)
+- [ ] Node has a .node.json metadata file
+- [ ] Node has unit tests in `test/` subdirectory
+- [ ] All tests pass: `npm run test`
+- [ ] Build succeeds: `npm run build`
+
+## Example: Adding YandexCloudVision
+
+If you were adding a YandexCloudVision node:
+
+1. Bug report template:
+   ```markdown
+   - [ ] YandexCloudVision
+   ```
+
+2. README.md:
+   ```markdown
+   - **YandexCloud Vision**: Image recognition, OCR, and computer vision operations
+   ```
+
+3. README.ru.md:
+   ```markdown
+   - **YandexCloud Vision**: Распознавание изображений, OCR и операции компьютерного зрения
+   ```
+
+4. package.json:
+   ```json
+   "dist/nodes/YandexCloudVision/YandexCloudVision.node.js"
+   ```
+
+## Why This Matters
+
+Keeping documentation synchronized ensures:
+- Users can easily find and report issues with specific nodes
+- New users can discover all available nodes
+- The project maintains a professional, complete appearance
+- Package installation includes all nodes properly

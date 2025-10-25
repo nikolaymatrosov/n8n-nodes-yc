@@ -12,6 +12,12 @@
 All commit messages MUST follow the Conventional Commits specification.
 See `.cursor/rules/commit-message-format.mdc` for detailed guidelines.
 
+## New Node Documentation
+When adding a new n8n node, you MUST update documentation files.
+See `.cursor/rules/new-node-documentation.mdc` for the complete checklist.
+
+**Quick reminder**: Update bug report template, both README files (EN & RU), and package.json.
+
 ## Testing
 What we use for testing and writing tests:
 - For testing nodes and other backend components, we use Jest for unit tests. Examples can be found in `packages/nodes-base/nodes/**/*test*`.
