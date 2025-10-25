@@ -467,40 +467,98 @@ describe('YandexCloudSpeechKitStt Node', () => {
 			).rejects.toThrow(/Recognition timeout after 2 attempts/);
 		});
 
-		it('should return partial results on timeout if enabled', async () => {
-			(mockExecuteFunctions.getNodeParameter as jest.Mock)
-				.mockReturnValueOnce('operation-partial')
-				.mockReturnValueOnce({
-					pollInterval: 1,
-					maxAttempts: 2,
-					returnPartialResults: true,
-				});
-
-			let callCount = 0;
-			mockAsyncRecognizerClient.getRecognition.mockReturnValue({
-				[Symbol.asyncIterator]: async function* () {
-					callCount++;
-					if (callCount === 1) {
-						yield {
-							channelTag: '1',
-							partial: {
-								alternatives: [{ text: 'Partial text', confidence: 0.6 }],
-							},
-						};
-					}
-					// Second call returns no new data
-				},
+	it('should return partial results on timeout if enabled', async () => {
+		(mockExecuteFunctions.getNodeParameter as jest.Mock)
+			.mockReturnValueOnce('operation-partial')
+			.mockReturnValueOnce({
+				pollInterval: 1,
+				maxAttempts: 2,
+				returnPartialResults: true,
 			});
 
-			const result = await node.execute.call(mockExecuteFunctions as IExecuteFunctions);
-
-			expect(result[0][0].json).toMatchObject({
-				success: false,
-				status: 'RUNNING',
-				partialText: 'Partial text',
-			});
-			expect(result[0][0].json.error).toContain('timeout');
+		let callCount = 0;
+		mockAsyncRecognizerClient.getRecognition.mockReturnValue({
+			[Symbol.asyncIterator]: async function* () {
+				callCount++;
+				if (callCount === 1) {
+					yield {
+						channelTag: '1',
+						partial: {
+							alternatives: [{ text: 'Partial text', confidence: 0.6 }],
+						},
+					};
+				}
+				// Second call returns no new data
+			},
 		});
+
+		const result = await node.execute.call(mockExecuteFunctions as IExecuteFunctions);
+
+		expect(result[0][0].json).toMatchObject({
+			success: false,
+			status: 'RUNNING',
+			partialText: 'Partial text',
+		});
+		expect(result[0][0].json.error).toContain('timeout');
+	});
+
+	it('should handle "operation data is not ready" race condition', async () => {
+		(mockExecuteFunctions.getNodeParameter as jest.Mock)
+			.mockReturnValueOnce('operation-race')
+			.mockReturnValueOnce({
+				pollInterval: 1,
+				maxAttempts: 5,
+			});
+
+		let callCount = 0;
+		mockAsyncRecognizerClient.getRecognition.mockImplementation(() => {
+			callCount++;
+			if (callCount <= 2) {
+				// First two attempts: operation not ready yet (race condition)
+				throw {
+					message: 'ClientError: /speechkit.stt.v3.AsyncRecognizer/GetRecognition NOT_FOUND: operation data is not ready f8djm3hl8m9qs9kbjakf',
+				};
+			}
+			// Third attempt: return final result
+			return {
+				[Symbol.asyncIterator]: async function* () {
+					yield {
+						channelTag: '1',
+						final: {
+							alternatives: [{ text: 'Recognition completed', confidence: 0.95 }],
+						},
+					};
+				},
+			};
+		});
+
+		const result = await node.execute.call(mockExecuteFunctions as IExecuteFunctions);
+
+		expect(result[0][0].json).toMatchObject({
+			success: true,
+			status: 'DONE',
+			text: 'Recognition completed',
+		});
+		expect(result[0][0].json.attemptsUsed).toBe(3);
+		expect(callCount).toBe(3);
+	});
+
+	it('should throw error for non-race-condition errors', async () => {
+		(mockExecuteFunctions.getNodeParameter as jest.Mock)
+			.mockReturnValueOnce('operation-error')
+			.mockReturnValueOnce({
+				pollInterval: 1,
+				maxAttempts: 3,
+			});
+
+		mockAsyncRecognizerClient.getRecognition.mockImplementation(() => {
+			throw new Error('ClientError: PERMISSION_DENIED: Invalid credentials');
+		});
+
+		await expect(
+			node.execute.call(mockExecuteFunctions as IExecuteFunctions),
+		).rejects.toThrow('PERMISSION_DENIED');
+	});
 
 		it('should handle API error in getResults', async () => {
 			(mockExecuteFunctions.getNodeParameter as jest.Mock)

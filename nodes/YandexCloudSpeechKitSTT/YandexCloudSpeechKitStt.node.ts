@@ -479,16 +479,17 @@ export class YandexCloudSpeechKitStt implements INodeType {
 						'stt.api.cloud.yandex.net:443',
 					);
 
-					// Polling loop
-					let attempt = 0;
-					let isDone = false;
-					const finalResults: any[] = [];
-					const partialResults: any[] = [];
-					let channelTag: string = '';
+				// Polling loop
+				let attempt = 0;
+				let isDone = false;
+				const finalResults: any[] = [];
+				const partialResults: any[] = [];
+				let channelTag: string = '';
 
-					while (attempt < maxAttempts && !isDone) {
-						attempt++;
+				while (attempt < maxAttempts && !isDone) {
+					attempt++;
 
+					try {
 						// Get recognition status - this returns a stream
 						const responseStream = client.getRecognition({
 							operationId,
@@ -516,12 +517,25 @@ export class YandexCloudSpeechKitStt implements INodeType {
 								partialResults.push(response.partial);
 							}
 						}
+					} catch (error: any) {
+						// Handle race condition: operation data is not ready yet
+						// This can happen when polling starts immediately after recognition starts
+						const isNotReadyError = error.message &&
+							error.message.includes('NOT_FOUND') &&
+							error.message.includes('operation data is not ready');
 
-						if (!isDone && attempt < maxAttempts) {
-							// Wait before next poll
-							await sleep(pollInterval);
+						if (!isNotReadyError) {
+							// Re-throw if it's not the "not ready" error
+							throw error;
 						}
+						// If it's the "not ready" error, continue polling
 					}
+
+					if (!isDone && attempt < maxAttempts) {
+						// Wait before next poll
+						await sleep(pollInterval);
+					}
+				}
 
 					// Process results
 					if (isDone && finalResults.length > 0) {
