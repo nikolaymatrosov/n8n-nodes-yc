@@ -16,7 +16,7 @@
 		"url": "https://github.com/nikolaymatrosov/n8n-nodes-yc.git"
 	},
 	"engines": {
-		"node": ">=20.15"
+		"node": ">=20.19"
 	},
 	"main": "index.js",
 	"scripts": {
