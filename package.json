@@ -1,6 +1,6 @@
 {
 	"name": "@nikolaymatrosov/n8n-nodes-yc",
-	"version": "0.2.1",
+	"version": "0.2.2",
 	"description": "n8n nodes for Yandex Cloud services",
 	"keywords": [
 		"n8n-community-node-package"
@@ -20,7 +20,7 @@
 	},
 	"main": "index.js",
 	"scripts": {
-		"build": "npx rimraf dist && tsc && tsc-alias && gulp build:icons",
+		"build": "npx rimraf dist && tsc && tsc-alias && gulp build:icons && npm run validate:nodes",
 		"dev": "tsc --watch",
 		"format": "prettier nodes credentials --write",
 		"lint": "eslint nodes credentials package.json",
@@ -28,6 +28,7 @@
 		"test": "jest",
 		"test:watch": "jest --watch",
 		"test:coverage": "jest --coverage",
+		"validate:nodes": "node scripts/validate-nodes.js",
 		"prepublishOnly": "npm run build && eslint -c eslint.config.prepublish.js --ignore-pattern '**/*.test.ts' nodes credentials package.json",
 		"git-tag": "git tag v`cat package.json | jq -r '.version' | awk -F. '{print $1}'` -f &&  git tag v`cat package.json | jq -r '.version'` -f"
 	},
@@ -52,7 +53,10 @@
 			"dist/nodes/YandexCloudFunctions/YandexCloudFunctions.node.js",
 			"dist/nodes/YandexCloudObjectStorage/YandexCloudObjectStorage.node.js",
 			"dist/nodes/YandexCloudSpeechKit/YandexCloudSpeechKit.node.js",
-			"dist/nodes/YandexCloudSpeechKitSTT/YandexCloudSpeechKitStt.node.js"
+			"dist/nodes/YandexCloudSpeechKitSTT/YandexCloudSpeechKitStt.node.js",
+			"dist/nodes/YandexCloudCompute/YandexCloudCompute.node.js",
+			"dist/nodes/YandexCloudContainers/YandexCloudContainers.node.js",
+			"dist/nodes/YandexCloudWorkflows/YandexCloudWorkflows.node.js"
 		]
 	},
 	"devDependencies": {
