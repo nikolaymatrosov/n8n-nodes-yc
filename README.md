@@ -17,7 +17,8 @@ Integration package for working with Yandex Cloud services in n8n.
 8. [Yandex Cloud Message Queue](#yandex-cloud-message-queue)
 9. [Yandex Cloud Postbox](#yandex-cloud-postbox)
 10. [Yandex Cloud SpeechKit](#yandex-cloud-speechkit)
-11. [Yandex Cloud Workflows](#yandex-cloud-workflows)
+11. [Yandex Cloud SpeechKit STT](#yandex-cloud-speechkit-stt)
+12. [Yandex Cloud Workflows](#yandex-cloud-workflows)
 
 ---
 
@@ -373,6 +374,92 @@ Collection of message attributes with configuration:
 - Binary data - audio file with .wav/.mp3/.ogg/.raw extension
 
 **Authentication:** Service account JSON via `yandexCloudAuthorizedApi` with automatic IAM token generation. Uses gRPC streaming for efficient audio transfer. The node is ideal for creating voice assistants, notification voiceovers, audiobook generation, accessibility solutions, IVR systems, and any applications requiring text-to-natural-speech conversion in Russian and English.
+
+---
+
+## Yandex Cloud SpeechKit STT
+
+**Node for speech recognition (Speech-to-Text) using Yandex SpeechKit API v3, providing asynchronous audio transcription with high accuracy.** Supports multiple languages and audio formats with automatic language detection capability.
+
+| Parameter | Type | Description |
+|----------|-----|----------|
+| **Operation** | Options | Recognize Audio or Get Recognition Results |
+| **Audio URL** | String | URL of audio file in Yandex Object Storage |
+| **Language Code** | Options | Language for recognition (auto-detect, Russian, English, etc.) |
+| **Audio Format** | Options | Audio file format (LPCM, OGG Opus, MP3) |
+
+**Operations:**
+
+- **Recognize Audio** - start asynchronous audio transcription
+  - Returns operation ID for polling
+  - Supports audio files stored in Yandex Object Storage
+  
+- **Get Recognition Results** - retrieve transcription results with auto-polling
+  - Automatically polls until completion
+  - Handles "operation not ready" race condition
+  - Configurable polling interval and max attempts
+  - Optional partial results on timeout
+
+**Supported Languages:**
+
+- Automatic Detection
+- Russian (ru-RU)
+- English (en-US)
+- German (de-DE)
+- French (fr-FR)
+- Spanish (es-ES)
+- Italian (it-IT)
+- Polish (pl-PL)
+- Turkish (tr-TR)
+- And many more (16 languages total)
+
+**Audio Formats:**
+
+- **LPCM** - Linear PCM with configurable sample rate (8000, 16000, 48000 Hz)
+- **OGG Opus** - Compressed Ogg Opus format
+- **MP3** - Standard MP3 format
+
+**Recognition Options:**
+
+- **Audio Channel Count** - number of audio channels (1-8)
+- **Sample Rate** - for LPCM format (8000, 16000, 48000 Hz)
+- **Profanity Filter** - filter out profane language
+- **Literature Text** - use literary text normalization
+
+**Polling Options (Get Results):**
+
+- **Poll Interval** - time between polling attempts (1-60 seconds, default 5)
+- **Max Attempts** - maximum polling attempts (1-300, default 60)
+- **Return Partial Results** - return incomplete results on timeout
+
+**Recognition Process:**
+
+1. Upload audio file to Yandex Object Storage
+2. Start recognition with audio URL and parameters
+3. Receive operation ID
+4. Poll for results (auto-retry on "not ready" errors)
+5. Get transcribed text with confidence scores
+
+**Returned data (Recognize):**
+
+- `success` - operation start status
+- `operationId` - ID for polling results
+- `audioUrl` - URL of audio file
+- `model` - recognition model used (general)
+- `languageCode` - selected language
+- `status` - operation status (RUNNING)
+
+**Returned data (Get Results):**
+
+- `success` - completion status
+- `operationId` - operation ID
+- `status` - DONE or RUNNING
+- `text` - full transcribed text
+- `channelTag` - audio channel identifier
+- `finalResults` - detailed results with alternatives
+- `attemptsUsed` - number of polling attempts
+
+**Authentication:** Service account JSON via `yandexCloudAuthorizedApi` with automatic IAM token generation. Uses gRPC streaming for efficient data transfer. Automatically handles race conditions when operation data is not immediately available. The node is ideal for creating voice-controlled interfaces, meeting transcription, call center analytics, subtitle generation, accessibility features, and any applications requiring accurate speech-to-text conversion in multiple languages with async processing support.
 
 ---
 
