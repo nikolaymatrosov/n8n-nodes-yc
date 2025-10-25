@@ -1,3 +1,7 @@
+/* eslint-disable n8n-nodes-base/node-param-description-lowercase-first-char */
+/* eslint-disable n8n-nodes-base/node-param-display-name-miscased */
+// n8n-specific linting rules are disabled for test files as they check node parameter definitions, not test code
+
 import { YandexCloudContainers } from '../YandexCloudContainers.node';
 import type { IExecuteFunctions, ILoadOptionsFunctions } from 'n8n-workflow';
 import { NodeOperationError } from 'n8n-workflow';

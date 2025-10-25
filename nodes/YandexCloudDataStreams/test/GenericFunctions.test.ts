@@ -1,3 +1,6 @@
+/* eslint-disable n8n-nodes-base/node-param-display-name-miscased */
+// n8n-specific linting rules are disabled for test files as they check node parameter definitions, not test code
+
 import { KinesisClient, ListStreamsCommand } from '@aws-sdk/client-kinesis';
 import { createKinesisClient, formatStreamName, loadStreams } from '../GenericFunctions';
 import type { ILoadOptionsFunctions } from 'n8n-workflow';
