@@ -1,0 +1,18 @@
+{
+	"node": "dist/nodes/YandexCloudTranslate/YandexCloudTranslate.node.js",
+	"codex": {
+		"categories": ["AI", "Development"],
+		"subcategories": {
+			"AI": ["Translation"],
+			"Development": ["Translation"]
+		},
+		"resources": {
+			"primaryDocumentation": [
+				{
+					"url": "https://cloud.yandex.com/en/docs/translate/"
+				}
+			]
+		}
+	}
+}
+

@@ -56,7 +56,8 @@
 			"dist/nodes/YandexCloudSpeechKitSTT/YandexCloudSpeechKitStt.node.js",
 			"dist/nodes/YandexCloudCompute/YandexCloudCompute.node.js",
 			"dist/nodes/YandexCloudContainers/YandexCloudContainers.node.js",
-			"dist/nodes/YandexCloudWorkflows/YandexCloudWorkflows.node.js"
+			"dist/nodes/YandexCloudWorkflows/YandexCloudWorkflows.node.js",
+			"dist/nodes/YandexCloudTranslate/YandexCloudTranslate.node.js"
 		]
 	},
 	"devDependencies": {

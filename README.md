@@ -18,7 +18,8 @@ Integration package for working with Yandex Cloud services in n8n.
 9. [Yandex Cloud Postbox](#yandex-cloud-postbox)
 10. [Yandex Cloud SpeechKit](#yandex-cloud-speechkit)
 11. [Yandex Cloud SpeechKit STT](#yandex-cloud-speechkit-stt)
-12. [Yandex Cloud Workflows](#yandex-cloud-workflows)
+12. [Yandex Cloud Translate](#yandex-cloud-translate)
+13. [Yandex Cloud Workflows](#yandex-cloud-workflows)
 
 ---
 
@@ -460,6 +461,93 @@ Collection of message attributes with configuration:
 - `attemptsUsed` - number of polling attempts
 
 **Authentication:** Service account JSON via `yandexCloudAuthorizedApi` with automatic IAM token generation. Uses gRPC streaming for efficient data transfer. Automatically handles race conditions when operation data is not immediately available. The node is ideal for creating voice-controlled interfaces, meeting transcription, call center analytics, subtitle generation, accessibility features, and any applications requiring accurate speech-to-text conversion in multiple languages with async processing support.
+
+---
+
+## Yandex Cloud Translate
+
+**Node for text translation using Yandex Cloud Translate API, providing high-quality neural machine translation for 100+ languages.** Supports automatic language detection, custom glossaries, HTML translation, and spell checking before translation.
+
+| Parameter | Type | Description |
+|----------|-----|----------|
+| **Resource** | Options | Text or Language |
+| **Operation** | Options | Translate, Detect Language, or List |
+| **Folder ID** | String | Folder ID (default from credentials) |
+
+**Resources and operations:**
+
+- **Text** - text translation and language detection
+  - **Translate** - translate text to target language with optional glossary
+  - **Detect Language** - automatically detect the language of text
+- **Language** - supported languages management
+  - **List** - get all supported languages
+
+**Translation parameters:**
+
+- `texts` - text to translate (multiline, supports multiple texts separated by newlines)
+- `sourceLanguageCode` - source language (leave empty for auto-detection)
+- `targetLanguageCode` - target language (required)
+- `format` - text format (Plain Text or HTML)
+- `speller` - enable spell checking before translation
+- `model` - custom translation model ID (optional)
+- `glossary` - custom glossary terms for precise translation
+
+**Glossary configuration:**
+
+Custom terminology dictionary for accurate translation of specific terms:
+
+- `sourceText` - term in source language
+- `translatedText` - term in target language
+- `exact` - use exact word matching
+
+**Language Detection:**
+
+- `text` - text for language detection
+- `languageCodeHints` - comma-separated language codes to prioritize (e.g., en,ru,es)
+
+**Supported Languages:**
+
+100+ languages including: Russian, English, German, French, Spanish, Italian, Portuguese, Polish, Turkish, Chinese, Japanese, Korean, Arabic, Hebrew, Hindi, and many more. Full list available via List Languages operation.
+
+**API Limits:**
+
+- Maximum 10,000 characters per request
+- Multiple texts can be translated in single request
+- Supports batch translation via newline-separated input
+
+**Returned data (Translate):**
+
+- `success` - translation status
+- `sourceLanguageCode` - source language (auto-detected if not specified)
+- `targetLanguageCode` - target language
+- `translations` - array of translation results
+  - `text` - translated text
+  - `detectedLanguageCode` - detected source language
+
+**Returned data (Detect Language):**
+
+- `success` - detection status
+- `text` - analyzed text
+- `languageCode` - detected language code
+
+**Returned data (List Languages):**
+
+- Array of supported languages with:
+  - `code` - language code (ISO 639-1)
+  - `name` - language name
+
+**Use cases:**
+
+- Multi-language content localization
+- Real-time chat translation
+- Document translation workflows
+- User-generated content translation
+- Customer support in multiple languages
+- API response localization
+- Email and notification translation
+- Website content translation
+
+**Authentication:** Service account JSON via `yandexCloudAuthorizedApi` with automatic IAM token generation. Uses Yandex Cloud Translate API v2 with gRPC protocol for efficient communication. The node is ideal for building multilingual applications, automating content translation, creating translation pipelines, and integrating machine translation into business workflows with support for custom terminology and HTML content preservation.
 
 ---
 
