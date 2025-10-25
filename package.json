@@ -51,7 +51,8 @@
 			"dist/nodes/YandexCloudDataStreams/YandexCloudDataStreamsTrigger.node.js",
 			"dist/nodes/YandexCloudFunctions/YandexCloudFunctions.node.js",
 			"dist/nodes/YandexCloudObjectStorage/YandexCloudObjectStorage.node.js",
-			"dist/nodes/YandexCloudSpeechKit/YandexCloudSpeechKit.node.js"
+			"dist/nodes/YandexCloudSpeechKit/YandexCloudSpeechKit.node.js",
+			"dist/nodes/YandexCloudSpeechKitSTT/YandexCloudSpeechKitStt.node.js"
 		]
 	},
 	"devDependencies": {
