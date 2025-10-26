@@ -38,12 +38,13 @@
 	"n8n": {
 		"n8nNodesApiVersion": 1,
 		"credentials": [
+			"dist/credentials/YandexCloudAuthorizedApi.credentials.js",
+			"dist/credentials/YandexCloudFomoApi.credentials.js",
 			"dist/credentials/YandexCloudGptApi.credentials.js",
-			"dist/credentials/YandexCloudStaticApi.credentials.js",
-			"dist/credentials/YandexCloudAuthorizedApi.credentials.js"
+			"dist/credentials/YandexCloudStaticApi.credentials.js"
 		],
 		"nodes": [
-			"dist/nodes/YandexCloudGpt/YandexCloudGpt.node.js",
+			"dist/nodes/YandexCloudFomo/YandexCloudFomo.node.js",
 			"dist/nodes/LMChatYandexGpt/LmChatYandexGpt.node.js",
 			"dist/nodes/YandexCloudPostbox/YandexCloudPostbox.node.js",
 			"dist/nodes/YandexCloudMessageQueue/YandexCloudMessageQueue.node.js",
