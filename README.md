@@ -387,7 +387,9 @@ Collection of message attributes with configuration:
 | **Operation** | Options | Recognize Audio or Get Recognition Results |
 | **Audio URL** | String | URL of audio file in Yandex Object Storage |
 | **Language Code** | Options | Language for recognition (auto-detect, Russian, English, etc.) |
-| **Audio Format** | Options | Audio file format (LPCM, OGG Opus, MP3) |
+| **Format Specification** | Options | Choose to specify format using Audio Format codes or MIME Types |
+| **Audio Format** | Options | Yandex Cloud audio format (LPCM, OGG Opus, MP3) - shown when Format Specification is "Audio Format" |
+| **MIME Type** | Options | Standard MIME type (audio/wav, audio/ogg, audio/mpeg, etc.) - shown when Format Specification is "MIME Type" |
 
 **Operations:**
 
@@ -416,9 +418,19 @@ Collection of message attributes with configuration:
 
 **Audio Formats:**
 
+The node supports two ways to specify audio format:
+
+*Via Audio Format (Yandex Cloud format codes):*
+
 - **LPCM** - Linear PCM with configurable sample rate (8000, 16000, 48000 Hz)
 - **OGG Opus** - Compressed Ogg Opus format
 - **MP3** - Standard MP3 format
+
+*Via MIME Type (standard MIME types, automatically mapped to Yandex formats):*
+
+- **audio/wav, audio/pcm, audio/x-pcm** - Maps to LPCM
+- **audio/ogg, audio/opus** - Maps to OGG Opus
+- **audio/mpeg, audio/mp3** - Maps to MP3
 
 **Recognition Options:**
 

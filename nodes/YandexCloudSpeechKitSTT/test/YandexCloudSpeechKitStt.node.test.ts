@@ -145,6 +145,7 @@ describe('YandexCloudSpeechKitStt Node', () => {
 			.mockReturnValueOnce('recognizeAudio')
 			.mockReturnValueOnce('https://storage.yandexcloud.net/bucket/audio.wav')
 			.mockReturnValueOnce('ru-RU')
+			.mockReturnValueOnce('audioFormat')
 			.mockReturnValueOnce('LPCM')
 			.mockReturnValueOnce({});
 
@@ -220,6 +221,7 @@ describe('YandexCloudSpeechKitStt Node', () => {
 		(mockExecuteFunctions.getNodeParameter as jest.Mock)
 			.mockReturnValueOnce('https://storage.yandexcloud.net/bucket/audio.wav')
 			.mockReturnValueOnce('ru-RU')
+			.mockReturnValueOnce('audioFormat')
 			.mockReturnValueOnce('LPCM')
 			.mockReturnValueOnce({});
 
@@ -244,6 +246,7 @@ describe('YandexCloudSpeechKitStt Node', () => {
 		(mockExecuteFunctions.getNodeParameter as jest.Mock)
 			.mockReturnValueOnce('https://storage.yandexcloud.net/bucket/audio.wav')
 			.mockReturnValueOnce('ru-RU')
+			.mockReturnValueOnce('audioFormat')
 			.mockReturnValueOnce('LPCM')
 			.mockReturnValueOnce({
 				sampleRate: 16000,
@@ -265,6 +268,7 @@ describe('YandexCloudSpeechKitStt Node', () => {
 		(mockExecuteFunctions.getNodeParameter as jest.Mock)
 			.mockReturnValueOnce('https://storage.yandexcloud.net/bucket/audio.ogg')
 			.mockReturnValueOnce('en-US')
+			.mockReturnValueOnce('audioFormat')
 			.mockReturnValueOnce('OGG_OPUS')
 			.mockReturnValueOnce({});
 
@@ -286,6 +290,7 @@ describe('YandexCloudSpeechKitStt Node', () => {
 		(mockExecuteFunctions.getNodeParameter as jest.Mock)
 			.mockReturnValueOnce('https://storage.yandexcloud.net/bucket/audio.mp3')
 			.mockReturnValueOnce('ru-RU')
+			.mockReturnValueOnce('audioFormat')
 			.mockReturnValueOnce('MP3')
 			.mockReturnValueOnce({
 				profanityFilter: true,
@@ -301,10 +306,71 @@ describe('YandexCloudSpeechKitStt Node', () => {
 		expect(result[0][0].json.success).toBe(true);
 	});
 
+	it('should recognize audio using MIME type (audio/wav)', async () => {
+		(mockExecuteFunctions.getNodeParameter as jest.Mock)
+			.mockReturnValueOnce('https://storage.yandexcloud.net/bucket/audio.wav')
+			.mockReturnValueOnce('ru-RU')
+			.mockReturnValueOnce('mimeType')
+			.mockReturnValueOnce('audio/wav')
+			.mockReturnValueOnce({});
+
+		mockAsyncRecognizerClient.recognizeFile.mockResolvedValue({
+			id: 'operation-mime-1',
+		});
+
+		const result = await node.execute.call(mockExecuteFunctions as IExecuteFunctions);
+
+		expect(result[0][0].json).toMatchObject({
+			success: true,
+			operationId: 'operation-mime-1',
+		});
+	});
+
+	it('should recognize audio using MIME type (audio/ogg)', async () => {
+		(mockExecuteFunctions.getNodeParameter as jest.Mock)
+			.mockReturnValueOnce('https://storage.yandexcloud.net/bucket/audio.ogg')
+			.mockReturnValueOnce('ru-RU')
+			.mockReturnValueOnce('mimeType')
+			.mockReturnValueOnce('audio/ogg')
+			.mockReturnValueOnce({});
+
+		mockAsyncRecognizerClient.recognizeFile.mockResolvedValue({
+			id: 'operation-mime-2',
+		});
+
+		const result = await node.execute.call(mockExecuteFunctions as IExecuteFunctions);
+
+		expect(result[0][0].json).toMatchObject({
+			success: true,
+			operationId: 'operation-mime-2',
+		});
+	});
+
+	it('should recognize audio using MIME type (audio/mpeg)', async () => {
+		(mockExecuteFunctions.getNodeParameter as jest.Mock)
+			.mockReturnValueOnce('https://storage.yandexcloud.net/bucket/audio.mp3')
+			.mockReturnValueOnce('en-US')
+			.mockReturnValueOnce('mimeType')
+			.mockReturnValueOnce('audio/mpeg')
+			.mockReturnValueOnce({});
+
+		mockAsyncRecognizerClient.recognizeFile.mockResolvedValue({
+			id: 'operation-mime-3',
+		});
+
+		const result = await node.execute.call(mockExecuteFunctions as IExecuteFunctions);
+
+		expect(result[0][0].json).toMatchObject({
+			success: true,
+			operationId: 'operation-mime-3',
+		});
+	});
+
 	it('should handle API error in recognizeAudio', async () => {
 		(mockExecuteFunctions.getNodeParameter as jest.Mock)
 			.mockReturnValueOnce('https://storage.yandexcloud.net/bucket/audio.wav')
 			.mockReturnValueOnce('ru-RU')
+			.mockReturnValueOnce('audioFormat')
 			.mockReturnValueOnce('LPCM')
 			.mockReturnValueOnce({});
 
@@ -321,6 +387,7 @@ describe('YandexCloudSpeechKitStt Node', () => {
 		(mockExecuteFunctions.getNodeParameter as jest.Mock)
 			.mockReturnValueOnce('https://storage.yandexcloud.net/bucket/audio.wav')
 			.mockReturnValueOnce('ru-RU')
+			.mockReturnValueOnce('audioFormat')
 			.mockReturnValueOnce('LPCM')
 			.mockReturnValueOnce({});
 
@@ -605,11 +672,13 @@ describe('YandexCloudSpeechKitStt Node', () => {
 			.mockReturnValueOnce('recognizeAudio')
 			.mockReturnValueOnce('https://storage.yandexcloud.net/bucket/audio1.wav')
 			.mockReturnValueOnce('ru-RU')
+			.mockReturnValueOnce('audioFormat')
 			.mockReturnValueOnce('LPCM')
 			.mockReturnValueOnce({})
 			.mockReturnValueOnce('recognizeAudio')
 			.mockReturnValueOnce('https://storage.yandexcloud.net/bucket/audio2.wav')
 			.mockReturnValueOnce('en-US')
+			.mockReturnValueOnce('audioFormat')
 			.mockReturnValueOnce('LPCM')
 			.mockReturnValueOnce({});
 
@@ -636,11 +705,13 @@ describe('YandexCloudSpeechKitStt Node', () => {
 			.mockReturnValueOnce('recognizeAudio')
 			.mockReturnValueOnce('https://storage.yandexcloud.net/bucket/audio1.wav')
 			.mockReturnValueOnce('ru-RU')
+			.mockReturnValueOnce('audioFormat')
 			.mockReturnValueOnce('LPCM')
 			.mockReturnValueOnce({})
 			.mockReturnValueOnce('recognizeAudio')
 			.mockReturnValueOnce('https://storage.yandexcloud.net/bucket/audio2.wav')
 			.mockReturnValueOnce('en-US')
+			.mockReturnValueOnce('audioFormat')
 			.mockReturnValueOnce('LPCM')
 			.mockReturnValueOnce({});
 
