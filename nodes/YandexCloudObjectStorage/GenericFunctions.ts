@@ -78,6 +78,13 @@ export async function loadBuckets(
 }
 
 /**
+ * Constructs the full object URL for Yandex Object Storage
+ */
+export function getObjectUrl(bucketName: string, objectKey: string): string {
+	return `https://storage.yandexcloud.net/${bucketName}/${objectKey}`;
+}
+
+/**
  * Load objects for resource locator (used in copy/move operations)
  */
 export async function loadObjects(

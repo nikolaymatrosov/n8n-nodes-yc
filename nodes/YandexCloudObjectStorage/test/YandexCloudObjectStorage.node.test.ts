@@ -400,6 +400,7 @@ describe('YandexCloudObjectStorage Node', () => {
 						success: true,
 						bucket: 'test-bucket',
 						key: 'test-file.txt',
+						objectUrl: 'https://storage.yandexcloud.net/test-bucket/test-file.txt',
 						etag: '"etag-123"',
 						versionId: 'version-1',
 					});
@@ -590,6 +591,7 @@ describe('YandexCloudObjectStorage Node', () => {
 						success: true,
 						bucket: 'test-bucket',
 						key: 'test-file.txt',
+						objectUrl: 'https://storage.yandexcloud.net/test-bucket/test-file.txt',
 						etag: '"etag-123"',
 					});
 				});
@@ -638,6 +640,7 @@ describe('YandexCloudObjectStorage Node', () => {
 						success: true,
 						bucket: 'test-bucket',
 						key: 'data.json',
+						objectUrl: 'https://storage.yandexcloud.net/test-bucket/data.json',
 						etag: '"etag-123"',
 					});
 				});
@@ -978,6 +981,7 @@ describe('YandexCloudObjectStorage Node', () => {
 					sourceKey: 'source.txt',
 					destinationBucket: 'dest-bucket',
 					destinationKey: 'destination.txt',
+					objectUrl: 'https://storage.yandexcloud.net/dest-bucket/destination.txt',
 					etag: '"etag-copy"',
 				});
 			});
@@ -1037,6 +1041,7 @@ describe('YandexCloudObjectStorage Node', () => {
 					sourceKey: 'source.txt',
 					destinationBucket: 'dest-bucket',
 					destinationKey: 'destination.txt',
+					objectUrl: 'https://storage.yandexcloud.net/dest-bucket/destination.txt',
 					etag: '"etag-copy"',
 				});
 			});
@@ -1122,6 +1127,178 @@ describe('YandexCloudObjectStorage Node', () => {
 					presignedUrl: 'https://storage.yandexcloud.net/test-bucket/test-file.txt?signature=xyz',
 					expiresIn: 3600,
 				});
+			});
+		});
+	});
+
+	describe('Object URL Generation', () => {
+		describe('Upload with special characters', () => {
+			it('should generate URL with path containing forward slashes', async () => {
+				(mockExecuteFunctions.getNodeParameter as jest.Mock).mockImplementation(
+					(paramName: string, _index: number, _defaultValue?: any, options?: any) => {
+						if (options?.extractValue) {
+							return 'test-bucket';
+						}
+						const params: Record<string, any> = {
+							resource: 'object',
+							operation: 'upload',
+							bucketName: { mode: 'list', value: 'test-bucket' },
+							objectKey: 'folder/subfolder/file.txt',
+							inputDataType: 'text',
+							textContent: 'test',
+							additionalFields: {},
+						};
+						return params[paramName];
+					},
+				);
+
+				mockSend.mockResolvedValue({
+					ETag: '"etag-123"',
+				});
+
+				const result = await node.execute.call(mockExecuteFunctions as IExecuteFunctions);
+
+				expect(result[0][0].json.objectUrl).toBe(
+					'https://storage.yandexcloud.net/test-bucket/folder/subfolder/file.txt',
+				);
+			});
+
+			it('should generate URL with hyphens and underscores', async () => {
+				(mockExecuteFunctions.getNodeParameter as jest.Mock).mockImplementation(
+					(paramName: string, _index: number, _defaultValue?: any, options?: any) => {
+						if (options?.extractValue) {
+							return 'my-test-bucket';
+						}
+						const params: Record<string, any> = {
+							resource: 'object',
+							operation: 'upload',
+							bucketName: { mode: 'list', value: 'my-test-bucket' },
+							objectKey: 'my_file-name.txt',
+							inputDataType: 'text',
+							textContent: 'test',
+							additionalFields: {},
+						};
+						return params[paramName];
+					},
+				);
+
+				mockSend.mockResolvedValue({
+					ETag: '"etag-123"',
+				});
+
+				const result = await node.execute.call(mockExecuteFunctions as IExecuteFunctions);
+
+				expect(result[0][0].json.objectUrl).toBe(
+					'https://storage.yandexcloud.net/my-test-bucket/my_file-name.txt',
+				);
+			});
+
+			it('should generate URL with dots in key', async () => {
+				(mockExecuteFunctions.getNodeParameter as jest.Mock).mockImplementation(
+					(paramName: string, _index: number, _defaultValue?: any, options?: any) => {
+						if (options?.extractValue) {
+							return 'test-bucket';
+						}
+						const params: Record<string, any> = {
+							resource: 'object',
+							operation: 'upload',
+							bucketName: { mode: 'list', value: 'test-bucket' },
+							objectKey: 'archive.tar.gz',
+							inputDataType: 'text',
+							textContent: 'test',
+							additionalFields: {},
+						};
+						return params[paramName];
+					},
+				);
+
+				mockSend.mockResolvedValue({
+					ETag: '"etag-123"',
+				});
+
+				const result = await node.execute.call(mockExecuteFunctions as IExecuteFunctions);
+
+				expect(result[0][0].json.objectUrl).toBe(
+					'https://storage.yandexcloud.net/test-bucket/archive.tar.gz',
+				);
+			});
+		});
+
+		describe('Copy with special characters', () => {
+			it('should generate destination URL with nested path', async () => {
+				(mockExecuteFunctions.getNodeParameter as jest.Mock).mockImplementation(
+					(paramName: string, _index: number, _defaultValue?: any, options?: any) => {
+						if (options?.extractValue) {
+							if (paramName === 'sourceBucket') {
+								return 'source-bucket';
+							}
+							if (paramName === 'destinationBucket') {
+								return 'dest-bucket';
+							}
+						}
+						const params: Record<string, any> = {
+							resource: 'object',
+							operation: 'copy',
+							sourceBucket: { mode: 'list', value: 'source-bucket' },
+							sourceObjectKey: 'old/path/file.txt',
+							destinationBucket: { mode: 'list', value: 'dest-bucket' },
+							destinationObjectKey: 'new/path/copied-file.txt',
+						};
+						return params[paramName];
+					},
+				);
+
+				mockSend.mockResolvedValue({
+					CopyObjectResult: {
+						ETag: '"etag-copy"',
+					},
+				});
+
+				const result = await node.execute.call(mockExecuteFunctions as IExecuteFunctions);
+
+				expect(result[0][0].json.objectUrl).toBe(
+					'https://storage.yandexcloud.net/dest-bucket/new/path/copied-file.txt',
+				);
+			});
+		});
+
+		describe('Move with special characters', () => {
+			it('should generate destination URL with complex key', async () => {
+				(mockExecuteFunctions.getNodeParameter as jest.Mock).mockImplementation(
+					(paramName: string, _index: number, _defaultValue?: any, options?: any) => {
+						if (options?.extractValue) {
+							if (paramName === 'sourceBucket') {
+								return 'source-bucket';
+							}
+							if (paramName === 'destinationBucket') {
+								return 'dest-bucket';
+							}
+						}
+						const params: Record<string, any> = {
+							resource: 'object',
+							operation: 'move',
+							sourceBucket: { mode: 'list', value: 'source-bucket' },
+							sourceObjectKey: 'temp/data.json',
+							destinationBucket: { mode: 'list', value: 'dest-bucket' },
+							destinationObjectKey: 'production/v2/data-2024.json',
+						};
+						return params[paramName];
+					},
+				);
+
+				mockSend
+					.mockResolvedValueOnce({
+						CopyObjectResult: {
+							ETag: '"etag-move"',
+						},
+					})
+					.mockResolvedValueOnce({});
+
+				const result = await node.execute.call(mockExecuteFunctions as IExecuteFunctions);
+
+				expect(result[0][0].json.objectUrl).toBe(
+					'https://storage.yandexcloud.net/dest-bucket/production/v2/data-2024.json',
+				);
 			});
 		});
 	});
