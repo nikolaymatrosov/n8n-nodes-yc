@@ -76,10 +76,10 @@ Integration package for working with Yandex Cloud services in n8n.
 
 **Object Operations:**
 
-- **Upload** - upload from binary data, text, or JSON with content-type, storage class (Standard/Cold/Ice) and metadata configuration
+- **Upload** - upload from binary data, text, or JSON with content-type, storage class (Standard/Cold/Ice) and metadata configuration. Returns `objectUrl` field containing the full object URL (e.g., `https://storage.yandexcloud.net/my-bucket/file.txt`)
 - **Download** - download object to binary format
-- **Copy** - copy between buckets preserving metadata
-- **Move** - move with automatic source deletion
+- **Copy** - copy between buckets preserving metadata. Returns `objectUrl` field with the destination object URL
+- **Move** - move with automatic source deletion. Returns `objectUrl` field with the destination object URL
 - **Delete** - delete object
 - **Get** - get metadata (size, content-type, ETag, version)
 - **List** - enumerate objects with prefix filtering and pagination (up to 1000 objects)

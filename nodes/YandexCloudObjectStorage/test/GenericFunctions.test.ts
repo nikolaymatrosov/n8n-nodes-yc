@@ -1,6 +1,6 @@
 import { S3Client } from '@aws-sdk/client-s3';
 import { Readable } from 'stream';
-import { createS3Client, streamToBuffer } from '../GenericFunctions';
+import { createS3Client, getObjectUrl, streamToBuffer } from '../GenericFunctions';
 
 // Mock AWS SDK
 jest.mock('@aws-sdk/client-s3');
@@ -154,6 +154,33 @@ describe('GenericFunctions', () => {
 			const buffer = await streamToBuffer(stream);
 
 			expect(buffer.length).toBe(1024 * 1024);
+		});
+	});
+
+	describe('getObjectUrl', () => {
+		it('should construct correct URL with simple bucket and key', () => {
+			const url = getObjectUrl('my-bucket', 'file.txt');
+			expect(url).toBe('https://storage.yandexcloud.net/my-bucket/file.txt');
+		});
+
+		it('should construct URL with nested path', () => {
+			const url = getObjectUrl('my-bucket', 'folder/subfolder/file.txt');
+			expect(url).toBe('https://storage.yandexcloud.net/my-bucket/folder/subfolder/file.txt');
+		});
+
+		it('should construct URL with special characters in key', () => {
+			const url = getObjectUrl('test-bucket', 'my_file-name.tar.gz');
+			expect(url).toBe('https://storage.yandexcloud.net/test-bucket/my_file-name.tar.gz');
+		});
+
+		it('should construct URL with bucket containing hyphens', () => {
+			const url = getObjectUrl('my-test-bucket-123', 'data.json');
+			expect(url).toBe('https://storage.yandexcloud.net/my-test-bucket-123/data.json');
+		});
+
+		it('should construct URL with deep nested structure', () => {
+			const url = getObjectUrl('bucket', 'a/b/c/d/e/file.txt');
+			expect(url).toBe('https://storage.yandexcloud.net/bucket/a/b/c/d/e/file.txt');
 		});
 	});
 });

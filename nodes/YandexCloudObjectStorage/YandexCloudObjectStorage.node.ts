@@ -25,7 +25,7 @@ import {
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { Readable } from 'stream';
 
-import { createS3Client, loadBuckets, loadObjects, streamToBuffer } from './GenericFunctions';
+import { createS3Client, getObjectUrl, loadBuckets, loadObjects, streamToBuffer } from './GenericFunctions';
 
 export class YandexCloudObjectStorage implements INodeType {
 	description: INodeTypeDescription = {
@@ -1044,18 +1044,19 @@ export class YandexCloudObjectStorage implements INodeType {
 							params.Metadata = metadata;
 						}
 
-						const response = await client.send(new PutObjectCommand(params));
+					const response = await client.send(new PutObjectCommand(params));
 
-						returnData.push({
-							json: {
-								success: true,
-								bucket: bucketName,
-								key: objectKey,
-								etag: response.ETag,
-								versionId: response.VersionId,
-							},
-							pairedItem: { item: i },
-						});
+					returnData.push({
+						json: {
+							success: true,
+							bucket: bucketName,
+							key: objectKey,
+							objectUrl: getObjectUrl(bucketName, objectKey),
+							etag: response.ETag,
+							versionId: response.VersionId,
+						},
+						pairedItem: { item: i },
+					});
 					} else if (operation === 'download') {
 						const objectKey = this.getNodeParameter('objectKey', i) as string;
 
@@ -1182,26 +1183,27 @@ export class YandexCloudObjectStorage implements INodeType {
 
 						const copySource = `${sourceBucket}/${sourceObjectKey}`;
 
-						const response = await client.send(
-							new CopyObjectCommand({
-								Bucket: destinationBucket,
-								Key: destinationObjectKey,
-								CopySource: copySource,
-							}),
-						);
+					const response = await client.send(
+						new CopyObjectCommand({
+							Bucket: destinationBucket,
+							Key: destinationObjectKey,
+							CopySource: copySource,
+						}),
+					);
 
-						returnData.push({
-							json: {
-								success: true,
-								sourceBucket,
-								sourceKey: sourceObjectKey,
-								destinationBucket,
-								destinationKey: destinationObjectKey,
-								etag: response.CopyObjectResult?.ETag,
-								lastModified: response.CopyObjectResult?.LastModified,
-							},
-							pairedItem: { item: i },
-						});
+					returnData.push({
+						json: {
+							success: true,
+							sourceBucket,
+							sourceKey: sourceObjectKey,
+							destinationBucket,
+							destinationKey: destinationObjectKey,
+							objectUrl: getObjectUrl(destinationBucket, destinationObjectKey),
+							etag: response.CopyObjectResult?.ETag,
+							lastModified: response.CopyObjectResult?.LastModified,
+						},
+						pairedItem: { item: i },
+					});
 					} else if (operation === 'move') {
 						const sourceBucket = this.getNodeParameter('sourceBucket', i, '', {
 							extractValue: true,
@@ -1223,26 +1225,27 @@ export class YandexCloudObjectStorage implements INodeType {
 							}),
 						);
 
-						// Delete source object
-						await client.send(
-							new DeleteObjectCommand({
-								Bucket: sourceBucket,
-								Key: sourceObjectKey,
-							}),
-						);
+					// Delete source object
+					await client.send(
+						new DeleteObjectCommand({
+							Bucket: sourceBucket,
+							Key: sourceObjectKey,
+						}),
+					);
 
-						returnData.push({
-							json: {
-								success: true,
-								sourceBucket,
-								sourceKey: sourceObjectKey,
-								destinationBucket,
-								destinationKey: destinationObjectKey,
-								etag: copyResponse.CopyObjectResult?.ETag,
-								lastModified: copyResponse.CopyObjectResult?.LastModified,
-							},
-							pairedItem: { item: i },
-						});
+					returnData.push({
+						json: {
+							success: true,
+							sourceBucket,
+							sourceKey: sourceObjectKey,
+							destinationBucket,
+							destinationKey: destinationObjectKey,
+							objectUrl: getObjectUrl(destinationBucket, destinationObjectKey),
+							etag: copyResponse.CopyObjectResult?.ETag,
+							lastModified: copyResponse.CopyObjectResult?.LastModified,
+						},
+						pairedItem: { item: i },
+					});
 					} else if (operation === 'setAcl') {
 						const objectKey = this.getNodeParameter('objectKey', i) as string;
 						const acl = this.getNodeParameter('acl', i) as string;
