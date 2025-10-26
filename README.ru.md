@@ -356,7 +356,9 @@
 | **Operation** | Options | Recognize Audio или Get Recognition Results |
 | **Audio URL** | String | URL аудиофайла в Yandex Object Storage |
 | **Language Code** | Options | Язык распознавания (авто-определение, русский, английский и др.) |
-| **Audio Format** | Options | Формат аудиофайла (LPCM, OGG Opus, MP3) |
+| **Format Specification** | Options | Выбор способа указания формата: коды Audio Format или MIME Types |
+| **Audio Format** | Options | Формат аудио Yandex Cloud (LPCM, OGG Opus, MP3) - отображается при выборе "Audio Format" |
+| **MIME Type** | Options | Стандартный MIME тип (audio/wav, audio/ogg, audio/mpeg и др.) - отображается при выборе "MIME Type" |
 
 **Операции:**
 
@@ -385,9 +387,19 @@
 
 **Форматы аудио:**
 
+Нода поддерживает два способа указания формата аудио:
+
+*Через Audio Format (коды форматов Yandex Cloud):*
+
 - **LPCM** - Linear PCM с настраиваемой частотой дискретизации (8000, 16000, 48000 Гц)
 - **OGG Opus** - Сжатый формат Ogg Opus
 - **MP3** - Стандартный формат MP3
+
+*Через MIME Type (стандартные MIME типы, автоматически преобразуются в форматы Yandex):*
+
+- **audio/wav, audio/pcm, audio/x-pcm** - Преобразуется в LPCM
+- **audio/ogg, audio/opus** - Преобразуется в OGG Opus
+- **audio/mpeg, audio/mp3** - Преобразуется в MP3
 
 **Опции распознавания:**
 

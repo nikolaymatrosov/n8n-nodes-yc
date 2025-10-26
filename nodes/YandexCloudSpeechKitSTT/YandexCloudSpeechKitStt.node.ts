@@ -40,6 +40,23 @@ function sleep(ms: number): Promise<void> {
 	return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+/**
+ * Maps MIME types to Yandex Cloud audio format codes
+ */
+function mapMimeTypeToAudioFormat(mimeType: string): string {
+	const mimeTypeMap: Record<string, string> = {
+		'audio/x-pcm': 'LPCM',
+		'audio/pcm': 'LPCM',
+		'audio/wav': 'LPCM',
+		'audio/ogg': 'OGG_OPUS',
+		'audio/opus': 'OGG_OPUS',
+		'audio/mpeg': 'MP3',
+		'audio/mp3': 'MP3',
+	};
+
+	return mimeTypeMap[mimeType.toLowerCase()] || 'LPCM';
+}
+
 export class YandexCloudSpeechKitStt implements INodeType {
 	description: INodeTypeDescription = {
 		displayName: 'Yandex Cloud SpeechKit STT',
@@ -183,12 +200,37 @@ export class YandexCloudSpeechKitStt implements INodeType {
 		description: 'Language code for recognition',
 	},
 	{
+		displayName: 'Format Specification',
+		name: 'formatSpecification',
+		type: 'options',
+		displayOptions: {
+			show: {
+				operation: ['recognizeAudio'],
+			},
+		},
+		options: [
+			{
+				name: 'Audio Format',
+				value: 'audioFormat',
+				description: 'Specify format using Yandex Cloud audio format codes',
+			},
+			{
+				name: 'MIME Type',
+				value: 'mimeType',
+				description: 'Specify format using standard MIME types',
+			},
+		],
+		default: 'audioFormat',
+		description: 'Choose how to specify the audio format',
+	},
+	{
 		displayName: 'Audio Format',
 		name: 'audioFormat',
 		type: 'options',
 		displayOptions: {
 			show: {
 				operation: ['recognizeAudio'],
+				formatSpecification: ['audioFormat'],
 			},
 		},
 		options: [
@@ -207,6 +249,62 @@ export class YandexCloudSpeechKitStt implements INodeType {
 		],
 		default: 'LPCM',
 		description: 'Audio file format',
+	},
+	{
+		displayName: 'MIME Type',
+		name: 'mimeType',
+		type: 'options',
+		displayOptions: {
+			show: {
+				operation: ['recognizeAudio'],
+				formatSpecification: ['mimeType'],
+			},
+		},
+		options: [
+			{
+				// eslint-disable-next-line n8n-nodes-base/node-param-display-name-miscased
+				name: 'audio/mp3',
+				value: 'audio/mp3',
+				description: 'MP3 audio (alternative)',
+			},
+			{
+				// eslint-disable-next-line n8n-nodes-base/node-param-display-name-miscased
+				name: 'audio/mpeg',
+				value: 'audio/mpeg',
+				description: 'MP3 audio',
+			},
+			{
+				// eslint-disable-next-line n8n-nodes-base/node-param-display-name-miscased
+				name: 'audio/ogg',
+				value: 'audio/ogg',
+				description: 'OGG container with Opus codec',
+			},
+			{
+				// eslint-disable-next-line n8n-nodes-base/node-param-display-name-miscased
+				name: 'audio/opus',
+				value: 'audio/opus',
+				description: 'OGG Opus audio',
+			},
+			{
+				// eslint-disable-next-line n8n-nodes-base/node-param-display-name-miscased
+				name: 'audio/pcm',
+				value: 'audio/pcm',
+				description: 'Linear PCM audio (alternative)',
+			},
+			{
+				// eslint-disable-next-line n8n-nodes-base/node-param-display-name-miscased
+				name: 'audio/wav',
+				value: 'audio/wav',
+				description: 'WAV format (usually contains PCM)',
+			},
+			{
+				name: 'audio/x-pcm',
+				value: 'audio/x-pcm',
+				description: 'Linear PCM audio',
+			},
+		],
+		default: 'audio/wav',
+		description: 'Audio MIME type',
 	},
 	{
 		displayName: 'Recognition Options',
@@ -368,7 +466,17 @@ export class YandexCloudSpeechKitStt implements INodeType {
 			if (operation === 'recognizeAudio') {
 				const audioUrl = this.getNodeParameter('audioUrl', i) as string;
 				const languageCode = this.getNodeParameter('languageCode', i) as string;
-				const audioFormat = this.getNodeParameter('audioFormat', i) as string;
+				const formatSpecification = this.getNodeParameter('formatSpecification', i) as string;
+
+				// Determine audio format based on user's choice
+				let audioFormat: string;
+				if (formatSpecification === 'mimeType') {
+					const mimeType = this.getNodeParameter('mimeType', i) as string;
+					audioFormat = mapMimeTypeToAudioFormat(mimeType);
+				} else {
+					audioFormat = this.getNodeParameter('audioFormat', i) as string;
+				}
+
 				const recognitionOptions = this.getNodeParameter('recognitionOptions', i, {}) as {
 					sampleRate?: number;
 					audioChannelCount?: number;
