@@ -8,7 +8,7 @@ Integration package for working with Yandex Cloud services in n8n.
 ## Table of Contents
 
 1. [Yandex Cloud GPT Chat Model](#yandex-cloud-gpt-chat-model)
-2. [Yandex Cloud GPT](#yandex-cloud-gpt)
+2. [Yandex Cloud Foundation Models](#yandex-cloud-foundation-models)
 3. [Yandex Object Storage](#yandex-object-storage)
 4. [Yandex Cloud Functions](#yandex-cloud-functions)
 5. [Yandex Cloud Containers](#yandex-cloud-containers)
@@ -39,7 +39,7 @@ Integration package for working with Yandex Cloud services in n8n.
 
 ---
 
-## Yandex Cloud GPT
+## Yandex Cloud Foundation Models
 
 **Node for working with Yandex Cloud Foundation Models API, providing direct access to YandexGPT generative language models via REST API.** Unlike the Chat Model version, this node works as a regular transformation node with Main-type inputs and outputs, allowing requests to the API and receiving JSON responses in the context of standard workflows.
 
@@ -52,7 +52,7 @@ Integration package for working with Yandex Cloud services in n8n.
 
 - **Chat** - work with model chat functionality
 
-**Authentication:** Uses API key via `yandexCloudGptApi` credentials. Supports base URL configuration and automatic HTTP error handling (ignoreHttpStatusErrors). The node is suitable for simple text generation scenarios that don't require complex LangChain integration but need direct work with Yandex Cloud API for creating dialogs, generating content, and natural language processing in automated workflows.
+**Authentication:** Uses API key via `yandexCloudFomoApi` credentials. Supports base URL configuration and automatic HTTP error handling (ignoreHttpStatusErrors). Features model selection from dropdown list (similar to LMChatYandexGpt) and enhanced error messages with detailed API responses. The node is suitable for simple text generation scenarios that don't require complex LangChain integration but need direct work with Yandex Cloud API for creating dialogs, generating content, and natural language processing in automated workflows.
 
 ---
 

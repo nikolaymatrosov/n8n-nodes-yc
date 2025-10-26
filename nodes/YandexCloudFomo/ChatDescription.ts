@@ -22,7 +22,7 @@ export const chatOperations: INodeProperties[] = [
 				routing: {
 					request: {
 						method: 'POST',
-						url: '/completions',
+						url: '/foundationModels/v1/completion',
 					},
 					output: { postReceive: [sendErrorPostReceive] },
 				},
@@ -34,28 +34,53 @@ export const chatOperations: INodeProperties[] = [
 
 const completeOperations: INodeProperties[] = [
 	{
-		displayName: 'Model URI',
-		name: 'modelUri',
-		type: 'string',
-		description: 'The model URI in format: gpt://{folder_id}/{model_name}',
+		displayName: 'Model',
+		name: 'model',
+		type: 'resourceLocator',
+		default: { mode: 'list', value: '' },
+		required: true,
 		displayOptions: {
 			show: {
 				operation: ['complete'],
 				resource: ['chat'],
 			},
 		},
-		default: 'gpt://{{$credentials.folderId}}/yandexgpt/latest',
-		placeholder: 'e.g. gpt://b1g2345example/yandexgpt/latest',
+		modes: [
+			{
+				displayName: 'From List',
+				name: 'list',
+				type: 'list',
+				placeholder: 'Select a model...',
+				typeOptions: {
+					searchListMethod: 'searchModels',
+					searchable: true,
+				},
+			},
+			{
+				displayName: 'ID',
+				name: 'id',
+				type: 'string',
+				placeholder: 'gpt://b1g.../yandexgpt/latest',
+				hint: 'Enter full model URI: gpt://{folderId}/{modelName}',
+			},
+		],
+		description: 'The model to use. Choose from the list, or specify the full model URI.',
 		routing: {
 			send: {
-				type: 'body',
-				property: 'modelUri',
+				preSend: [
+					async function (this, requestOptions) {
+						const modelParam = this.getNodeParameter('model') as { value: string };
+						requestOptions.body = requestOptions.body || {};
+						(requestOptions.body as any).modelUri = modelParam.value;
+						return requestOptions;
+					},
+				],
 			},
 		},
 	},
 	{
-		displayName: 'Prompt',
-		name: 'prompt',
+		displayName: 'Messages',
+		name: 'messages',
 		type: 'fixedCollection',
 		typeOptions: {
 			sortable: true,
@@ -71,8 +96,8 @@ const completeOperations: INodeProperties[] = [
 		default: {},
 		options: [
 			{
-				displayName: 'Messages',
-				name: 'messages',
+				displayName: 'Message',
+				name: 'messageValues',
 				values: [
 					{
 						displayName: 'Role',
@@ -109,8 +134,8 @@ const completeOperations: INodeProperties[] = [
 		routing: {
 			send: {
 				type: 'body',
-				property: 'completionOptions.messages',
-				value: '={{ $value.messages }}',
+				property: 'messages',
+				value: '={{ $value.messageValues }}',
 			},
 		},
 	},
@@ -131,20 +156,6 @@ const sharedOperations: INodeProperties[] = [
 		routing: {
 			output: {
 				postReceive: [
-					{
-						type: 'set',
-						enabled: '={{$value}}',
-						properties: {
-							value: '={{ { "data": [$response.body.result] } }}',
-						},
-					},
-					{
-						type: 'rootProperty',
-						enabled: '={{$value}}',
-						properties: {
-							property: 'data',
-						},
-					},
 					async function (items: INodeExecutionData[]): Promise<INodeExecutionData[]> {
 						if (this.getNode().parameters.simplifyOutput === false) {
 							return items;
@@ -156,6 +167,8 @@ const sharedOperations: INodeProperties[] = [
 									...item.json,
 									text: alternatives[0]?.message?.text || '',
 									message: alternatives[0]?.message,
+									usage: (item.json as any).usage,
+									modelVersion: (item.json as any).modelVersion,
 								},
 							};
 						});

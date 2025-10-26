@@ -6,12 +6,12 @@ import type {
 	INodeProperties,
 } from 'n8n-workflow';
 
-export class YandexCloudGptApi implements ICredentialType {
-	name = 'yandexCloudGptApi';
+export class YandexCloudFomoApi implements ICredentialType {
+	name = 'yandexCloudFomoApi';
 
-	displayName = 'Yandex Cloud GPT API (OpenAI-Compatible) API';
+	displayName = 'Yandex Cloud Foundation Models API';
 
-	documentationUrl = 'https://yandex.cloud/ru/docs/ai-studio/concepts/openai-compatibility';
+	documentationUrl = 'https://yandex.cloud/en/docs/foundation-models/';
 
 	properties: INodeProperties[] = [
 		{
@@ -35,14 +35,14 @@ export class YandexCloudGptApi implements ICredentialType {
 			displayName: 'Base URL',
 			name: 'url',
 			type: 'string',
-			default: 'https://llm.api.cloud.yandex.net/v1',
+			default: 'https://llm.api.cloud.yandex.net',
 			description: 'Override the default base URL for the API',
 		},
 	];
 
 	test: ICredentialTestRequest = {
 		request: {
-			baseURL: '={{$credentials?.url}}',
+			baseURL: 'https://llm.api.cloud.yandex.net/v1',
 			url: '/models',
 			method: 'GET',
 		},

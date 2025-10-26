@@ -5,7 +5,7 @@
 ## Содержание
 
 1. [Yandex Cloud GPT Chat Model](#yandex-cloud-gpt-chat-model)
-2. [Yandex Cloud GPT](#yandex-cloud-gpt)
+2. [Yandex Cloud Foundation Models](#yandex-cloud-foundation-models)
 3. [Yandex Object Storage](#yandex-object-storage)
 4. [Yandex Cloud Functions](#yandex-cloud-functions)
 5. [Yandex Cloud Containers](#yandex-cloud-containers)
@@ -36,7 +36,7 @@
 
 ---
 
-## Yandex Cloud GPT
+## Yandex Cloud Foundation Models
 
 **Нода для работы с Foundation Models API Yandex Cloud, предоставляющая прямой доступ к генеративным языковым моделям YandexGPT через REST API.** В отличие от Chat Model версии, эта нода работает как обычная трансформационная нода с входами и выходами Main-типа, позволяя отправлять запросы к API и получать JSON-ответы в контексте стандартного workflow.
 
@@ -48,7 +48,7 @@
 **Ресурсы и операции:**
 - **Chat** - работа с чат-функциональностью модели
 
-**Аутентификация:** Использует API ключ через credentials `yandexCloudGptApi`. Поддерживает настройку базового URL и автоматическую обработку HTTP ошибок (ignoreHttpStatusErrors). Нода подходит для простых сценариев генерации текста, где не требуется сложная интеграция с LangChain, но нужна прямая работа с API Yandex Cloud для создания диалогов, генерации контента и обработки естественного языка в автоматизированных процессах.
+**Аутентификация:** Использует API ключ через credentials `yandexCloudFomoApi`. Поддерживает настройку базового URL и автоматическую обработку HTTP ошибок (ignoreHttpStatusErrors). Включает выбор модели из выпадающего списка (аналогично LMChatYandexGpt) и расширенные сообщения об ошибках с детальными ответами API. Нода подходит для простых сценариев генерации текста, где не требуется сложная интеграция с LangChain, но нужна прямая работа с API Yandex Cloud для создания диалогов, генерации контента и обработки естественного языка в автоматизированных процессах.
 
 ---
 
