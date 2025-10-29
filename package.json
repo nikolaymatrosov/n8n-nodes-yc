@@ -41,7 +41,8 @@
 			"dist/credentials/YandexCloudAuthorizedApi.credentials.js",
 			"dist/credentials/YandexCloudFomoApi.credentials.js",
 			"dist/credentials/YandexCloudGptApi.credentials.js",
-			"dist/credentials/YandexCloudStaticApi.credentials.js"
+			"dist/credentials/YandexCloudStaticApi.credentials.js",
+			"dist/credentials/YandexCloudYdbApi.credentials.js"
 		],
 		"nodes": [
 			"dist/nodes/YandexCloudFomo/YandexCloudFomo.node.js",
@@ -58,7 +59,8 @@
 			"dist/nodes/YandexCloudCompute/YandexCloudCompute.node.js",
 			"dist/nodes/YandexCloudContainers/YandexCloudContainers.node.js",
 			"dist/nodes/YandexCloudWorkflows/YandexCloudWorkflows.node.js",
-			"dist/nodes/YandexCloudTranslate/YandexCloudTranslate.node.js"
+			"dist/nodes/YandexCloudTranslate/YandexCloudTranslate.node.js",
+			"dist/nodes/YandexCloudYDB/YandexCloudYDB.node.js"
 		]
 	},
 	"devDependencies": {
@@ -93,6 +95,8 @@
 		"@langchain/openai": "^0.6.16",
 		"@n8n/json-schema-to-zod": "^1.1.0",
 		"@yandex-cloud/nodejs-sdk": "3.0.0-beta.1",
+		"@ydbjs/core": "^6.0.4",
+		"@ydbjs/query": "^6.0.4",
 		"generate-schema": "^2.6.0",
 		"langchain": "0.3.33",
 		"lodash": "^4.17.21",
@@ -103,10 +107,10 @@
 	"peerDependencies": {
 		"n8n-workflow": "*"
 	},
-  "resolutions": {
-    "@langchain/core": "^0.3.33"
-  },
-  "overrides": {
-    "@langchain/core": "^0.3.33"
-  }
+	"resolutions": {
+		"@langchain/core": "^0.3.33"
+	},
+	"overrides": {
+		"@langchain/core": "^0.3.33"
+	}
 }
