@@ -18,7 +18,7 @@
 	"engines": {
 		"node": ">=22.15.0"
 	},
-	"main": "index.jss",
+	"main": "index.js",
 	"scripts": {
 		"build": "npx rimraf dist && tsc && tsc-alias && gulp build:icons && npm run validate:nodes",
 		"dev": "tsc --watch",
@@ -30,7 +30,8 @@
 		"test:coverage": "jest --coverage",
 		"validate:nodes": "node scripts/validate-nodes.js",
 		"prepublishOnly": "npm run build && eslint -c eslint.config.prepublish.js --ignore-pattern '**/*.test.ts' nodes credentials package.json",
-		"git-tag": "git tag v`cat package.json | jq -r '.version' | awk -F. '{print $1}'` -f &&  git tag v`cat package.json | jq -r '.version'` -f"
+		"git-tag": "git tag v`cat package.json | jq -r '.version' | awk -F. '{print $1}'` -f &&  git tag v`cat package.json | jq -r '.version'` -f",
+		"changelog:promote": "node scripts/promote-changelog.js"
 	},
 	"files": [
 		"dist"
