@@ -9,6 +9,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+### Changed
+
+### Fixed
+
+### Removed
+
+## [0.5.0] - 2025-10-31
+
+### Added
+
 - **Yandex Cloud YDB Node**: Execute YQL queries and interact with Yandex Database (YDB)
   - Support for simple and parameterized queries
   - Multiple return modes (all result sets, first result set, first row only)
