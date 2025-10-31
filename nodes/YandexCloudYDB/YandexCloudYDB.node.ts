@@ -31,12 +31,14 @@ export class YandexCloudYDB implements INodeType {
 		outputs: ['main'],
 		credentials: [
 			{
-				name: 'yandexCloudYdbApi',
-				required: false,
+				displayName: 'Yandex Cloud Service Account Credentials',
+				name: 'yandexCloudAuthorizedApi',
+				required: true,
 			},
 			{
-				name: 'yandexCloudAuthorizedApi',
-				required: false,
+				displayName: 'YDB Connection Parameters (endpoint and database)',
+				name: 'yandexCloudYdbApi',
+				required: true,
 			},
 		],
 		properties: [
@@ -78,32 +80,6 @@ export class YandexCloudYDB implements INodeType {
 					},
 				],
 				default: 'execute',
-			},
-			{
-				displayName: 'Endpoint',
-				name: 'endpoint',
-				type: 'string',
-				displayOptions: {
-					show: {
-						resource: ['query'],
-					},
-				},
-				default: 'grpcs://ydb.serverless.yandexcloud.net:2135',
-				description: 'YDB endpoint URL. Only needed if using yandexCloudAuthorizedApi credentials (when using yandexCloudYdbApi, endpoint is taken from credentials).',
-				placeholder: 'grpcs://ydb.serverless.yandexcloud.net:2135',
-			},
-			{
-				displayName: 'Database',
-				name: 'database',
-				type: 'string',
-				displayOptions: {
-					show: {
-						resource: ['query'],
-					},
-				},
-				default: '',
-				description: 'YDB database path. Only needed if using yandexCloudAuthorizedApi credentials (when using yandexCloudYdbApi, database is taken from credentials).',
-				placeholder: '/ru-central1/b1g.../etn...',
 			},
 			{
 				displayName: 'YQL Query',
@@ -202,49 +178,23 @@ export class YandexCloudYDB implements INodeType {
 		const resource = this.getNodeParameter('resource', 0) as string;
 		const operation = this.getNodeParameter('operation', 0) as string;
 
-		// Try to get credentials - support both types
-		const ydbCredentials = await this.getCredentials('yandexCloudYdbApi').catch(() => undefined);
-		const authorizedCredentials = await this.getCredentials('yandexCloudAuthorizedApi').catch(() => undefined);
+		// Get both credential types
+		const ydbCredentials = await this.getCredentials('yandexCloudYdbApi');
+		const authorizedCredentials = await this.getCredentials('yandexCloudAuthorizedApi');
 
-		// Validate that at least one credential type is provided
-		if (!ydbCredentials && !authorizedCredentials) {
+		// Get endpoint and database from YDB credentials
+		const endpoint = ydbCredentials.endpoint as string;
+		const database = ydbCredentials.database as string;
+
+		// Service account JSON comes from yandexCloudAuthorizedApi
+		let serviceAccountJson;
+		try {
+			serviceAccountJson = parseServiceAccountJson(authorizedCredentials.serviceAccountJson as string);
+		} catch (error) {
 			throw new NodeOperationError(
 				this.getNode(),
-				'Either yandexCloudYdbApi or yandexCloudAuthorizedApi credentials must be provided',
+				`Invalid service account JSON in yandexCloudAuthorizedApi credentials: ${error.message}`,
 			);
-		}
-
-		let endpoint: string = '';
-		let database: string = '';
-		let serviceAccountJson;
-
-		// Determine which credential type is being used and extract values
-		if (ydbCredentials) {
-			// New YDB-specific credentials with endpoint and database included
-			endpoint = ydbCredentials.endpoint as string;
-			database = ydbCredentials.database as string;
-
-			try {
-				serviceAccountJson = parseServiceAccountJson(ydbCredentials.serviceAccountJson as string);
-			} catch (error) {
-				throw new NodeOperationError(
-					this.getNode(),
-					`Invalid service account JSON in yandexCloudYdbApi credentials: ${error.message}`,
-				);
-			}
-		} else if (authorizedCredentials) {
-			// Legacy authorized credentials - get endpoint/database from node parameters
-			endpoint = this.getNodeParameter('endpoint', 0, '') as string;
-			database = this.getNodeParameter('database', 0, '') as string;
-
-			try {
-				serviceAccountJson = parseServiceAccountJson(authorizedCredentials.serviceAccountJson as string);
-			} catch (error) {
-				throw new NodeOperationError(
-					this.getNode(),
-					`Invalid service account JSON in yandexCloudAuthorizedApi credentials: ${error.message}`,
-				);
-			}
 		}
 
 		// Validate that serviceAccountJson was successfully parsed
@@ -279,7 +229,7 @@ export class YandexCloudYDB implements INodeType {
 		if (!endpoint || !database) {
 			throw new NodeOperationError(
 				this.getNode(),
-				'Both endpoint and database are required. When using yandexCloudAuthorizedApi, provide them as node parameters. When using yandexCloudYdbApi, they are included in the credentials.',
+				'Both endpoint and database are required in yandexCloudYdbApi credentials.',
 			);
 		}
 

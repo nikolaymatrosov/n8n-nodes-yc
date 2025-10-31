@@ -18,7 +18,7 @@
 	"engines": {
 		"node": ">=22.15.0"
 	},
-	"main": "index.js",
+	"main": "index.jss",
 	"scripts": {
 		"build": "npx rimraf dist && tsc && tsc-alias && gulp build:icons && npm run validate:nodes",
 		"dev": "tsc --watch",

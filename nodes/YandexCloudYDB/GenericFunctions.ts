@@ -1,7 +1,7 @@
 import { Driver } from '@ydbjs/core';
 import { query } from '@ydbjs/query';
 import { fromJs, toJs } from '@ydbjs/value';
-import { AccessTokenCredentialsProvider } from '@ydbjs/auth/dist/access-token';
+import { AccessTokenCredentialsProvider } from '@ydbjs/auth/access-token';
 import { IamTokenService } from '@yandex-cloud/nodejs-sdk/dist/token-service/iam-token-service';
 import { mapKeys, camelCase } from 'lodash';
 import type { YDBQueryParams } from './types';
@@ -72,8 +72,8 @@ export async function executeYQLQuery(
 	// If no parameters, execute simple query
 	if (!params || Object.keys(params).length === 0) {
 		const resultSets = await sql([yqlQuery] as any);
-		// Convert YDB values to JavaScript objects
-		return resultSets.map((resultSet: any[]) => resultSet.map((row: any) => toJs(row)));
+		// Results are already in JavaScript format by default
+		return resultSets;
 	}
 
 	// Execute parameterized query
@@ -87,8 +87,8 @@ export async function executeYQLQuery(
 
 	const resultSets = await queryBuilder;
 
-	// Convert YDB values to JavaScript objects
-	return resultSets.map((resultSet: any[]) => resultSet.map((row: any) => toJs(row)));
+	// Results are already in JavaScript format by default
+	return resultSets;
 }
 
 /**

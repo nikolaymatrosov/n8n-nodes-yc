@@ -1,5 +1,4 @@
 import { BaseCallbackHandler } from '@langchain/core/callbacks/base';
-import type { SerializedFields } from '@langchain/core/dist/load/map_keys';
 import { getModelNameForTiktoken } from '@langchain/core/language_models/base';
 import type {
 	Serialized,
@@ -20,6 +19,10 @@ type TokensUsageParser = (result: LLMResult) => {
 	promptTokens: number;
 	totalTokens: number;
 };
+
+interface SerializedFields {
+    [key: string]: any;
+}
 
 type RunDetail = {
 	index: number;

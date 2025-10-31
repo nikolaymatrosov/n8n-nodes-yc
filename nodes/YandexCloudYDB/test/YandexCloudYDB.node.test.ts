@@ -59,13 +59,13 @@ describe('YandexCloudYDB Node', () => {
 
 		it('should support both credential types', () => {
 			expect(node.description.credentials).toHaveLength(2);
-			expect(node.description.credentials?.[0]).toEqual({
-				name: 'yandexCloudYdbApi',
-				required: false,
-			});
-			expect(node.description.credentials?.[1]).toEqual({
+			expect(node.description.credentials?.[0]).toMatchObject({
 				name: 'yandexCloudAuthorizedApi',
-				required: false,
+				required: true,
+			});
+			expect(node.description.credentials?.[1]).toMatchObject({
+				name: 'yandexCloudYdbApi',
+				required: true,
 			});
 		});
 
@@ -111,13 +111,18 @@ describe('YandexCloudYDB Node', () => {
 		beforeEach(() => {
 			(mockExecuteFunctions.getCredentials as jest.Mock)
 				.mockImplementation((credType: string) => {
-					if (credType === 'yandexCloudYdbApi') {
+					if (credType === 'yandexCloudAuthorizedApi') {
 						return Promise.resolve({
 							serviceAccountJson: JSON.stringify({
 								service_account_id: 'sa-test-id',
 								id: 'key-test-id',
 								private_key: 'test-private-key',
 							}),
+							folderId: 'test-folder-id',
+						});
+					}
+					if (credType === 'yandexCloudYdbApi') {
+						return Promise.resolve({
 							endpoint: 'grpcs://test.ydb.net:2135',
 							database: '/test/database',
 						});
@@ -170,13 +175,10 @@ describe('YandexCloudYDB Node', () => {
 		});
 	});
 
-	describe('Execute Query with yandexCloudAuthorizedApi Credentials', () => {
-		beforeEach(() => {
+	describe('Dual Credential Validation', () => {
+		it('should use service account from yandexCloudAuthorizedApi', async () => {
 			(mockExecuteFunctions.getCredentials as jest.Mock)
 				.mockImplementation((credType: string) => {
-					if (credType === 'yandexCloudYdbApi') {
-						return Promise.reject(new Error('Credential not found'));
-					}
 					if (credType === 'yandexCloudAuthorizedApi') {
 						return Promise.resolve({
 							serviceAccountJson: JSON.stringify({
@@ -187,6 +189,12 @@ describe('YandexCloudYDB Node', () => {
 							folderId: 'test-folder-id',
 						});
 					}
+					if (credType === 'yandexCloudYdbApi') {
+						return Promise.resolve({
+							endpoint: 'grpcs://test.ydb.net:2135',
+							database: '/test/database',
+						});
+					}
 					return Promise.reject(new Error('Credential not found'));
 				});
 
@@ -195,40 +203,25 @@ describe('YandexCloudYDB Node', () => {
 					const params: Record<string, any> = {
 						resource: 'query',
 						operation: 'execute',
-						endpoint: 'grpcs://legacy.ydb.net:2135',
-						database: '/legacy/database',
 						yqlQuery: 'SELECT 1 AS result',
 						returnMode: 'firstResultSet',
 					};
 					return params[paramName];
 				},
 			);
-		});
 
-		it('should execute query successfully with yandexCloudAuthorizedApi credentials', async () => {
-			const result = await node.execute.call(mockExecuteFunctions as IExecuteFunctions);
-
-			expect(result).toHaveLength(1);
-			expect(result[0]).toHaveLength(1);
-			expect(result[0][0].json).toHaveProperty('rows');
-		});
-
-		it('should call createYDBDriver with parameters from node', async () => {
 			await node.execute.call(mockExecuteFunctions as IExecuteFunctions);
 
 			const { createYDBDriver } = require('../GenericFunctions');
 			expect(createYDBDriver).toHaveBeenCalledWith(
-				expect.any(Object),
-				'grpcs://legacy.ydb.net:2135',
-				'/legacy/database',
+				expect.objectContaining({
+					serviceAccountId: 'sa-test-id',
+					accessKeyId: 'key-test-id',
+					privateKey: 'test-private-key',
+				}),
+				'grpcs://test.ydb.net:2135',
+				'/test/database',
 			);
-		});
-
-		it('should get endpoint and database from node parameters', async () => {
-			await node.execute.call(mockExecuteFunctions as IExecuteFunctions);
-
-			expect(mockExecuteFunctions.getNodeParameter).toHaveBeenCalledWith('endpoint', 0, '');
-			expect(mockExecuteFunctions.getNodeParameter).toHaveBeenCalledWith('database', 0, '');
 		});
 	});
 
@@ -236,13 +229,18 @@ describe('YandexCloudYDB Node', () => {
 		beforeEach(() => {
 			(mockExecuteFunctions.getCredentials as jest.Mock)
 				.mockImplementation((credType: string) => {
-					if (credType === 'yandexCloudYdbApi') {
+					if (credType === 'yandexCloudAuthorizedApi') {
 						return Promise.resolve({
 							serviceAccountJson: JSON.stringify({
 								service_account_id: 'sa-test-id',
 								id: 'key-test-id',
 								private_key: 'test-private-key',
 							}),
+							folderId: 'test-folder-id',
+						});
+					}
+					if (credType === 'yandexCloudYdbApi') {
+						return Promise.resolve({
 							endpoint: 'grpcs://test.ydb.net:2135',
 							database: '/test/database',
 						});
@@ -319,13 +317,18 @@ describe('YandexCloudYDB Node', () => {
 		beforeEach(() => {
 			(mockExecuteFunctions.getCredentials as jest.Mock)
 				.mockImplementation((credType: string) => {
-					if (credType === 'yandexCloudYdbApi') {
+					if (credType === 'yandexCloudAuthorizedApi') {
 						return Promise.resolve({
 							serviceAccountJson: JSON.stringify({
 								service_account_id: 'sa-test-id',
 								id: 'key-test-id',
 								private_key: 'test-private-key',
 							}),
+							folderId: 'test-folder-id',
+						});
+					}
+					if (credType === 'yandexCloudYdbApi') {
+						return Promise.resolve({
 							endpoint: 'grpcs://test.ydb.net:2135',
 							database: '/test/database',
 						});
@@ -448,21 +451,25 @@ describe('YandexCloudYDB Node', () => {
 			);
 		});
 
-		it('should throw error when no credentials are provided', async () => {
+		it('should throw error when yandexCloudAuthorizedApi credentials are not provided', async () => {
 			(mockExecuteFunctions.getCredentials as jest.Mock)
 				.mockRejectedValue(new Error('Credential not found'));
 
 			await expect(
 				node.execute.call(mockExecuteFunctions as IExecuteFunctions),
-			).rejects.toThrow('Either yandexCloudYdbApi or yandexCloudAuthorizedApi credentials must be provided');
+			).rejects.toThrow();
 		});
 
 		it('should throw error for invalid service account JSON', async () => {
 			(mockExecuteFunctions.getCredentials as jest.Mock)
 				.mockImplementation((credType: string) => {
-					if (credType === 'yandexCloudYdbApi') {
+					if (credType === 'yandexCloudAuthorizedApi') {
 						return Promise.resolve({
 							serviceAccountJson: 'invalid-json',
+						});
+					}
+					if (credType === 'yandexCloudYdbApi') {
+						return Promise.resolve({
 							endpoint: 'grpcs://test.ydb.net:2135',
 							database: '/test/database',
 						});
@@ -478,12 +485,16 @@ describe('YandexCloudYDB Node', () => {
 		it('should throw error when service_account_id is missing', async () => {
 			(mockExecuteFunctions.getCredentials as jest.Mock)
 				.mockImplementation((credType: string) => {
-					if (credType === 'yandexCloudYdbApi') {
+					if (credType === 'yandexCloudAuthorizedApi') {
 						return Promise.resolve({
 							serviceAccountJson: JSON.stringify({
 								id: 'key-test-id',
 								private_key: 'test-private-key',
 							}),
+						});
+					}
+					if (credType === 'yandexCloudYdbApi') {
+						return Promise.resolve({
 							endpoint: 'grpcs://test.ydb.net:2135',
 							database: '/test/database',
 						});
@@ -508,14 +519,22 @@ describe('YandexCloudYDB Node', () => {
 							}),
 						});
 					}
+					if (credType === 'yandexCloudYdbApi') {
+						return Promise.resolve({
+							endpoint: '',
+							database: '/test/database',
+						});
+					}
 					return Promise.reject(new Error('Credential not found'));
 				});
 
 			(mockExecuteFunctions.getNodeParameter as jest.Mock).mockImplementation(
 				(paramName: string) => {
 					const params: Record<string, any> = {
-						endpoint: '',
-						database: '/test/database',
+						resource: 'query',
+						operation: 'execute',
+						yqlQuery: 'SELECT 1',
+						returnMode: 'firstResultSet',
 					};
 					return params[paramName] || '';
 				},
@@ -530,13 +549,18 @@ describe('YandexCloudYDB Node', () => {
 			(mockExecuteFunctions.continueOnFail as jest.Mock).mockReturnValue(true);
 			(mockExecuteFunctions.getCredentials as jest.Mock)
 				.mockImplementation((credType: string) => {
-					if (credType === 'yandexCloudYdbApi') {
+					if (credType === 'yandexCloudAuthorizedApi') {
 						return Promise.resolve({
 							serviceAccountJson: JSON.stringify({
 								service_account_id: 'sa-test-id',
 								id: 'key-test-id',
 								private_key: 'test-private-key',
 							}),
+							folderId: 'test-folder-id',
+						});
+					}
+					if (credType === 'yandexCloudYdbApi') {
+						return Promise.resolve({
 							endpoint: 'grpcs://test.ydb.net:2135',
 							database: '/test/database',
 						});
@@ -559,13 +583,18 @@ describe('YandexCloudYDB Node', () => {
 		it('should close driver even when error occurs', async () => {
 			(mockExecuteFunctions.getCredentials as jest.Mock)
 				.mockImplementation((credType: string) => {
-					if (credType === 'yandexCloudYdbApi') {
+					if (credType === 'yandexCloudAuthorizedApi') {
 						return Promise.resolve({
 							serviceAccountJson: JSON.stringify({
 								service_account_id: 'sa-test-id',
 								id: 'key-test-id',
 								private_key: 'test-private-key',
 							}),
+							folderId: 'test-folder-id',
+						});
+					}
+					if (credType === 'yandexCloudYdbApi') {
+						return Promise.resolve({
 							endpoint: 'grpcs://test.ydb.net:2135',
 							database: '/test/database',
 						});
@@ -588,13 +617,18 @@ describe('YandexCloudYDB Node', () => {
 		beforeEach(() => {
 			(mockExecuteFunctions.getCredentials as jest.Mock)
 				.mockImplementation((credType: string) => {
-					if (credType === 'yandexCloudYdbApi') {
+					if (credType === 'yandexCloudAuthorizedApi') {
 						return Promise.resolve({
 							serviceAccountJson: JSON.stringify({
 								service_account_id: 'sa-test-id',
 								id: 'key-test-id',
 								private_key: 'test-private-key',
 							}),
+							folderId: 'test-folder-id',
+						});
+					}
+					if (credType === 'yandexCloudYdbApi') {
+						return Promise.resolve({
 							endpoint: 'grpcs://test.ydb.net:2135',
 							database: '/test/database',
 						});

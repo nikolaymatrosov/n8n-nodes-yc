@@ -12,19 +12,6 @@ export class YandexCloudYdbApi implements ICredentialType {
 
 	properties: INodeProperties[] = [
 		{
-			displayName: 'Service Account JSON',
-			name: 'serviceAccountJson',
-			type: 'string',
-			typeOptions: {
-				password: true,
-				rows: 5,
-			},
-			required: true,
-			default: '',
-			description: 'Service account key JSON from Yandex Cloud. Supports both snake_case and camelCase formats.',
-			placeholder: '{"id": "ajek6t...", "service_account_id": "aje69k...", "private_key": "-----BEGIN PRIVATE KEY-----\\n...\\n-----END PRIVATE KEY-----\\n"}',
-		},
-		{
 			displayName: 'Endpoint',
 			name: 'endpoint',
 			type: 'string',

@@ -1,5 +1,4 @@
 import { BaseCallbackHandler } from '@langchain/core/callbacks/base';
-import type { SerializedFields } from '@langchain/core/dist/load/map_keys';
 import type {
 	Serialized,
 	SerializedNotImplemented,
@@ -12,6 +11,10 @@ import type { IDataObject, ISupplyDataFunctions, JsonObject } from 'n8n-workflow
 import { NodeConnectionTypes, NodeError, NodeOperationError } from 'n8n-workflow';
 
 import { logAiEvent } from '@utils/helpers';
+
+interface SerializedFields {
+    [key: string]: any;
+}
 
 type RunDetail = {
 	index: number;

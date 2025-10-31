@@ -611,8 +611,6 @@ Custom terminology dictionary for accurate translation of specific terms:
 |----------|-----|----------|
 | **Resource** | Options | Query |
 | **Operation** | Options | Execute or Execute with Parameters |
-| **Endpoint** | String | YDB endpoint URL (e.g., grpcs://ydb.serverless.yandexcloud.net:2135) |
-| **Database** | String | Database path (e.g., /ru-central1/b1g.../etn...) |
 | **YQL Query** | String | YQL query to execute |
 | **Return Mode** | Options | All Result Sets, First Result Set, or First Row Only |
 
@@ -678,19 +676,22 @@ SELECT COUNT(*) as total_orders FROM orders;
 SELECT COUNT(*) as total_products FROM products;
 ```
 
-**Authentication Options:**
+**Authentication:**
 
-The YDB node supports two credential types:
+The YDB node uses a dual credential approach for better security and flexibility:
 
-1. **Yandex Cloud YDB API** (Recommended)
-   - Includes Service Account JSON, Endpoint, and Database in one credential
-   - Endpoint and Database fields are taken from credentials
-   - Ideal for reusable configurations and multiple database environments
+1. **Yandex Cloud Authorized API** (Required)
+   - Provides Service Account JSON for authentication
+   - Shared across multiple Yandex Cloud services
+   - Generates IAM tokens for secure access
 
-2. **Yandex Cloud Authorized API** (Legacy)
-   - Uses only Service Account JSON
-   - Endpoint and Database specified as node parameters
-   - Suitable for dynamic connections and mixed Yandex Cloud services
+2. **Yandex Cloud YDB API** (Required)
+   - Provides YDB-specific connection parameters (Endpoint and Database)
+   - Separates connection details from authentication
+   - Allows easy switching between databases (dev/staging/prod)
+   - Reusable across nodes with same database
+
+This separation enables using one service account with multiple YDB databases while maintaining clear security boundaries.
 
 **Execution Process:**
 
@@ -733,7 +734,7 @@ Depends on return mode:
 - Consider using First Row Only for aggregates and counts
 - Use YDB-specific features like UPSERT for idempotent operations
 
-**Authentication:** Supports both `yandexCloudYdbApi` (dedicated YDB credentials with endpoint/database) and `yandexCloudAuthorizedApi` (general service account credentials). Uses Yandex Cloud IAM for token generation and @ydbjs SDK for database connectivity. The node is ideal for building data-driven applications, analytics dashboards, user management systems, and any scenarios requiring a distributed SQL database with horizontal scaling, strong consistency, and built-in replication in n8n workflows.
+**Usage:** Requires both `yandexCloudAuthorizedApi` (service account authentication) and `yandexCloudYdbApi` (connection parameters). Uses Yandex Cloud IAM for token generation and @ydbjs SDK for database connectivity. The node is ideal for building data-driven applications, analytics dashboards, user management systems, and any scenarios requiring a distributed SQL database with horizontal scaling, strong consistency, and built-in replication in n8n workflows.
 
 ---
 
@@ -743,10 +744,9 @@ The package uses four types of credentials:
 
 ### yandexCloudYdbApi
 
-- Service Account JSON
 - Endpoint (YDB endpoint URL)
 - Database (YDB database path)
-- Used for Yandex Cloud YDB with preconfigured connection parameters
+- Used for Yandex Cloud YDB connection parameters (requires yandexCloudAuthorizedApi for authentication)
 
 ### yandexCloudGptApi
 

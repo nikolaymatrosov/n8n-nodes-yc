@@ -576,8 +576,6 @@
 |----------|-----|----------|
 | **Resource** | Options | Query |
 | **Operation** | Options | Execute или Execute with Parameters |
-| **Endpoint** | String | URL эндпоинта YDB (например, grpcs://ydb.serverless.yandexcloud.net:2135) |
-| **Database** | String | Путь к базе данных (например, /ru-central1/b1g.../etn...) |
 | **YQL Query** | String | YQL запрос для выполнения |
 | **Return Mode** | Options | All Result Sets, First Result Set или First Row Only |
 
@@ -643,19 +641,22 @@ SELECT COUNT(*) as total_orders FROM orders;
 SELECT COUNT(*) as total_products FROM products;
 ```
 
-**Варианты аутентификации:**
+**Аутентификация:**
 
-Нода YDB поддерживает два типа credentials:
+Нода YDB использует подход с двойными credentials для улучшенной безопасности и гибкости:
 
-1. **Yandex Cloud YDB API** (Рекомендуется)
-   - Включает Service Account JSON, Endpoint и Database в одних credentials
-   - Поля Endpoint и Database берутся из credentials
-   - Идеально для переиспользуемых конфигураций и множественных окружений БД
+1. **Yandex Cloud Authorized API** (Обязательно)
+   - Предоставляет Service Account JSON для аутентификации
+   - Используется совместно с несколькими сервисами Yandex Cloud
+   - Генерирует IAM-токены для безопасного доступа
 
-2. **Yandex Cloud Authorized API** (Легаси)
-   - Использует только Service Account JSON
-   - Endpoint и Database указываются как параметры ноды
-   - Подходит для динамических подключений и смешанных сервисов Yandex Cloud
+2. **Yandex Cloud YDB API** (Обязательно)
+   - Предоставляет параметры подключения к YDB (Endpoint и Database)
+   - Отделяет параметры подключения от аутентификации
+   - Позволяет легко переключаться между базами данных (dev/staging/prod)
+   - Переиспользуется между нодами с одной базой данных
+
+Такое разделение позволяет использовать один service account с несколькими базами данных YDB, сохраняя четкие границы безопасности.
 
 **Процесс выполнения:**
 
@@ -698,7 +699,7 @@ SELECT COUNT(*) as total_products FROM products;
 - Рассмотрите использование First Row Only для агрегатов и подсчётов
 - Используйте YDB-специфичные функции как UPSERT для идемпотентных операций
 
-**Аутентификация:** Поддерживает как `yandexCloudYdbApi` (выделенные YDB credentials с endpoint/database), так и `yandexCloudAuthorizedApi` (общие service account credentials). Использует Yandex Cloud IAM для генерации токенов и @ydbjs SDK для подключения к базе данных. Нода идеальна для создания data-driven приложений, аналитических дашбордов, систем управления пользователями и любых сценариев, требующих распределённую SQL базу данных с горизонтальным масштабированием, сильной согласованностью и встроенной репликацией в n8n workflow.
+**Использование:** Требует оба credentials: `yandexCloudAuthorizedApi` (аутентификация service account) и `yandexCloudYdbApi` (параметры подключения). Использует Yandex Cloud IAM для генерации токенов и @ydbjs SDK для подключения к базе данных. Нода идеальна для создания data-driven приложений, аналитических дашбордов, систем управления пользователями и любых сценариев, требующих распределённую SQL базу данных с горизонтальным масштабированием, сильной согласованностью и встроенной репликацией в n8n workflow.
 
 ---
 
@@ -707,10 +708,9 @@ SELECT COUNT(*) as total_products FROM products;
 В пакете используются четыре типа credentials:
 
 ### yandexCloudYdbApi
-- Service Account JSON
 - Endpoint (URL эндпоинта YDB)
 - Database (путь к базе данных YDB)
-- Используется для Yandex Cloud YDB с преднастроенными параметрами подключения
+- Используется для параметров подключения Yandex Cloud YDB (требует yandexCloudAuthorizedApi для аутентификации)
 
 ### yandexCloudGptApi
 - API ключ для Foundation Models

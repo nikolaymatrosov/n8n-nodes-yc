@@ -15,12 +15,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Automatic type conversion between JavaScript and YDB types
   - IAM authentication using Service Account JSON credentials
   - Full support for YDB's multi-result set queries
-  - **Multiple credential type support**: Choose between `yandexCloudYdbApi` (endpoint/database in credentials) or `yandexCloudAuthorizedApi` (endpoint/database as node parameters)
+  - **Dual credential approach**: Requires both `yandexCloudAuthorizedApi` (authentication) and `yandexCloudYdbApi` (connection parameters)
 
-- **Yandex Cloud YDB API Credentials**: New credential type for YDB
-  - Includes Service Account JSON, Endpoint, and Database in one reusable credential
-  - Better organization for users with multiple YDB databases
-  - Backward compatible with existing `yandexCloudAuthorizedApi` credentials
+- **Yandex Cloud YDB API Credentials**: Credential type for YDB connection parameters
+  - Contains only Endpoint and Database fields
+  - Used in conjunction with `yandexCloudAuthorizedApi` for authentication
+  - Enables separation of authentication from connection details
+  - Allows easy switching between databases (dev/staging/prod)
+
+### Changed
+
+- **Breaking**: YDB node now requires both credential types instead of choosing between them
+- **Breaking**: Removed `endpoint` and `database` node parameters (now provided via `yandexCloudYdbApi` credentials)
+- **Breaking**: Removed `serviceAccountJson` field from `yandexCloudYdbApi` credentials (now provided via `yandexCloudAuthorizedApi`)
+- Updated YDB node to simplify credential handling with clear separation of concerns
 
 ## [0.4.0] - 2025-10-29
 

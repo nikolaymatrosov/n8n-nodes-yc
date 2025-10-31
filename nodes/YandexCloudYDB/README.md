@@ -18,62 +18,51 @@ The YDB node allows you to interact with Yandex Database (YDB), a distributed SQ
 
 ### Configuration
 
+The YDB node uses a dual credential approach, separating authentication from connection parameters for better security and reusability.
 
-The YDB node now supports two credential types, giving you flexibility in how you configure your database connections.
+#### Required Credentials
 
-#### Option 1: Yandex Cloud YDB API (Recommended)
+You need to configure **both** credential types:
 
-Create a dedicated YDB credential that includes all connection details:
+**1. Yandex Cloud Service Account Credentials** (`yandexCloudAuthorizedApi`)
+
+Contains your service account authentication:
+
+**Setup:**
+1. Go to **Credentials** → **New**
+2. Select **Yandex Cloud Authorized API**
+3. Fill in:
+   - **Service Account JSON**: Your service account key
+   - **Folder ID**: (optional) Default folder ID
+4. Save the credential
+
+**2. YDB Connection Parameters** (`yandexCloudYdbApi`)
+
+Contains YDB-specific connection details:
 
 **Setup:**
 1. Go to **Credentials** → **New**
 2. Select **Yandex Cloud YDB API**
 3. Fill in:
-   - **Service Account JSON**: Your service account key
    - **Endpoint**: `grpcs://ydb.serverless.yandexcloud.net:2135`
    - **Database**: `/ru-central1/b1gxxxxxxxxxx/etnxxxxxxxxxx`
 4. Save the credential
 
-**Usage:**
-- Add YDB node to workflow
-- Select your **Yandex Cloud YDB API** credential
-- Write your query
-- Done! No need to enter endpoint/database again
+#### Usage
 
-**Benefits:**
-- One-time configuration
-- Reusable across multiple nodes
-- Easy switching between dev/staging/prod databases
-- Cleaner workflow (fewer node parameters)
-
-#### Option 2: Yandex Cloud Authorized API (Legacy)
-
-Continue using the general Yandex Cloud credential:
-
-**Setup:**
-1. Use existing **Yandex Cloud Authorized API** credential (Service Account JSON only)
-
-**Usage:**
 - Add YDB node to workflow
 - Select your **Yandex Cloud Authorized API** credential
-- Enter **Endpoint** and **Database** as node parameters
+- Select your **Yandex Cloud YDB API** credential
 - Write your query
+- Done!
 
-**Benefits:**
-- Backward compatible (existing workflows continue to work)
-- Use same credential for multiple YC services
-- More flexible for dynamic endpoint/database values
+#### Benefits of Dual Credential Approach
 
-#### Choosing Between Credential Types
-
-| Scenario | Recommended Credential |
-|----------|----------------------|
-| Dedicated YDB workflows | **Yandex Cloud YDB API** |
-| Multiple databases (dev/prod) | **Yandex Cloud YDB API** (create one per environment) |
-| Mixed Yandex Cloud services | **Yandex Cloud Authorized API** |
-| Dynamic endpoints from workflow | **Yandex Cloud Authorized API** |
-| New projects | **Yandex Cloud YDB API** |
-| Existing workflows | Keep **Yandex Cloud Authorized API** |
+- **Security**: Service account JSON separated from connection parameters
+- **Reusability**: Use one service account with multiple databases
+- **Flexibility**: Easily switch between dev/staging/prod databases
+- **Clarity**: Clear separation of authentication vs connection concerns
+- **Multi-environment**: Create one YDB credential per environment (dev/prod)
 
 
 ### Usage Examples
@@ -85,8 +74,6 @@ Execute a simple SELECT query to retrieve all users:
 **Configuration:**
 - **Resource**: Query
 - **Operation**: Execute
-- **Endpoint**: `grpcs://ydb.serverless.yandexcloud.net:2135`
-- **Database**: `/ru-central1/b1gxxxxxxxxxx/etnxxxxxxxxxx`
 - **YQL Query**:
   ```sql
   SELECT id, name, email, created_at
