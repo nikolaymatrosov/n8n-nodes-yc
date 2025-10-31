@@ -17,6 +17,7 @@
 11. [Yandex Cloud SpeechKit STT](#yandex-cloud-speechkit-stt)
 12. [Yandex Cloud Translate](#yandex-cloud-translate)
 13. [Yandex Cloud Workflows](#yandex-cloud-workflows)
+14. [Yandex Cloud YDB](#yandex-cloud-ydb)
 
 ---
 
@@ -566,11 +567,150 @@
 
 **Аутентификация:** Service account JSON через `yandexCloudAuthorizedApi` для создания SDK сессии. Автоматически валидирует JSON перед отправкой. Поддерживает resource locator для удобного выбора workflows с отображением описания. Нода подходит для создания комплексных автоматизаций, где n8n управляет внешними интеграциями и API, а Yandex Workflows координирует облачные ресурсы (Functions, Containers, Compute), обеспечивая визуальное проектирование сложных бизнес-процессов с обработкой ошибок, retry-логикой и параллельным выполнением задач.
 
+
+## Yandex Cloud YDB
+
+**Нода для работы с Yandex Database (YDB) — распределённой SQL-базой данных с автоматическим горизонтальным масштабированием и высокой доступностью.** Предоставляет возможность выполнения YQL (Yandex Query Language) запросов с привязкой параметров, автоматическим преобразованием типов и поддержкой множественных наборов результатов.
+
+| Параметр | Тип | Описание |
+|----------|-----|----------|
+| **Resource** | Options | Query |
+| **Operation** | Options | Execute или Execute with Parameters |
+| **YQL Query** | String | YQL запрос для выполнения |
+| **Return Mode** | Options | All Result Sets, First Result Set или First Row Only |
+
+**Операции:**
+
+- **Execute** — выполнить простой YQL запрос без параметров
+- **Execute with Parameters** — выполнить параметризованный запрос с безопасной привязкой параметров
+
+**Параметры запроса (для Execute with Parameters):**
+
+Коллекция параметров запроса с настройкой:
+- `name` — имя параметра (без префикса $)
+- `value` — значение параметра (автоматически конвертируется в соответствующий тип YDB)
+
+**Режимы возврата данных:**
+
+- **All Result Sets** — возвращает все наборы результатов из мультизапросов
+  - Возвращает: `resultSets` (массив наборов), `resultSetCount`, `totalRows`
+- **First Result Set** — возвращает только первый набор результатов в виде массива
+  - Возвращает: `rows` (массив строк), `rowCount`
+- **First Row Only** — возвращает только первую строку первого набора результатов
+  - Возвращает: единственный объект или null
+
+**Преобразование типов:**
+
+Автоматическое двунаправленное преобразование между типами JavaScript и YDB:
+
+| JavaScript | Тип YDB | Пример |
+|-----------|----------|---------|
+| string | Text/String | "hello" → Text |
+| number (int) | Int32 | 42 → Int32 |
+| number (float) | Double | 3.14 → Double |
+| bigint | Int64 | 9007199254740991n → Int64 |
+| boolean | Bool | true → Bool |
+| Date | Datetime | new Date() → Datetime |
+| Array | List | [1,2,3] → List<Int32> |
+| Object | Struct | {a:1} → Struct<a:Int32> |
+| null | Null/Optional | null → Optional |
+
+**Примеры запросов:**
+
+*Простой запрос:*
+```sql
+SELECT id, name, email FROM users WHERE active = true LIMIT 10
+```
+
+*Параметризованный запрос:*
+```sql
+SELECT * FROM orders WHERE user_id = $userId AND order_date >= $startDate
+```
+Параметры: `userId` = 12345, `startDate` = "2025-01-01"
+
+*Пакетная вставка:*
+```sql
+UPSERT INTO products SELECT * FROM AS_TABLE($rows)
+```
+Параметры: `rows` = массив объектов продуктов
+
+*Множественные наборы результатов:*
+```sql
+SELECT COUNT(*) as total_users FROM users;
+SELECT COUNT(*) as total_orders FROM orders;
+SELECT COUNT(*) as total_products FROM products;
+```
+
+**Аутентификация:**
+
+Нода YDB использует подход с двойными credentials для улучшенной безопасности и гибкости:
+
+1. **Yandex Cloud Authorized API** (Обязательно)
+   - Предоставляет Service Account JSON для аутентификации
+   - Используется совместно с несколькими сервисами Yandex Cloud
+   - Генерирует IAM-токены для безопасного доступа
+
+2. **Yandex Cloud YDB API** (Обязательно)
+   - Предоставляет параметры подключения к YDB (Endpoint и Database)
+   - Отделяет параметры подключения от аутентификации
+   - Позволяет легко переключаться между базами данных (dev/staging/prod)
+   - Переиспользуется между нодами с одной базой данных
+
+Такое разделение позволяет использовать один service account с несколькими базами данных YDB, сохраняя четкие границы безопасности.
+
+**Процесс выполнения:**
+
+1. Парсинг credentials service account JSON
+2. Генерация IAM токена через Yandex Cloud IAM сервис
+3. Создание YDB драйвера с аутентификацией
+4. Конвертация JavaScript параметров в типы YDB используя @ydbjs/value
+5. Выполнение YQL запроса через @ydbjs/query
+6. Конвертация наборов результатов YDB обратно в JavaScript объекты
+7. Возврат данных согласно выбранному режиму
+8. Закрытие соединения драйвера
+
+**Возвращаемые данные:**
+
+Зависит от режима возврата:
+
+- **All Result Sets**: `{resultSets: [[...], [...]], resultSetCount: 2, totalRows: 15}`
+- **First Result Set**: `{rows: [{id: 1, name: "Alice"}, ...], rowCount: 10}`
+- **First Row Only**: `{id: 1, name: "Alice", email: "alice@example.com"}` или `null`
+
+**Варианты использования:**
+
+- Аналитические запросы в реальном времени
+- Агрегация данных и отчётность
+- Управление пользовательскими данными (CRUD операции)
+- Сложные соединения и трансформации
+- ETL-процессы со структурированными данными
+- Слой данных для микросервисов
+- Event sourcing и журналы аудита
+- Мультитенантные SaaS базы данных
+- Транзакционные нагрузки с сильной согласованностью
+
+**Лучшие практики:**
+
+- Всегда используйте параметризованные запросы для динамических значений (предотвращает SQL инъекции)
+- Используйте AS_TABLE для пакетных операций (эффективнее индивидуальных вставок)
+- Используйте индексы YDB для лучшей производительности запросов
+- Мониторьте статистику запросов через возвращаемые данные
+- Обрабатывайте ошибки корректно с режимом Continue on Fail
+- Рассмотрите использование First Row Only для агрегатов и подсчётов
+- Используйте YDB-специфичные функции как UPSERT для идемпотентных операций
+
+**Использование:** Требует оба credentials: `yandexCloudAuthorizedApi` (аутентификация service account) и `yandexCloudYdbApi` (параметры подключения). Использует Yandex Cloud IAM для генерации токенов и @ydbjs SDK для подключения к базе данных. Нода идеальна для создания data-driven приложений, аналитических дашбордов, систем управления пользователями и любых сценариев, требующих распределённую SQL базу данных с горизонтальным масштабированием, сильной согласованностью и встроенной репликацией в n8n workflow.
+
 ---
 
 ## Типы аутентификации
 
-В пакете используются три типа credentials:
+В пакете используются четыре типа credentials:
+
+### yandexCloudYdbApi
+- Endpoint (URL эндпоинта YDB)
+- Database (путь к базе данных YDB)
+- Используется для параметров подключения Yandex Cloud YDB (требует yandexCloudAuthorizedApi для аутентификации)
 
 ### yandexCloudGptApi
 - API ключ для Foundation Models
@@ -585,7 +725,7 @@
 ### yandexCloudAuthorizedApi
 - Service Account JSON
 - Folder ID
-- Используется для сервисов, требующих IAM-токены (Functions, Containers, Compute, SpeechKit, Workflows)
+- Используется для сервисов, требующих IAM-токены (Functions, Containers, Compute, SpeechKit, Workflows, YDB)
 
 ---
 

@@ -20,6 +20,7 @@ Integration package for working with Yandex Cloud services in n8n.
 11. [Yandex Cloud SpeechKit STT](#yandex-cloud-speechkit-stt)
 12. [Yandex Cloud Translate](#yandex-cloud-translate)
 13. [Yandex Cloud Workflows](#yandex-cloud-workflows)
+14. [Yandex Cloud YDB](#yandex-cloud-ydb)
 
 ---
 
@@ -602,9 +603,150 @@ Custom terminology dictionary for accurate translation of specific terms:
 
 ---
 
+## Yandex Cloud YDB
+
+**Node for working with Yandex Database (YDB), a distributed SQL database with automatic horizontal scaling and high availability.** Provides ability to execute YQL (Yandex Query Language) queries with parameter binding, automatic type conversion, and support for multiple result sets.
+
+| Parameter | Type | Description |
+|----------|-----|----------|
+| **Resource** | Options | Query |
+| **Operation** | Options | Execute or Execute with Parameters |
+| **YQL Query** | String | YQL query to execute |
+| **Return Mode** | Options | All Result Sets, First Result Set, or First Row Only |
+
+**Operations:**
+
+- **Execute** - run simple YQL query without parameters
+- **Execute with Parameters** - run parameterized query with secure parameter binding
+
+**Query Parameters (for Execute with Parameters):**
+
+Collection of query parameters with configuration:
+- `name` - parameter name (without $ prefix)
+- `value` - parameter value (automatically converted to appropriate YDB type)
+
+**Return Modes:**
+
+- **All Result Sets** - returns all result sets from multi-statement queries
+  - Returns: `resultSets` (array of result sets), `resultSetCount`, `totalRows`
+- **First Result Set** - returns only the first result set as an array
+  - Returns: `rows` (array of rows), `rowCount`
+- **First Row Only** - returns only the first row of the first result set
+  - Returns: single object or null
+
+**Type Conversion:**
+
+Automatic bidirectional conversion between JavaScript and YDB types:
+
+| JavaScript | YDB Type | Example |
+|-----------|----------|---------|
+| string | Text/String | "hello" → Text |
+| number (int) | Int32 | 42 → Int32 |
+| number (float) | Double | 3.14 → Double |
+| bigint | Int64 | 9007199254740991n → Int64 |
+| boolean | Bool | true → Bool |
+| Date | Datetime | new Date() → Datetime |
+| Array | List | [1,2,3] → List<Int32> |
+| Object | Struct | {a:1} → Struct<a:Int32> |
+| null | Null/Optional | null → Optional |
+
+**Query Examples:**
+
+*Simple Query:*
+```sql
+SELECT id, name, email FROM users WHERE active = true LIMIT 10
+```
+
+*Parameterized Query:*
+```sql
+SELECT * FROM orders WHERE user_id = $userId AND order_date >= $startDate
+```
+Parameters: `userId` = 12345, `startDate` = "2025-01-01"
+
+*Batch Insert:*
+```sql
+UPSERT INTO products SELECT * FROM AS_TABLE($rows)
+```
+Parameters: `rows` = array of product objects
+
+*Multiple Result Sets:*
+```sql
+SELECT COUNT(*) as total_users FROM users;
+SELECT COUNT(*) as total_orders FROM orders;
+SELECT COUNT(*) as total_products FROM products;
+```
+
+**Authentication:**
+
+The YDB node uses a dual credential approach for better security and flexibility:
+
+1. **Yandex Cloud Authorized API** (Required)
+   - Provides Service Account JSON for authentication
+   - Shared across multiple Yandex Cloud services
+   - Generates IAM tokens for secure access
+
+2. **Yandex Cloud YDB API** (Required)
+   - Provides YDB-specific connection parameters (Endpoint and Database)
+   - Separates connection details from authentication
+   - Allows easy switching between databases (dev/staging/prod)
+   - Reusable across nodes with same database
+
+This separation enables using one service account with multiple YDB databases while maintaining clear security boundaries.
+
+**Execution Process:**
+
+1. Parse service account JSON credentials
+2. Generate IAM token via Yandex Cloud IAM service
+3. Create YDB driver with authentication
+4. Convert JavaScript parameters to YDB types using @ydbjs/value
+5. Execute YQL query via @ydbjs/query
+6. Convert YDB result sets back to JavaScript objects
+7. Return data according to selected return mode
+8. Close driver connection
+
+**Returned Data:**
+
+Depends on return mode:
+
+- **All Result Sets**: `{resultSets: [[...], [...]], resultSetCount: 2, totalRows: 15}`
+- **First Result Set**: `{rows: [{id: 1, name: "Alice"}, ...], rowCount: 10}`
+- **First Row Only**: `{id: 1, name: "Alice", email: "alice@example.com"}` or `null`
+
+**Use Cases:**
+
+- Real-time analytics queries
+- Data aggregation and reporting
+- User data management (CRUD operations)
+- Complex joins and transformations
+- ETL workflows with structured data
+- Microservices data layer
+- Event sourcing and audit logs
+- Multi-tenant SaaS databases
+- Transactional workloads with strong consistency
+
+**Best Practices:**
+
+- Always use parameterized queries for dynamic values (prevents SQL injection)
+- Use AS_TABLE for batch operations (more efficient than individual inserts)
+- Leverage YDB indexes for better query performance
+- Monitor query statistics via return data
+- Handle errors gracefully with Continue on Fail mode
+- Consider using First Row Only for aggregates and counts
+- Use YDB-specific features like UPSERT for idempotent operations
+
+**Usage:** Requires both `yandexCloudAuthorizedApi` (service account authentication) and `yandexCloudYdbApi` (connection parameters). Uses Yandex Cloud IAM for token generation and @ydbjs SDK for database connectivity. The node is ideal for building data-driven applications, analytics dashboards, user management systems, and any scenarios requiring a distributed SQL database with horizontal scaling, strong consistency, and built-in replication in n8n workflows.
+
+---
+
 ## Authentication Types
 
-The package uses three types of credentials:
+The package uses four types of credentials:
+
+### yandexCloudYdbApi
+
+- Endpoint (YDB endpoint URL)
+- Database (YDB database path)
+- Used for Yandex Cloud YDB connection parameters (requires yandexCloudAuthorizedApi for authentication)
 
 ### yandexCloudGptApi
 
@@ -622,7 +764,7 @@ The package uses three types of credentials:
 
 - Service Account JSON
 - Folder ID
-- Used for services requiring IAM tokens (Functions, Containers, Compute, SpeechKit, Workflows)
+- Used for services requiring IAM tokens (Functions, Containers, Compute, SpeechKit, Workflows, YDB)
 
 ---
 
