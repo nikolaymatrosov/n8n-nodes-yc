@@ -1,4 +1,4 @@
-import { YandexCloudYDB } from '../YandexCloudYDB.node';
+import { YandexCloudYDB } from '../YandexCloudYdb.node';
 import type { IExecuteFunctions } from 'n8n-workflow';
 import { NodeOperationError } from 'n8n-workflow';
 
@@ -289,6 +289,7 @@ describe('YandexCloudYDB Node', () => {
 						yqlQuery: 'SELECT * FROM users WHERE data = $data',
 						queryParameters: {
 							parameter: [
+								// eslint-disable-next-line n8n-nodes-base/node-param-display-name-miscased
 								{ name: 'data', value: '{"key": "value"}' },
 							],
 						},

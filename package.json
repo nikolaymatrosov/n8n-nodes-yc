@@ -61,7 +61,7 @@
 			"dist/nodes/YandexCloudContainers/YandexCloudContainers.node.js",
 			"dist/nodes/YandexCloudWorkflows/YandexCloudWorkflows.node.js",
 			"dist/nodes/YandexCloudTranslate/YandexCloudTranslate.node.js",
-			"dist/nodes/YandexCloudYDB/YandexCloudYDB.node.js"
+			"dist/nodes/YandexCloudYDB/YandexCloudYdb.node.js"
 		]
 	},
 	"devDependencies": {
