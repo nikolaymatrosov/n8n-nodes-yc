@@ -1,10 +1,10 @@
 import { Driver } from '@ydbjs/core';
 import { query } from '@ydbjs/query';
 import { fromJs, toJs } from '@ydbjs/value';
-import { AccessTokenCredentialsProvider } from '@ydbjs/auth/dist/access-token';
 import { IamTokenService } from '@yandex-cloud/nodejs-sdk/dist/token-service/iam-token-service';
 import { mapKeys, camelCase } from 'lodash';
 import type { YDBQueryParams } from './types';
+import { type CallOptions, type ClientMiddlewareCall, Metadata } from 'nice-grpc'
 
 interface IIAmCredentials {
 	serviceAccountId: string;
@@ -50,7 +50,7 @@ export async function createYDBDriver(
 
 	// Create driver with authentication
 	const driver = new Driver(`${endpoint}${database}`, {
-		credentialsProvider,
+		credentialsProvider: credentialsProvider as any,
 	});
 
 	// Wait for driver to be ready
@@ -110,4 +110,59 @@ export function jsToYDB(value: any): any {
  */
 export function ydbToJS(value: any): any {
 	return toJs(value);
+}
+
+export abstract class CredentialsProvider {
+	constructor() {
+		// @ts-expect-error Inside middleware perform `this.getToken` call
+		// to get the token. This is a workaround for the fact that
+		// `this` is not bound to the class instance inside the middleware.
+		this.middleware = this.middleware.bind(this)
+	}
+
+	abstract getToken(force?: boolean, signal?: AbortSignal): Promise<string>
+
+	readonly middleware = async function* <Request = unknown, Response = unknown>(
+		this: CredentialsProvider,
+		call: ClientMiddlewareCall<Request, Response>,
+		options: CallOptions
+	) {
+		let token = await this.getToken(false, options.signal as AbortSignal | undefined)
+
+		return yield* call.next(call.request, {
+			...options,
+			metadata: Metadata(options.metadata).set('x-ydb-auth-ticket', token),
+		})
+	}
+}
+
+export type AccessTokenCredentials = {
+	// TODO: support read from file
+	// source: 'file' | 'inline'
+	token: string
+}
+
+/**
+ * Provides access token-based authentication credentials.
+ *
+ * @class AccessTokenCredentialsProvider
+ * @extends CredentialsProvider
+ */
+export class AccessTokenCredentialsProvider extends CredentialsProvider {
+	#token: string
+
+	constructor(credentials: AccessTokenCredentials) {
+		super()
+		this.#token = credentials.token
+	}
+
+	/**
+	 * Returns the token from the credentials.
+	 * @param force - ignored
+	 * @param signal - ignored
+	 * @returns the token
+	 */
+	getToken(): Promise<string> {
+		return Promise.resolve(this.#token)
+	}
 }
