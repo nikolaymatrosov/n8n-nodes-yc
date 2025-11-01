@@ -1,7 +1,4 @@
-import type {
-	ICredentialType,
-	INodeProperties,
-} from 'n8n-workflow';
+import type { ICredentialTestRequest, ICredentialType, INodeProperties } from 'n8n-workflow';
 
 export class YandexCloudAuthorizedApi implements ICredentialType {
 	name = 'yandexCloudAuthorizedApi';
@@ -21,8 +18,13 @@ export class YandexCloudAuthorizedApi implements ICredentialType {
 			},
 			required: true,
 			default: '',
-			description: 'Service account key JSON from Yandex Cloud. Paste the entire JSON content downloaded when creating a service account key. Supports both snake_case (from YC) and camelCase formats.',
-			placeholder: '{"id": "ajek6t...", "service_account_id": "aje69k...", "private_key": "-----BEGIN PRIVATE KEY-----\\n...\\n-----END PRIVATE KEY-----\\n"}',
+			description:
+				'Service account key JSON from Yandex Cloud. ' +
+				'Paste the entire JSON content downloaded when creating a service account key. ' +
+				'Supports both snake_case (from YC) and camelCase formats.',
+			placeholder:
+				'{"id": "ajek6t...", "service_account_id": "aje69k...", ' +
+				'"private_key": "-----BEGIN PRIVATE KEY-----\\n...\\n-----END PRIVATE KEY-----\\n"}',
 		},
 		{
 			displayName: 'Folder ID',
@@ -34,4 +36,3 @@ export class YandexCloudAuthorizedApi implements ICredentialType {
 		},
 	];
 }
-
