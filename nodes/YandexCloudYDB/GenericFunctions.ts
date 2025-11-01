@@ -1,7 +1,7 @@
 import { Driver } from '@ydbjs/core';
 import { query } from '@ydbjs/query';
 import { fromJs, toJs } from '@ydbjs/value';
-import { AccessTokenCredentialsProvider } from '@ydbjs/auth/access-token';
+import { AccessTokenCredentialsProvider } from '@ydbjs/auth/dist/access-token';
 import { IamTokenService } from '@yandex-cloud/nodejs-sdk/dist/token-service/iam-token-service';
 import { mapKeys, camelCase } from 'lodash';
 import type { YDBQueryParams } from './types';

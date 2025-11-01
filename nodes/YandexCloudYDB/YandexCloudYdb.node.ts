@@ -15,7 +15,7 @@ import {
 	closeYDBDriver,
 } from './GenericFunctions';
 
-export class YandexCloudYDB implements INodeType {
+export class YandexCloudYdb implements INodeType {
 	description: INodeTypeDescription = {
 		displayName: 'Yandex Cloud YDB',
 		name: 'yandexCloudYdb',

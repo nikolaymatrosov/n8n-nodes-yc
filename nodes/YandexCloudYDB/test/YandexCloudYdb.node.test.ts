@@ -1,4 +1,4 @@
-import { YandexCloudYDB } from '../YandexCloudYdb.node';
+import { YandexCloudYdb } from '../YandexCloudYdb.node';
 import type { IExecuteFunctions } from 'n8n-workflow';
 import { NodeOperationError } from 'n8n-workflow';
 
@@ -24,13 +24,13 @@ jest.mock('../GenericFunctions', () => ({
 }));
 
 describe('YandexCloudYDB Node', () => {
-	let node: YandexCloudYDB;
+	let node: YandexCloudYdb;
 	let mockExecuteFunctions: Partial<IExecuteFunctions>;
 
 	beforeEach(() => {
 		jest.clearAllMocks();
 
-		node = new YandexCloudYDB();
+		node = new YandexCloudYdb();
 
 		// Setup mocked GenericFunctions
 		const { createYDBDriver, executeYQLQuery, closeYDBDriver } = require('../GenericFunctions');
