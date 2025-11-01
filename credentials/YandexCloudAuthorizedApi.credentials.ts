@@ -1,4 +1,4 @@
-import type { ICredentialTestRequest, ICredentialType, INodeProperties } from 'n8n-workflow';
+import type { ICredentialType, INodeProperties } from 'n8n-workflow';
 
 export class YandexCloudAuthorizedApi implements ICredentialType {
 	name = 'yandexCloudAuthorizedApi';
