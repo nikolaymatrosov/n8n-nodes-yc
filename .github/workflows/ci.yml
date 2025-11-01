@@ -38,3 +38,27 @@ jobs:
 
       - name: Build
         run: npm run build
+
+  shallow-install-test:
+    name: Shallow Install Test
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [22.x]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+
+      - name: Make script executable
+        run: chmod +x scripts/test-shallow.sh
+
+      - name: Run shallow install test
+        run: ./scripts/test-shallow.sh
