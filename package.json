@@ -61,7 +61,8 @@
       "dist/nodes/YandexCloudContainers/YandexCloudContainers.node.js",
       "dist/nodes/YandexCloudWorkflows/YandexCloudWorkflows.node.js",
       "dist/nodes/YandexCloudTranslate/YandexCloudTranslate.node.js",
-      "dist/nodes/YandexCloudYDB/YandexCloudYdb.node.js"
+      "dist/nodes/YandexCloudYDB/YandexCloudYdb.node.js",
+      "dist/nodes/YandexCloudSearch/YandexCloudSearch.node.js"
     ]
   },
   "devDependencies": {
@@ -72,6 +73,7 @@
     "@types/node": "^24.9.2",
     "@types/proxy-from-env": "^1.0.4",
     "@types/tmp": "^0.2.6",
+    "@types/xml2js": "^0.4.14",
     "@typescript-eslint/parser": "^8.46.2",
     "eslint": "^9.39.0",
     "eslint-plugin-n8n-nodes-base": "^1.16.4",
@@ -109,7 +111,8 @@
     "openai": "^4.76.1",
     "proxy-from-env": "^1.1.0",
     "tmp-promise": "^3.0.3",
-    "undici": "^7.16.0"
+    "undici": "^7.16.0",
+    "xml2js": "^0.6.2"
   },
   "peerDependencies": {
     "n8n-workflow": "*"

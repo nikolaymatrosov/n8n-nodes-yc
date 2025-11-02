@@ -11,6 +11,7 @@ assignees: ''
 A clear and concise description of what the problem is. Ex. I'm trying to build a workflow that [...] but can't because [...]
 
 **Type of feature request**
+
 - [ ] New Yandex Cloud service node
 - [ ] New operation for existing node
 - [ ] New credential type
@@ -22,6 +23,7 @@ Specify the node or Yandex Cloud service (e.g., YandexCloudFunctions, a new serv
 
 **Describe the solution you'd like**
 A clear and concise description of what you want to happen. For example:
+
 - What operation/action should be available?
 - What parameters should be configurable?
 - What should the node output?
@@ -31,11 +33,13 @@ Describe your use case and how this feature would help you build better workflow
 
 **Yandex Cloud API reference** (if applicable)
 Link to the relevant Yandex Cloud API documentation:
+
 - API docs: [URL]
 - Service: [Service name]
 
 **Describe alternatives you've considered**
 A clear and concise description of any alternative solutions or workarounds you've considered, such as:
+
 - Using HTTP Request node
 - Using other nodes in combination
 - Manual API calls
