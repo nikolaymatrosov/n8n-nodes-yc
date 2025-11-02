@@ -21,6 +21,7 @@ Integration package for working with Yandex Cloud services in n8n.
 12. [Yandex Cloud Translate](#yandex-cloud-translate)
 13. [Yandex Cloud Workflows](#yandex-cloud-workflows)
 14. [Yandex Cloud YDB](#yandex-cloud-ydb)
+15. [Yandex Cloud Search](#yandex-cloud-search)
 
 ---
 
@@ -622,6 +623,7 @@ Custom terminology dictionary for accurate translation of specific terms:
 **Query Parameters (for Execute with Parameters):**
 
 Collection of query parameters with configuration:
+
 - `name` - parameter name (without $ prefix)
 - `value` - parameter value (automatically converted to appropriate YDB type)
 
@@ -653,23 +655,29 @@ Automatic bidirectional conversion between JavaScript and YDB types:
 **Query Examples:**
 
 *Simple Query:*
+
 ```sql
 SELECT id, name, email FROM users WHERE active = true LIMIT 10
 ```
 
 *Parameterized Query:*
+
 ```sql
 SELECT * FROM orders WHERE user_id = $userId AND order_date >= $startDate
 ```
+
 Parameters: `userId` = 12345, `startDate` = "2025-01-01"
 
 *Batch Insert:*
+
 ```sql
 UPSERT INTO products SELECT * FROM AS_TABLE($rows)
 ```
+
 Parameters: `rows` = array of product objects
 
 *Multiple Result Sets:*
+
 ```sql
 SELECT COUNT(*) as total_users FROM users;
 SELECT COUNT(*) as total_orders FROM orders;
@@ -735,6 +743,111 @@ Depends on return mode:
 - Use YDB-specific features like UPSERT for idempotent operations
 
 **Usage:** Requires both `yandexCloudAuthorizedApi` (service account authentication) and `yandexCloudYdbApi` (connection parameters). Uses Yandex Cloud IAM for token generation and @ydbjs SDK for database connectivity. The node is ideal for building data-driven applications, analytics dashboards, user management systems, and any scenarios requiring a distributed SQL database with horizontal scaling, strong consistency, and built-in replication in n8n workflows.
+
+---
+
+## Yandex Cloud Search
+
+**Node for working with Yandex Cloud Search API, providing web search and AI-powered generative search capabilities.** Uses official Yandex Cloud SDK to access search services with streaming support for generative responses and automatic XML parsing for web search results.
+
+| Parameter | Type | Description |
+|----------|-----|----------|
+| **Operation** | Options | Web Search or Generative Search |
+| **Folder ID** | String | Folder ID (default from credentials) |
+
+**Operations:**
+
+### Web Search
+
+Perform traditional web search queries with extensive filtering and customization options.
+
+| Parameter | Type | Description |
+|----------|-----|----------|
+| **Query** | String | Search query text (required) |
+| **Search Type** | Options | RU, TR, COM, KK, BY, UZ (default: RU) |
+
+**Additional Options:**
+
+- **Family Mode** - Content filtering (None, Moderate, Strict)
+- **Page Number** - Results page (0-based, default: 0)
+- **Fix Typos** - Auto-correct typos (Auto, Disabled)
+- **Sort By** - Sort by relevance or time
+- **Sort Order** - Ascending or descending (for time sorting)
+- **Group By** - Flat or by domain
+- **Groups on Page** - Number of groups per page (default: 10)
+- **Docs in Group** - Documents per group (default: 1)
+- **Max Passages** - Maximum passages in snippet (default: 2)
+- **Region** - Search region ID (e.g., 213 for Moscow)
+- **Localization** - Interface language (RU, UK, BE, KK, TR, EN)
+- **Response Format** - XML or HTML (default: XML)
+- **Parse XML to JSON** - Automatically parse XML response (default: true)
+
+**Returns:**
+
+- `rawData` - Raw XML/HTML response from search API
+- `parsedData` - Parsed JSON structure (when parseXml is enabled)
+- `parseError` - Error message if XML parsing fails
+
+### Generative Search
+
+AI-powered search with natural language answers generated from search results.
+
+| Parameter | Type | Description |
+|----------|-----|----------|
+| **Messages** | Collection | Conversation messages with role (User/Assistant) and content |
+
+**Additional Options:**
+
+- **Search Type** - RU, TR, COM, KK, BY, UZ
+- **Site Restriction** - Limit search to specific site (e.g., example.com)
+- **Host Restriction** - Limit to specific host (e.g., www.example.com)
+- **URL Restriction** - Limit to specific URL path
+- **Fix Misspell** - Correct query misspells automatically
+- **Enable NRFM Docs** - Include documents not on front page
+- **Get Partial Results** - Stream partial results during processing
+
+**Returns:**
+
+- `responses` - Array of all streaming responses received
+- `finalResponse` - Last response with complete answer
+  - `message` - Generated answer text
+  - `sources` - Array of source documents used (url, title, used flag)
+  - `searchQueries` - Refined queries used for generation
+  - `fixedMisspellQuery` - Corrected query if misspells were fixed
+  - `isAnswerRejected` - Whether answer was rejected for ethical reasons
+  - `isBulletAnswer` - Whether answer is in bullet-point format
+
+**Conversation Example:**
+
+```json
+{
+  "messages": [
+    { "role": "USER", "content": "What is n8n?" },
+    { "role": "ASSISTANT", "content": "n8n is a workflow automation tool..." },
+    { "role": "USER", "content": "How do I install it?" }
+  ]
+}
+```
+
+**Execution Process:**
+
+1. Parse service account JSON credentials with validation
+2. Create authenticated SDK session
+3. Execute search operation via appropriate service client
+4. For Web Search: parse XML response to JSON (if enabled)
+5. For Generative Search: accumulate streaming responses
+6. Return structured results with pairedItem references
+
+**Key Features:**
+
+- **Streaming Support** - Generative Search uses server-side streaming for progressive results
+- **XML Parsing** - Automatic conversion of XML responses to JSON for easier processing
+- **Multi-Message Context** - Support for conversational search with history
+- **Flexible Filtering** - Extensive options for refining search results
+- **Source Attribution** - Track which sources were used in generative answers
+- **Error Resilience** - Graceful error handling with Continue on Fail support
+
+**Authentication:** Uses service account JSON via `yandexCloudAuthorizedApi` credentials. Validates all required credential fields (serviceAccountId, accessKeyId, privateKey) and folder ID. Supports folder ID override at node level. The node is ideal for building search-powered applications, research tools, content discovery systems, AI assistants with web knowledge, and any scenarios requiring search integration with customizable relevance and filtering in n8n workflows.
 
 ---
 

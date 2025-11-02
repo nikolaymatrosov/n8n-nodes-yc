@@ -9,6 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Yandex Cloud Search Node**: Access Yandex Cloud Search API with web and AI-powered search
+  - Web Search: Traditional search with extensive filtering (family mode, sorting, grouping, localization)
+  - Generative Search: AI-powered answers with source attribution and streaming support
+  - Automatic XML-to-JSON parsing for web search results
+  - Multi-message conversation support for generative search
+  - Server-side streaming for progressive generative responses
+  - IAM authentication using Service Account JSON credentials
+
 ### Changed
 
 ### Fixed
