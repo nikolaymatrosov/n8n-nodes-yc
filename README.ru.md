@@ -47,6 +47,7 @@
 | **Operation** | Options | Операция для выполнения |
 
 **Ресурсы и операции:**
+
 - **Chat** - работа с чат-функциональностью модели
 
 **Аутентификация:** Использует API ключ через credentials `yandexCloudFomoApi`. Поддерживает настройку базового URL и автоматическую обработку HTTP ошибок (ignoreHttpStatusErrors). Включает выбор модели из выпадающего списка (аналогично LMChatYandexGpt) и расширенные сообщения об ошибках с детальными ответами API. Нода подходит для простых сценариев генерации текста, где не требуется сложная интеграция с LangChain, но нужна прямая работа с API Yandex Cloud для создания диалогов, генерации контента и обработки естественного языка в автоматизированных процессах.
@@ -63,6 +64,7 @@
 | **Object** | Resource | Object | Upload, Download, Copy, Move, Delete, Get, List, Set ACL, Get Presigned URL |
 
 **Операции с Bucket:**
+
 - **Create** - создание нового bucket с настройкой ACL
 - **Delete** - удаление пустого bucket
 - **Get** - получение информации о bucket (location, metadata)
@@ -71,6 +73,7 @@
 - **Set Versioning** - включение/отключение версионирования объектов
 
 **Операции с Object:**
+
 - **Upload** - загрузка из бинарных данных, текста или JSON с настройкой content-type, storage class (Standard/Cold/Ice) и метаданных. Возвращает поле `objectUrl` с полным URL объекта (например, `https://storage.yandexcloud.net/my-bucket/file.txt`)
 - **Download** - скачивание объекта в бинарный формат
 - **Copy** - копирование между bucket'ами с сохранением метаданных. Возвращает поле `objectUrl` с URL объекта назначения
@@ -99,6 +102,7 @@
 | **Headers** | Collection | Дополнительные HTTP-заголовки |
 
 **Процесс выполнения:**
+
 1. Автоматическая загрузка списка доступных функций из указанной папки через SDK
 2. Получение IAM-токена из service account credentials
 3. Формирование HTTP-запроса к эндпоинту `https://functions.yandexcloud.net/{functionId}`
@@ -106,6 +110,7 @@
 5. Выполнение запроса и парсинг ответа (автоматическое определение JSON)
 
 **Возвращаемые данные:**
+
 - `statusCode` - HTTP статус ответа
 - `headers` - заголовки ответа
 - `body` - тело ответа (объект или строка)
@@ -128,6 +133,7 @@
 | **Headers** | Collection | Пользовательские HTTP-заголовки |
 
 **Процесс работы:**
+
 1. Загрузка списка доступных контейнеров через SDK
 2. Получение URL контейнера (поле `url`)
 3. Генерация IAM-токена для аутентификации
@@ -135,6 +141,7 @@
 5. Обработка и возврат ответа
 
 **Возвращаемые данные:**
+
 - `statusCode` - HTTP код ответа
 - `headers` - заголовки ответа
 - `body` - тело ответа (автоматический парсинг JSON)
@@ -155,10 +162,12 @@
 | **Instance** | Options | Выбор VM из списка или указание ID |
 
 **Операции:**
+
 - **Start** - запуск остановленной виртуальной машины
 - **Stop** - остановка работающей виртуальной машины
 
 **Процесс выполнения:**
+
 1. Парсинг service account JSON credentials
 2. Создание SDK сессии с аутентификацией
 3. Получение списка инстансов из указанной папки
@@ -166,6 +175,7 @@
 5. Возврат информации об операции
 
 **Возвращаемые данные:**
+
 - `success` - статус выполнения
 - `operation` - тип операции (start/stop)
 - `instanceId` - ID виртуальной машины
@@ -187,16 +197,19 @@
 | **Stream** | Resource | Stream | Describe, List |
 
 **Операции с Record:**
+
 - **Put** - отправка одной записи с выбором типа данных (String/JSON), указанием partition key и опциональных параметров (explicit hash key, sequence number)
 - **Put Multiple** - пакетная отправка записей в двух режимах:
   - **Define Records** - ручное определение записей через UI
   - **Use Input Data** - автоматическое использование входящих элементов с маппингом полей
 
 **Операции со Stream:**
+
 - **Describe** - получение детальной информации о потоке (статус, retention period, shards, encryption)
 - **List** - перечисление всех доступных потоков с лимитом
 
 **Параметры отправки:**
+
 - `streamName` - имя потока (формат: `/ru-central1/{folder-id}/{database-id}/{stream-name}`)
 - `data` - данные для отправки (строка или JSON)
 - `partitionKey` - ключ для определения shard'а
@@ -205,6 +218,7 @@
 - `partitionKeyField` - поле с partition key
 
 **Возвращаемые данные:**
+
 - Для Put: `shardId`, `sequenceNumber`, `encryptionType`
 - Для Put Multiple: `successCount`, `failedCount`, детальная информация по каждой записи
 - Для Describe: полная информация о потоке, shards с hash ranges
@@ -226,17 +240,20 @@
 | **Message Body** | String | Содержимое сообщения (до 256 KB) |
 
 **Дополнительные поля:**
+
 - **Delay Seconds** - задержка доставки сообщения (0-900 секунд)
 - **Message Deduplication ID** - токен для дедупликации (обязателен для FIFO)
 - **Message Group ID** - группировка сообщений (обязателен для FIFO)
 
 **Message Attributes:**
 Коллекция атрибутов сообщения с настройкой:
+
 - `name` - имя атрибута
 - `dataType` - тип данных (String, Number, Binary)
 - `value` - значение атрибута
 
 **Возвращаемые данные:**
+
 - `messageId` - уникальный ID сообщения
 - `md5OfMessageBody` - MD5 хеш тела сообщения
 - `md5OfMessageAttributes` - MD5 хеш атрибутов
@@ -261,17 +278,20 @@
 | **To Email** | String | Email получателя (можно несколько через запятую) |
 
 **Simple Email (простой режим):**
+
 - **Subject** - тема письма
 - **HTML Body** - HTML-версия письма
 - **Text Body** - текстовая версия для клиентов без HTML
 
 **Template Email (шаблонный режим):**
+
 - **Template Subject** - тема с переменными `{{variable}}`
 - **Template HTML** - HTML-шаблон с плейсхолдерами
 - **Template Text** - текстовая версия шаблона (опционально)
 - **Template Data** - JSON-объект с данными для подстановки
 
 **Процесс отправки:**
+
 1. Парсинг списка получателей (разделение по запятой)
 2. Формирование структуры Content (Simple или Template)
 3. Подстановка переменных в шаблон (если используется)
@@ -279,6 +299,7 @@
 5. Получение Message ID
 
 **Возвращаемые данные:**
+
 - `messageId` - уникальный ID отправленного письма
 - `success` - статус отправки
 - `from` - адрес отправителя
@@ -303,6 +324,7 @@
 | **Role** | Options | Эмоциональная окраска (Neutral, Good, Evil) |
 
 **Доступные голоса:**
+
 - **Alena** - женский, русский
 - **Filipp** - мужской, русский
 - **Jane** - женский, русский/английский
@@ -314,20 +336,24 @@
 **Форматы аудио:**
 
 *Container (файлы в контейнере):*
+
 - **WAV** - несжатый формат
 - **MP3** - сжатый с потерями
 - **OGG Opus** - открытый кодек
 
 *Raw PCM (сырой аудиопоток):*
+
 - Частоты дискретизации: 8000, 16000, 22050, 48000 Hz
 - Кодировка: LINEAR16_PCM
 
 **Дополнительные опции:**
+
 - **Speed** - скорость речи (0.1 - 3.0, по умолчанию 1.0)
 - **Volume** - громкость (-145 до 1)
 - **Pitch Shift** - изменение тона голоса (-1000 до 1000 Hz)
 
 **Процесс синтеза:**
+
 1. Парсинг service account credentials
 2. Создание SDK сессии
 3. Подключение к TTS API (`tts.api.cloud.yandex.net:443`)
@@ -336,6 +362,7 @@
 6. Подготовка бинарных данных с правильным MIME-типом
 
 **Возвращаемые данные:**
+
 - `success` - статус синтеза
 - `text` - исходный текст
 - `voice` - использованный голос
@@ -546,6 +573,7 @@
 | **Input Data** | String (JSON) | Входные данные для workflow в формате JSON |
 
 **Процесс запуска:**
+
 1. Загрузка списка доступных workflows из указанной папки
 2. Валидация входных данных (проверка корректности JSON)
 3. Создание SDK клиента ExecutionServiceClient
@@ -555,18 +583,19 @@
 5. Получение execution ID
 
 **Возвращаемые данные:**
+
 - `executionId` - уникальный ID запущенного выполнения
 - `workflowId` - ID workflow
 - `success` - статус запуска
 
 **Примеры использования:**
+
 - Запуск сложной оркестрации облачных функций из n8n
 - Передача данных между n8n и Yandex Workflows
 - Триггер long-running процессов
 - Интеграция с существующими Workflows definitions
 
 **Аутентификация:** Service account JSON через `yandexCloudAuthorizedApi` для создания SDK сессии. Автоматически валидирует JSON перед отправкой. Поддерживает resource locator для удобного выбора workflows с отображением описания. Нода подходит для создания комплексных автоматизаций, где n8n управляет внешними интеграциями и API, а Yandex Workflows координирует облачные ресурсы (Functions, Containers, Compute), обеспечивая визуальное проектирование сложных бизнес-процессов с обработкой ошибок, retry-логикой и параллельным выполнением задач.
-
 
 ## Yandex Cloud YDB
 
@@ -587,6 +616,7 @@
 **Параметры запроса (для Execute with Parameters):**
 
 Коллекция параметров запроса с настройкой:
+
 - `name` — имя параметра (без префикса $)
 - `value` — значение параметра (автоматически конвертируется в соответствующий тип YDB)
 
@@ -618,23 +648,29 @@
 **Примеры запросов:**
 
 *Простой запрос:*
+
 ```sql
 SELECT id, name, email FROM users WHERE active = true LIMIT 10
 ```
 
 *Параметризованный запрос:*
+
 ```sql
 SELECT * FROM orders WHERE user_id = $userId AND order_date >= $startDate
 ```
+
 Параметры: `userId` = 12345, `startDate` = "2025-01-01"
 
 *Пакетная вставка:*
+
 ```sql
 UPSERT INTO products SELECT * FROM AS_TABLE($rows)
 ```
+
 Параметры: `rows` = массив объектов продуктов
 
 *Множественные наборы результатов:*
+
 ```sql
 SELECT COUNT(*) as total_users FROM users;
 SELECT COUNT(*) as total_orders FROM orders;
@@ -708,21 +744,25 @@ SELECT COUNT(*) as total_products FROM products;
 В пакете используются четыре типа credentials:
 
 ### yandexCloudYdbApi
+
 - Endpoint (URL эндпоинта YDB)
 - Database (путь к базе данных YDB)
 - Используется для параметров подключения Yandex Cloud YDB (требует yandexCloudAuthorizedApi для аутентификации)
 
 ### yandexCloudGptApi
+
 - API ключ для Foundation Models
 - Folder ID
 - URL эндпоинта (опционально)
 
 ### yandexCloudStaticApi
+
 - Access Key ID
 - Secret Access Key
 - Используется для S3-совместимых сервисов (Object Storage, Data Streams, Message Queue, Postbox)
 
 ### yandexCloudAuthorizedApi
+
 - Service Account JSON
 - Folder ID
 - Используется для сервисов, требующих IAM-токены (Functions, Containers, Compute, SpeechKit, Workflows, YDB)
@@ -732,9 +772,9 @@ SELECT COUNT(*) as total_products FROM products;
 ## Общие возможности
 
 Все ноды в пакете поддерживают:
+
 - ✅ Continue on Fail - продолжение выполнения при ошибках
 - ✅ Paired Items - сохранение связи между входными и выходными элементами
 - ✅ Resource Locators - удобный выбор ресурсов из списков или ручной ввод
 - ✅ Expressions - использование n8n expressions во всех параметрах
 - ✅ Proxy Support - работа через HTTP/HTTPS прокси (где применимо)
-

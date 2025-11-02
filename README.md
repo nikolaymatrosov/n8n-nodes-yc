@@ -622,6 +622,7 @@ Custom terminology dictionary for accurate translation of specific terms:
 **Query Parameters (for Execute with Parameters):**
 
 Collection of query parameters with configuration:
+
 - `name` - parameter name (without $ prefix)
 - `value` - parameter value (automatically converted to appropriate YDB type)
 
@@ -653,23 +654,29 @@ Automatic bidirectional conversion between JavaScript and YDB types:
 **Query Examples:**
 
 *Simple Query:*
+
 ```sql
 SELECT id, name, email FROM users WHERE active = true LIMIT 10
 ```
 
 *Parameterized Query:*
+
 ```sql
 SELECT * FROM orders WHERE user_id = $userId AND order_date >= $startDate
 ```
+
 Parameters: `userId` = 12345, `startDate` = "2025-01-01"
 
 *Batch Insert:*
+
 ```sql
 UPSERT INTO products SELECT * FROM AS_TABLE($rows)
 ```
+
 Parameters: `rows` = array of product objects
 
 *Multiple Result Sets:*
+
 ```sql
 SELECT COUNT(*) as total_users FROM users;
 SELECT COUNT(*) as total_orders FROM orders;
