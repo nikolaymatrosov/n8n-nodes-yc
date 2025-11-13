@@ -1,5 +1,5 @@
 {
 	"node": "dist/nodes/YandexCloudFomo/YandexCloudFomo.node.js",
-	"nodeVersion": "1"
+	"nodeVersion": 1
 }
 
