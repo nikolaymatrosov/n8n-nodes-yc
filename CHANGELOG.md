@@ -15,6 +15,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 
+## [0.6.1] - 2025-11-14
+
+### Added
+
+### Changed
+
+- **Yandex Cloud Foundation Models (Fomo) Node**: Simplified versioning to single version [1]
+- **Schema Structure**: Updated schema organization to use package version (v0.6.1) instead of node version
+
+### Fixed
+
+### Removed
+
+- **Yandex Cloud Foundation Models (Fomo) Node**: Removed wrong version 1.1
+- **Schema Files**: Removed old schema versions (v1.0.0 and v1.1.0)
+
 ## [0.6.0] - 2025-11-02
 
 ### Added
