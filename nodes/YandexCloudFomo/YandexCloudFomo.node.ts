@@ -16,7 +16,7 @@ export class YandexCloudFomo implements INodeType {
 		name: 'yandexCloudFomo',
 		group: ['transform'],
 		icon: { light: 'file:fomo.svg', dark: 'file:fomo.dark.svg' },
-		version: [1, 1.1],
+		version: [1],
 		subtitle: '={{$parameter["operation"] + ": " + $parameter["resource"]}}',
 		description: 'Consume Yandex Cloud Foundation Models API',
 		defaults: {
