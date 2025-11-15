@@ -9,6 +9,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+### Changed
+
+### Fixed
+
+### Removed
+
+## [0.7.0] - 2025-11-15
+
+### Added
+
 - **Yandex Cloud Vision OCR Node**: Optical character recognition for images and documents
   - Text recognition from JPEG, PNG, and PDF files (up to 10MB)
   - Automatic MIME type detection via magic bytes analysis
