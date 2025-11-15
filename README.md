@@ -22,6 +22,7 @@ Integration package for working with Yandex Cloud services in n8n.
 13. [Yandex Cloud Workflows](#yandex-cloud-workflows)
 14. [Yandex Cloud YDB](#yandex-cloud-ydb)
 15. [Yandex Cloud Search](#yandex-cloud-search)
+16. [Yandex Cloud Vision OCR](#yandex-cloud-vision-ocr)
 
 ---
 
@@ -848,6 +849,163 @@ AI-powered search with natural language answers generated from search results.
 - **Error Resilience** - Graceful error handling with Continue on Fail support
 
 **Authentication:** Uses service account JSON via `yandexCloudAuthorizedApi` credentials. Validates all required credential fields (serviceAccountId, accessKeyId, privateKey) and folder ID. Supports folder ID override at node level. The node is ideal for building search-powered applications, research tools, content discovery systems, AI assistants with web knowledge, and any scenarios requiring search integration with customizable relevance and filtering in n8n workflows.
+
+---
+
+## Yandex Cloud Vision OCR
+
+**Node for text recognition in images using Yandex Cloud Vision OCR API, providing high-accuracy optical character recognition with support for multiple languages and formats.** Supports JPEG, PNG, and PDF files with automatic MIME type detection and flexible output formatting.
+
+| Parameter | Type | Description |
+|----------|-----|----------|
+| **Resource** | Options | Text Recognition |
+| **Operation** | Options | Recognize |
+| **Binary Property** | String | Name of the binary property containing image data (default: "data") |
+| **MIME Type** | Options | Auto-detect, JPEG, PNG, or PDF |
+| **Languages** | Multi-options | Languages to recognize (ISO 639-1 format) |
+| **Model** | Options | OCR model selection (Page, Table, Markdown, Math Markdown) |
+| **Output Format** | Options | Full Text Only, Structured Data, or Both |
+
+**Supported Languages:**
+
+The OCR supports 50+ languages organized into two models:
+
+*Latin-Cyrillic Model:*
+- English, Russian, German, French, Spanish, Italian, Portuguese, Dutch, Polish
+- Czech, Slovak, Bulgarian, Serbian, Bosnian, Croatian, Romanian, Hungarian
+- Swedish, Norwegian, Danish, Finnish, Estonian, Latvian, Lithuanian
+- Turkish, Azerbaijani, Kazakh, Uzbek, Tajik, Kyrgyz, Tatar, Bashkir, Yakut, Chuvash
+- Indonesian, Maltese, Slovenian
+
+*Other Models (with Russian and English support):*
+- Arabic, Chinese, Japanese, Korean, Thai, Vietnamese
+- Hebrew, Greek, Armenian, Georgian
+
+All languages use ISO 639-1 format codes (e.g., 'en', 'ru', 'de')
+
+**OCR Models:**
+
+*General text recognition models:*
+
+- **Page** - General purpose text recognition for documents and images (default)
+- **Page Column Sort** - Multi-column text recognition
+- **Handwritten** - Optimized for handwritten text recognition
+- **Table** - Optimized for recognizing tabular data and structured layouts
+- **Markdown** - Returns recognized text in markdown format
+- **Math Markdown** - Specialized for mathematical formulas and equations in markdown
+
+*Template document recognition models:*
+
+- **Passport** - Template recognition for passport documents
+- **Driver License Front** - Template recognition for driver license (front side)
+- **Driver License Back** - Template recognition for driver license (back side)
+- **Vehicle Registration Front** - Template recognition for vehicle registration certificate (front)
+- **Vehicle Registration Back** - Template recognition for vehicle registration certificate (back)
+- **License Plates** - Recognition of vehicle license plates
+
+**File Format Support:**
+
+- **JPEG** - Standard JPEG images
+- **PNG** - PNG images with transparency support
+- **PDF** - Single-page PDF documents
+- Maximum file size: 10MB
+- Maximum image dimensions: 20M pixels (width × height)
+
+**Output Formats:**
+
+1. **Full Text Only** - Simple string containing all recognized text
+   - Returns: `{ fullText: "recognized text..." }`
+
+2. **Structured Data** - Detailed structure with coordinates and metadata
+   - Returns: `{ structured: [{ page, width, height, blocks, entities, tables, markdown, pictures }] }`
+   - Includes bounding boxes for blocks, lines, and words
+   - Provides table cell recognition with row/column indices
+   - Detects entities and pictures with confidence scores
+
+3. **Both** - Combined output with both full text and structured data
+   - Returns: `{ fullText: "...", structured: [...] }`
+
+**Recognition Process:**
+
+1. Get image data from specified binary property
+2. Auto-detect or use provided MIME type
+3. Validate file size (max 10MB)
+4. Validate model requirements (e.g., license-plates requires explicit language)
+5. Send recognition request with language preferences and model selection
+6. Stream response chunks from OCR API
+7. Combine results for multi-page PDFs
+8. Format output according to selected format
+
+**Returned Data (Full Text):**
+
+- `fullText` - Complete recognized text from all pages
+
+**Returned Data (Structured):**
+
+- `structured` - Array of page annotations
+  - `page` - Page number (1-based)
+  - `width` / `height` - Image dimensions in pixels
+  - `blocks` - Text blocks with bounding boxes, lines, words, languages
+  - `entities` - Named entities detected in text
+  - `tables` - Recognized tables with cell data (row/column indices, spans, text)
+  - `markdown` - Text in markdown format (if model supports)
+  - `pictures` - Detected picture locations with confidence scores
+  - `rotate` - Image rotation angle (ANGLE_0, ANGLE_90, ANGLE_180, ANGLE_270)
+
+**Structured Data Details:**
+
+*Block structure:*
+- `boundingBox` - Polygon vertices defining block area
+- `lines` - Array of text lines with words and orientation
+- `languages` - Detected languages in block
+- `layoutType` - Block type (TEXT, HEADER, FOOTER, TITLE, LIST, etc.)
+
+*Table structure:*
+- `rowCount` / `columnCount` - Table dimensions
+- `cells` - Array of table cells with:
+  - `rowIndex` / `columnIndex` - Cell position
+  - `rowSpan` / `columnSpan` - Cell spanning
+  - `text` - Cell content
+
+**Use Cases:**
+
+- Document digitization and archiving
+- Invoice and receipt processing
+- ID card and passport data extraction
+- Table data extraction from images
+- Scanned document text extraction
+- Multi-language document processing
+- Form processing automation
+- OCR for accessibility features
+- Content moderation with text detection
+- License plate recognition (with structured coordinates)
+
+**MIME Type Detection:**
+
+The node automatically detects image format by analyzing magic bytes:
+- JPEG: `FF D8 FF` header
+- PNG: `89 50 4E 47` header
+- PDF: `25 50 44 46` header
+- Falls back to JPEG if detection fails
+
+**Error Handling:**
+
+- Validates binary data presence and size
+- Checks file size limit (10MB)
+- Validates model-specific requirements (e.g., license-plates needs explicit language)
+- Validates service account credentials
+- Supports Continue on Fail mode for batch processing
+- Returns detailed error messages with context
+
+**Multi-page PDF Support:**
+
+For PDF files with multiple pages, the node:
+- Processes each page separately
+- Combines full text with double newline separators
+- Returns structured data array with page numbers
+- Preserves page-specific metadata and coordinates
+
+**Authentication:** Uses service account JSON via `yandexCloudAuthorizedApi` credentials with automatic IAM token generation. Uses gRPC streaming for efficient data transfer. Connects to `ocr.api.cloud.yandex.net:443` for recognition requests. The node is ideal for building document processing workflows, data extraction pipelines, form automation, invoice processing systems, and any applications requiring accurate text recognition from images with support for complex layouts, tables, and mathematical notation in n8n workflows.
 
 ---
 

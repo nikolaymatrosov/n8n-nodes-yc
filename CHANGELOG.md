@@ -9,6 +9,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Yandex Cloud Vision OCR Node**: Optical character recognition for images and documents
+  - Text recognition from JPEG, PNG, and PDF files (up to 10MB)
+  - Automatic MIME type detection via magic bytes analysis
+  - Multi-language support (50+ languages with ISO 639-1 codes, default: Russian and English)
+  - Multiple OCR models: Page (default), Page Column Sort, Handwritten, Table, Markdown, Math Markdown
+  - Template document recognition models: Passport, Driver License (Front/Back), Vehicle Registration (Front/Back), License Plates
+  - Model-specific validation (e.g., license-plates requires explicit language specification)
+  - Flexible output formats: Full Text Only, Structured Data (with coordinates), or Both
+  - Structured data includes blocks, lines, words, tables, entities, and pictures with bounding boxes
+  - Multi-page PDF support with automatic page combining
+  - Table cell recognition with row/column indices and spanning
+  - gRPC streaming for efficient data transfer
+  - IAM authentication using Service Account JSON credentials
+
 ### Changed
 
 ### Fixed
