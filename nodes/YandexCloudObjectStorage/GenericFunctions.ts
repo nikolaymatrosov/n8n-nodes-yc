@@ -1,26 +1,10 @@
-import type { ILoadOptionsFunctions, INodeListSearchResult } from 'n8n-workflow';
-import { NodeOperationError } from 'n8n-workflow';
-
-import { S3Client, ListBucketsCommand, ListObjectsV2Command } from '@aws-sdk/client-s3';
+import { ListBucketsCommand, ListObjectsV2Command } from '@aws-sdk/client-s3';
 import { Readable } from 'stream';
+import { createS3Client } from '@utils/awsClientFactory';
+import { createResourceLoader, parseStaticApiCredentials } from '@utils/resourceLocator';
 
-/**
- * Creates and configures an S3 client for Yandex Object Storage
- */
-export function createS3Client(credentials: {
-	accessKeyId: string;
-	secretAccessKey: string;
-}): S3Client {
-	return new S3Client({
-		region: 'ru-central1',
-		endpoint: 'https://storage.yandexcloud.net',
-		credentials: {
-			accessKeyId: credentials.accessKeyId,
-			secretAccessKey: credentials.secretAccessKey,
-		},
-		forcePathStyle: false, // Use virtual-hosted-style URLs
-	});
-}
+// Re-export for backward compatibility
+export { createS3Client };
 
 /**
  * Converts a stream to a buffer
@@ -37,45 +21,21 @@ export async function streamToBuffer(stream: Readable): Promise<Buffer> {
 /**
  * Load buckets for resource locator
  */
-export async function loadBuckets(
-	this: ILoadOptionsFunctions,
-	filter?: string,
-): Promise<INodeListSearchResult> {
-	const credentials = await this.getCredentials('yandexCloudStaticApi');
-
-	const client = createS3Client({
-		accessKeyId: credentials.accessKeyId as string,
-		secretAccessKey: credentials.secretAccessKey as string,
-	});
-
-	try {
+export const loadBuckets = createResourceLoader({
+	credentialType: 'yandexCloudStaticApi',
+	clientFactory: createS3Client,
+	resourceFetcher: async (client) => {
 		const response = await client.send(new ListBucketsCommand({}));
-
-		if (!response.Buckets || response.Buckets.length === 0) {
-			return { results: [] };
-		}
-
-		let results = response.Buckets.map((bucket) => ({
-			name: bucket.Name!,
-			value: bucket.Name!,
-		}));
-
-		// Filter results if search filter is provided
-		if (filter) {
-			const filterLower = filter.toLowerCase();
-			results = results.filter((bucket) =>
-				bucket.name.toLowerCase().includes(filterLower),
-			);
-		}
-
-		return { results };
-	} catch (error) {
-		throw new NodeOperationError(
-			this.getNode(),
-			`Failed to list buckets: ${error.message}`,
-		);
-	}
-}
+		return response.Buckets || [];
+	},
+	resourceMapper: (bucket) => ({
+		name: bucket.Name!,
+		value: bucket.Name!,
+	}),
+	errorMessage: 'Failed to list buckets',
+	errorType: 'operation',
+	credentialParser: parseStaticApiCredentials,
+});
 
 /**
  * Constructs the full object URL for Yandex Object Storage
@@ -87,34 +47,26 @@ export function getObjectUrl(bucketName: string, objectKey: string): string {
 /**
  * Load objects for resource locator (used in copy/move operations)
  */
-export async function loadObjects(
-	this: ILoadOptionsFunctions,
-	filter?: string,
-): Promise<INodeListSearchResult> {
-	const credentials = await this.getCredentials('yandexCloudStaticApi');
-
-	// Get bucket name from node parameters
-	let bucketName: string;
-	try {
-		bucketName = this.getNodeParameter('bucketName', 0) as string;
-		// If it's a resourceLocator, extract the value
-		if (typeof bucketName === 'object' && bucketName !== null) {
-			bucketName = (bucketName as any).value || '';
+export const loadObjects = createResourceLoader({
+	credentialType: 'yandexCloudStaticApi',
+	clientFactory: createS3Client,
+	resourceFetcher: async (client, context) => {
+		// Get bucket name from node parameters
+		let bucketName: string;
+		try {
+			bucketName = context.getNodeParameter('bucketName', 0) as string;
+			// If it's a resourceLocator, extract the value
+			if (typeof bucketName === 'object' && bucketName !== null) {
+				bucketName = (bucketName as any).value || '';
+			}
+		} catch (error) {
+			return [];
 		}
-	} catch (error) {
-		return { results: [] };
-	}
 
-	if (!bucketName) {
-		return { results: [] };
-	}
+		if (!bucketName) {
+			return [];
+		}
 
-	const client = createS3Client({
-		accessKeyId: credentials.accessKeyId as string,
-		secretAccessKey: credentials.secretAccessKey as string,
-	});
-
-	try {
 		const response = await client.send(
 			new ListObjectsV2Command({
 				Bucket: bucketName,
@@ -122,29 +74,14 @@ export async function loadObjects(
 			}),
 		);
 
-		if (!response.Contents || response.Contents.length === 0) {
-			return { results: [] };
-		}
-
-		let results = response.Contents.map((object) => ({
-			name: object.Key!,
-			value: object.Key!,
-		}));
-
-		// Filter results if search filter is provided
-		if (filter) {
-			const filterLower = filter.toLowerCase();
-			results = results.filter((object) =>
-				object.name.toLowerCase().includes(filterLower),
-			);
-		}
-
-		return { results };
-	} catch (error) {
-		throw new NodeOperationError(
-			this.getNode(),
-			`Failed to list objects: ${error.message}`,
-		);
-	}
-}
+		return response.Contents || [];
+	},
+	resourceMapper: (object) => ({
+		name: object.Key!,
+		value: object.Key!,
+	}),
+	errorMessage: 'Failed to list objects',
+	errorType: 'operation',
+	credentialParser: parseStaticApiCredentials,
+});
 

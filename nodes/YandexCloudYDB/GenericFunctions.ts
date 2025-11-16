@@ -2,32 +2,16 @@ import { Driver } from '@ydbjs/core';
 import { query } from '@ydbjs/query';
 import { fromJs, toJs } from '@ydbjs/value';
 import { IamTokenService } from '@yandex-cloud/nodejs-sdk/dist/token-service/iam-token-service';
-import { mapKeys, camelCase } from 'lodash';
 import type { YDBQueryParams } from './types';
-import { type CallOptions, type ClientMiddlewareCall, Metadata } from 'nice-grpc'
+import { type CallOptions, type ClientMiddlewareCall, Metadata } from 'nice-grpc';
+import {
+	parseServiceAccountJson,
+	type IServiceAccountCredentials,
+} from '@utils/authUtils';
 
-interface IIAmCredentials {
-	serviceAccountId: string;
-	accessKeyId: string;
-	privateKey: string;
-}
-
-/**
- * Converts a Yandex Cloud service account key JSON to IIAmCredentials format
- */
-export function parseServiceAccountJson(jsonString: string): IIAmCredentials {
-	const parsed = JSON.parse(jsonString);
-
-	// Convert all keys to camelCase
-	const camelCased = mapKeys(parsed, (_value, key) => camelCase(key));
-
-	// Map the Yandex Cloud format to the expected format
-	return {
-		serviceAccountId: camelCased.serviceAccountId || '',
-		accessKeyId: camelCased.id || camelCased.accessKeyId || '',
-		privateKey: camelCased.privateKey || '',
-	};
-}
+// Re-export for backward compatibility
+type IIAmCredentials = IServiceAccountCredentials;
+export { parseServiceAccountJson, type IIAmCredentials };
 
 /**
  * Create YDB Driver with IAM authentication

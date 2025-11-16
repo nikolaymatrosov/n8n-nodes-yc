@@ -6,65 +6,33 @@ import type {
 	INodeListSearchResult,
 } from 'n8n-workflow';
 import { NodeApiError } from 'n8n-workflow';
-import { Session } from '@yandex-cloud/nodejs-sdk';
-import { camelCase, mapKeys } from 'lodash';
 import type { IServiceAccountJson } from './types';
 import {
 	LogEntry,
 	LogLevel_Level,
 } from '@yandex-cloud/nodejs-sdk/dist/generated/yandex/cloud/logging/v1/log_entry';
 import { logGroupService } from '@yandex-cloud/nodejs-sdk/dist/clients/logging-v1';
+import {
+	parseServiceAccountJson,
+	validateServiceAccountCredentials,
+	createYandexSession,
+} from '@utils/authUtils';
 
-/**
- * Parse service account JSON from credentials
- * Handles both snake_case and camelCase formats
- */
-export function parseServiceAccountJson(jsonString: string): IServiceAccountJson {
-	try {
-		const parsed = JSON.parse(jsonString);
-		const camelCased = mapKeys(parsed, (_value, key) => camelCase(key));
-
-		return {
-			serviceAccountId: camelCased.serviceAccountId || '',
-			accessKeyId: camelCased.id || camelCased.accessKeyId || '',
-			privateKey: camelCased.privateKey || '',
-		};
-	} catch (error) {
-		throw new Error(`Failed to parse service account JSON: ${(error as Error).message}`);
-	}
-}
+// Re-export for backward compatibility
+export { parseServiceAccountJson };
 
 /**
  * Validate service account credentials
  */
 export function validateServiceAccountJson(credentials: IServiceAccountJson, node: INode): void {
-	if (!credentials.serviceAccountId) {
-		throw new NodeApiError(node, {
-			message: 'Service Account ID is missing in credentials',
-			description: 'Please check your Yandex Cloud credentials configuration',
-		});
-	}
-
-	if (!credentials.accessKeyId) {
-		throw new NodeApiError(node, {
-			message: 'Access Key ID is missing in credentials',
-			description: 'Please check your Yandex Cloud credentials configuration',
-		});
-	}
-
-	if (!credentials.privateKey) {
-		throw new NodeApiError(node, {
-			message: 'Private Key is missing in credentials',
-			description: 'Please check your Yandex Cloud credentials configuration',
-		});
-	}
+	validateServiceAccountCredentials(credentials, node);
 }
 
 /**
  * Create Yandex Cloud SDK session
  */
-export function createSession(serviceAccountJson: IServiceAccountJson): Session {
-	return new Session({ serviceAccountJson });
+export function createSession(serviceAccountJson: IServiceAccountJson) {
+	return createYandexSession(serviceAccountJson);
 }
 
 /**

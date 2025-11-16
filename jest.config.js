@@ -33,6 +33,7 @@ module.exports = {
 	moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'node'],
 	moduleNameMapper: {
 		'^@/(.*)$': '<rootDir>/$1',
+		'^@utils/(.*)$': '<rootDir>/utils/$1',
 		// Map logging-v1 imports without /index to the /index path
 		'^@yandex-cloud/nodejs-sdk/dist/clients/logging-v1$': '@yandex-cloud/nodejs-sdk/dist/clients/logging-v1/index',
 	},
