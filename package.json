@@ -63,7 +63,8 @@
       "dist/nodes/YandexCloudTranslate/YandexCloudTranslate.node.js",
       "dist/nodes/YandexCloudYDB/YandexCloudYdb.node.js",
       "dist/nodes/YandexCloudSearch/YandexCloudSearch.node.js",
-      "dist/nodes/YandexCloudVisionOcr/YandexCloudVisionOcr.node.js"
+      "dist/nodes/YandexCloudVisionOcr/YandexCloudVisionOcr.node.js",
+      "dist/nodes/YandexCloudLogging/YandexCloudLogging.node.js"
     ]
   },
   "devDependencies": {
