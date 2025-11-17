@@ -1,59 +1,24 @@
-import type { ILoadOptionsFunctions, INodeListSearchResult } from 'n8n-workflow';
-import { NodeOperationError } from 'n8n-workflow';
+import { ListQueuesCommand } from '@aws-sdk/client-sqs';
+import { createSQSClient } from '@utils/awsClientFactory';
+import { createResourceLoader, parseStaticApiCredentials } from '@utils/resourceLocator';
 
-import { SQSClient, ListQueuesCommand } from '@aws-sdk/client-sqs';
-
-export async function loadQueues(
-	this: ILoadOptionsFunctions,
-	filter?: string,
-): Promise<INodeListSearchResult> {
-	const credentials = await this.getCredentials('yandexCloudStaticApi');
-
-	// Create SQS client
-	const client = new SQSClient({
-		region: 'ru-central1',
-		endpoint: 'https://message-queue.api.cloud.yandex.net',
-		credentials: {
-			accessKeyId: credentials.accessKeyId as string,
-			secretAccessKey: credentials.secretAccessKey as string,
-		},
-	});
-
-	try {
-		// List all queues
+export const loadQueues = createResourceLoader({
+	credentialType: 'yandexCloudStaticApi',
+	clientFactory: createSQSClient,
+	resourceFetcher: async (client) => {
 		const response = await client.send(new ListQueuesCommand({}));
-
-		if (!response.QueueUrls || response.QueueUrls.length === 0) {
-			return { results: [] };
-		}
-
-		// Map queue URLs to list search results
-		let results = response.QueueUrls.map((queueUrl) => {
-			// Extract queue name from URL (last part after /)
-			const queueName = queueUrl.split('/').pop() || queueUrl;
-			return {
-				name: queueName,
-				value: queueUrl,
-				url: queueUrl,
-			};
-		});
-
-		// Filter results if search filter is provided
-		if (filter) {
-			const filterLower = filter.toLowerCase();
-			results = results.filter(
-				(queue) =>
-					queue.name.toLowerCase().includes(filterLower) ||
-					queue.value.toLowerCase().includes(filterLower),
-			);
-		}
-
-		return { results };
-	} catch (error) {
-		throw new NodeOperationError(
-			this.getNode(),
-			`Failed to list queues: ${error.message}`,
-		);
-	}
-}
+		return response.QueueUrls || [];
+	},
+	resourceMapper: (queueUrl: string) => {
+		// Extract queue name from URL (last part after /)
+		const queueName = queueUrl.split('/').pop() || queueUrl;
+		return {
+			name: queueName,
+			value: queueUrl,
+		};
+	},
+	errorMessage: 'Failed to list queues',
+	errorType: 'operation',
+	credentialParser: parseStaticApiCredentials,
+});
 

@@ -1,26 +1,14 @@
-import { IExecuteFunctions, NodeOperationError } from 'n8n-workflow';
-import { Session } from '@yandex-cloud/nodejs-sdk';
+import { IExecuteFunctions } from 'n8n-workflow';
 import { ocrService } from '@yandex-cloud/nodejs-sdk/dist/clients/ai-ocr-v1/index';
-import { mapKeys, camelCase } from 'lodash';
 import type { IIAmCredentials } from './types';
+import {
+	parseServiceAccountJson,
+	validateServiceAccountCredentials,
+	createYandexSession,
+} from '@utils/authUtils';
 
-/**
- * Converts a Yandex Cloud service account key JSON to IIAmCredentials format
- * Handles both snake_case (Yandex Cloud format) and camelCase formats
- */
-export function parseServiceAccountJson(jsonString: string): IIAmCredentials {
-	const parsed = JSON.parse(jsonString);
-
-	// Convert all keys to camelCase for consistent handling
-	const camelCased = mapKeys(parsed, (_value, key) => camelCase(key));
-
-	// Map the Yandex Cloud format to the expected format
-	return {
-		serviceAccountId: camelCased.serviceAccountId || '',
-		accessKeyId: camelCased.id || camelCased.accessKeyId || '',
-		privateKey: camelCased.privateKey || '',
-	};
-}
+// Re-export for backward compatibility
+export { parseServiceAccountJson };
 
 /**
  * Validates IAM credentials structure
@@ -30,33 +18,14 @@ export function validateIAmCredentials(
 	credentials: IIAmCredentials,
 	node: IExecuteFunctions['getNode'],
 ): void {
-	if (!credentials.serviceAccountId) {
-		throw new NodeOperationError(
-			node(),
-			'Service Account ID (service_account_id) is required in the service account JSON',
-		);
-	}
-
-	if (!credentials.accessKeyId) {
-		throw new NodeOperationError(
-			node(),
-			'Access Key ID (id) is required in the service account JSON',
-		);
-	}
-
-	if (!credentials.privateKey) {
-		throw new NodeOperationError(
-			node(),
-			'Private Key (private_key) is required in the service account JSON',
-		);
-	}
+	validateServiceAccountCredentials(credentials, node);
 }
 
 /**
  * Creates OCR service client using Session
  */
 export function createOcrClient(credentials: IIAmCredentials) {
-	const session = new Session({ serviceAccountJson: credentials });
+	const session = createYandexSession(credentials);
 
 	// Create TextRecognitionService client
 	const client = session.client(

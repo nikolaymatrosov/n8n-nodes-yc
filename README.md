@@ -23,6 +23,7 @@ Integration package for working with Yandex Cloud services in n8n.
 14. [Yandex Cloud YDB](#yandex-cloud-ydb)
 15. [Yandex Cloud Search](#yandex-cloud-search)
 16. [Yandex Cloud Vision OCR](#yandex-cloud-vision-ocr)
+17. [Yandex Cloud Logging](#yandex-cloud-logging)
 
 ---
 
@@ -801,7 +802,7 @@ AI-powered search with natural language answers generated from search results.
 
 - **Search Type** - RU, TR, COM, KK, BY, UZ
 - **Site Restriction** - Limit search to specific site (e.g., example.com)
-- **Host Restriction** - Limit to specific host (e.g., www.example.com)
+- **Host Restriction** - Limit to specific host (e.g., <www.example.com>)
 - **URL Restriction** - Limit to specific URL path
 - **Fix Misspell** - Correct query misspells automatically
 - **Enable NRFM Docs** - Include documents not on front page
@@ -871,6 +872,7 @@ AI-powered search with natural language answers generated from search results.
 The OCR supports 50+ languages organized into two models:
 
 *Latin-Cyrillic Model:*
+
 - English, Russian, German, French, Spanish, Italian, Portuguese, Dutch, Polish
 - Czech, Slovak, Bulgarian, Serbian, Bosnian, Croatian, Romanian, Hungarian
 - Swedish, Norwegian, Danish, Finnish, Estonian, Latvian, Lithuanian
@@ -878,6 +880,7 @@ The OCR supports 50+ languages organized into two models:
 - Indonesian, Maltese, Slovenian
 
 *Other Models (with Russian and English support):*
+
 - Arabic, Chinese, Japanese, Korean, Thai, Vietnamese
 - Hebrew, Greek, Armenian, Georgian
 
@@ -955,12 +958,14 @@ All languages use ISO 639-1 format codes (e.g., 'en', 'ru', 'de')
 **Structured Data Details:**
 
 *Block structure:*
+
 - `boundingBox` - Polygon vertices defining block area
 - `lines` - Array of text lines with words and orientation
 - `languages` - Detected languages in block
 - `layoutType` - Block type (TEXT, HEADER, FOOTER, TITLE, LIST, etc.)
 
 *Table structure:*
+
 - `rowCount` / `columnCount` - Table dimensions
 - `cells` - Array of table cells with:
   - `rowIndex` / `columnIndex` - Cell position
@@ -983,6 +988,7 @@ All languages use ISO 639-1 format codes (e.g., 'en', 'ru', 'de')
 **MIME Type Detection:**
 
 The node automatically detects image format by analyzing magic bytes:
+
 - JPEG: `FF D8 FF` header
 - PNG: `89 50 4E 47` header
 - PDF: `25 50 44 46` header
@@ -1000,12 +1006,112 @@ The node automatically detects image format by analyzing magic bytes:
 **Multi-page PDF Support:**
 
 For PDF files with multiple pages, the node:
+
 - Processes each page separately
 - Combines full text with double newline separators
 - Returns structured data array with page numbers
 - Preserves page-specific metadata and coordinates
 
 **Authentication:** Uses service account JSON via `yandexCloudAuthorizedApi` credentials with automatic IAM token generation. Uses gRPC streaming for efficient data transfer. Connects to `ocr.api.cloud.yandex.net:443` for recognition requests. The node is ideal for building document processing workflows, data extraction pipelines, form automation, invoice processing systems, and any applications requiring accurate text recognition from images with support for complex layouts, tables, and mathematical notation in n8n workflows.
+
+---
+
+## Yandex Cloud Logging
+
+**Node for centralized log management with Yandex Cloud Logging service, providing write and read operations for log entries.** Supports structured logging with JSON payloads, time-based filtering, and resource-based organization with automatic pagination and batch operations.
+
+| Parameter | Type | Resources | Operations |
+|----------|-----|---------|----------|
+| **Log Entry** | Resource | Log Entry | Write, Read |
+
+**Log Entry Operations:**
+
+- **Write** - send log entries to log group with:
+  - Multiple entries in single request
+  - Log levels (TRACE, DEBUG, INFO, WARN, ERROR, FATAL)
+  - Automatic or custom timestamps
+  - JSON payloads for structured data
+  - Stream names for log organization
+  - Resource metadata (type and ID)
+  - Default values for level, payload, and stream
+
+- **Read** - retrieve log entries with filtering:
+  - Time range filtering (since/until)
+  - Log level filtering (multi-select)
+  - Resource type and ID filtering
+  - Stream name filtering
+  - Advanced filter expressions
+  - Automatic pagination support
+  - Return all entries or limit results
+
+**Write Parameters:**
+
+- `logGroupId` - target log group (resource locator with dropdown)
+- `entries` - array of log entries with:
+  - `message` - log message text (required)
+  - `level` - log level (TRACE/DEBUG/INFO/WARN/ERROR/FATAL)
+  - `timestamp` - ISO 8601 format or auto-generated
+  - `jsonPayload` - structured data as JSON object
+  - `streamName` - stream for log organization
+- `resourceType` / `resourceId` - optional resource metadata
+- `defaults` - default level, payload, and stream for all entries
+
+**Read Parameters:**
+
+- `logGroupId` - source log group (resource locator)
+- `returnAll` - fetch all pages or limit results
+- `limit` - maximum entries to return (1-1000)
+- `filters` - optional filtering:
+  - `since` / `until` - time range (ISO 8601)
+  - `levels` - log levels to include
+  - `resourceTypes` - comma-separated resource types
+  - `resourceIds` - comma-separated resource IDs
+  - `streamNames` - comma-separated stream names
+  - `filter` - advanced filter expression
+
+**Returned Data (Write):**
+
+- `success` - operation status
+- `entriesWritten` - number of entries written
+- `logGroupId` - target log group ID
+- `errors` - map of any entry-level errors
+
+**Returned Data (Read):**
+
+Each log entry returned as separate item with:
+
+- `uid` - unique entry ID
+- `message` - log message
+- `level` - log level
+- `timestamp` - entry timestamp
+- `resource` - resource metadata (type, id)
+- `jsonPayload` - structured data
+- `streamName` - stream name
+- `ingestedAt` - ingestion timestamp
+- `savedAt` - save timestamp
+
+**Use Cases:**
+
+- Centralized application logging
+- Error monitoring and alerting
+- Audit trail and compliance logging
+- Distributed system log aggregation
+- Real-time log analysis pipelines
+- Performance monitoring and metrics
+- Security event logging
+- Troubleshooting and debugging
+
+**Features:**
+
+- **Batch Writing** - send multiple entries in single request
+- **Structured Logging** - JSON payloads for rich data
+- **Time-Based Filtering** - precise time range queries
+- **Resource Organization** - group logs by resource type/ID
+- **Stream Support** - organize logs by application component
+- **Automatic Pagination** - handle large result sets
+- **Resource Locator** - easy log group selection from dropdown
+
+**Authentication:** Uses service account JSON via `yandexCloudAuthorizedApi` credentials with automatic IAM token generation. Requires `logging.writer` role for writing entries and `logging.reader` role for reading entries. The node is ideal for building observability systems, monitoring dashboards, log analysis workflows, alerting pipelines, and any applications requiring centralized structured logging with powerful filtering and querying capabilities in n8n workflows.
 
 ---
 
