@@ -9,6 +9,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+### Changed
+
+### Fixed
+
+### Removed
+
+## [0.8.0] - 2025-11-17
+
+### Added
+
 - **Yandex Cloud Logging Node**: Centralized log management with write and read operations
   - Write log entries with multiple entries per request, structured JSON payloads, and custom timestamps
   - Support for log levels (TRACE, DEBUG, INFO, WARN, ERROR, FATAL)
