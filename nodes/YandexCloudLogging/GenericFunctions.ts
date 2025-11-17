@@ -11,7 +11,7 @@ import {
 	LogEntry,
 	LogLevel_Level,
 } from '@yandex-cloud/nodejs-sdk/dist/generated/yandex/cloud/logging/v1/log_entry';
-import { logGroupService } from '@yandex-cloud/nodejs-sdk/dist/clients/logging-v1';
+import { logGroupService } from '@yandex-cloud/nodejs-sdk/dist/clients/logging-v1/index';
 import {
 	parseServiceAccountJson,
 	validateServiceAccountCredentials,
