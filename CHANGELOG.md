@@ -15,6 +15,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 
+## [0.8.4] - 2025-11-18
+
+### Fixed
+
+- **YDB Node**: Fixed "Channel credentials must be a ChannelCredentials object" error by properly formatting the connection string with `grpcs://` protocol prefix
+- **Dependencies**: Fixed `@grpc/grpc-js` version conflicts between `@yandex-cloud/nodejs-sdk` (requires ^1.6.12) and `@ydbjs/core` (requires ^1.14.0) by:
+  - Adding `@grpc/grpc-js@1.14.1` as a direct dependency
+  - Using npm `resolutions` and `overrides` to force version 1.14.1 across all packages
+  - Ensuring proper dependency deduplication to prevent nested module issues
+
 ## [0.8.0] - 2025-11-17
 
 ### Added
