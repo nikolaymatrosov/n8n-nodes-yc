@@ -32,9 +32,21 @@ export async function createYDBDriver(
 		token: iamToken,
 	});
 
+	// Determine if we need to use grpcs:// (secure) or grpc:// (insecure)
+	// Yandex Cloud endpoints typically start with 'grpcs://' for secure connections
+	let connectionString = endpoint;
+	if (!endpoint.startsWith('grpc://') && !endpoint.startsWith('grpcs://')) {
+		// If no protocol specified, assume secure connection for Yandex Cloud
+		connectionString = `grpcs://${endpoint}`;
+	}
+
+	// Append database path
+	connectionString = `${connectionString}${database}`;
+
 	// Create driver with authentication
-	const driver = new Driver(`${endpoint}${database}`, {
-		credentialsProvider: credentialsProvider as any,
+	// For secure connections (grpcs://), the Driver will automatically use SSL
+	const driver = new Driver(connectionString, {
+		credentialsProvider: credentialsProvider,
 	});
 
 	// Wait for driver to be ready
@@ -78,8 +90,8 @@ export async function executeYQLQuery(
 /**
  * Close YDB driver connection
  */
-export async function closeYDBDriver(driver: Driver): Promise<void> {
-	await driver.close();
+export function closeYDBDriver(driver: Driver): void {
+	driver.close();
 }
 
 /**
