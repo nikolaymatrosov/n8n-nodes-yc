@@ -1,6 +1,6 @@
 {
 	"name": "@nikolaymatrosov/n8n-nodes-yc",
-	"version": "0.8.2",
+	"version": "0.8.3",
 	"description": "n8n nodes for Yandex Cloud services",
 	"keywords": [
 		"n8n-community-node-package"
@@ -124,6 +124,7 @@
 		"@langchain/core": "^0.3.33"
 	},
 	"overrides": {
-		"@langchain/core": "^0.3.33"
+		"@langchain/core": "^0.3.33",
+    "@grpc/grpc-js": "1.14.1"
 	}
 }
