@@ -15,6 +15,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 
+## [0.8.5] - 2025-11-19
+
+### Added
+
+### Changed
+
+### Fixed
+
+- **Internal**: Refactored credential validation to use centralized `validateServiceAccountCredentials` utility across all nodes
+  - Removed redundant `validateIAmCredentials` function from Vision OCR node
+  - Improved consistency in credential validation logic
+
+### Removed
+
 ## [0.8.4] - 2025-11-18
 
 ### Fixed
@@ -133,5 +147,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.4.0] - 2025-10-29
 
 ### Added
+
 - Yandex Cloud Foundation Models node
 - Object Storage URL support
