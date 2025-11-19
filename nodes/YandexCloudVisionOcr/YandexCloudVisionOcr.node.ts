@@ -8,13 +8,13 @@ import { NodeOperationError } from 'n8n-workflow';
 
 import {
 	parseServiceAccountJson,
-	validateIAmCredentials,
 	createOcrClient,
 	detectMimeType,
 	formatOcrResponse,
 } from './GenericFunctions';
 import { LANGUAGE_CODES, OCR_MODELS, SUPPORTED_MIME_TYPES } from './types';
 import { RecognizeTextRequest } from '@yandex-cloud/nodejs-sdk/dist/generated/yandex/cloud/ai/ocr/v1/ocr_service';
+import { validateServiceAccountCredentials } from '@utils/authUtils';
 
 export class YandexCloudVisionOcr implements INodeType {
 	description: INodeTypeDescription = {
@@ -115,7 +115,8 @@ export class YandexCloudVisionOcr implements INodeType {
 						operation: ['recognize'],
 					},
 				},
-				description: 'MIME type of the input image. Choose auto-detect to automatically determine the type.',
+				description:
+					'MIME type of the input image. Choose auto-detect to automatically determine the type.',
 			},
 			// Language codes
 			{
@@ -258,7 +259,7 @@ export class YandexCloudVisionOcr implements INodeType {
 		let serviceAccountJson;
 		try {
 			serviceAccountJson = parseServiceAccountJson(credentials.serviceAccountJson as string);
-			validateIAmCredentials(serviceAccountJson, this.getNode);
+			validateServiceAccountCredentials(serviceAccountJson, this.getNode());
 		} catch (error) {
 			throw new NodeOperationError(
 				this.getNode(),

@@ -1,25 +1,12 @@
-import { IExecuteFunctions } from 'n8n-workflow';
 import { ocrService } from '@yandex-cloud/nodejs-sdk/dist/clients/ai-ocr-v1/index';
 import type { IIAmCredentials } from './types';
 import {
 	parseServiceAccountJson,
-	validateServiceAccountCredentials,
 	createYandexSession,
 } from '@utils/authUtils';
 
 // Re-export for backward compatibility
 export { parseServiceAccountJson };
-
-/**
- * Validates IAM credentials structure
- * @throws NodeOperationError if credentials are invalid
- */
-export function validateIAmCredentials(
-	credentials: IIAmCredentials,
-	node: IExecuteFunctions['getNode'],
-): void {
-	validateServiceAccountCredentials(credentials, node);
-}
 
 /**
  * Creates OCR service client using Session
