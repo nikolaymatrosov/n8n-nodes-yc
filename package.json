@@ -46,6 +46,7 @@
       "dist/credentials/YandexCloudYdbApi.credentials.js"
     ],
     "nodes": [
+      "dist/nodes/YandexArt/YandexArt.node.js",
       "dist/nodes/YandexCloudFomo/YandexCloudFomo.node.js",
       "dist/nodes/LMChatYandexGpt/LmChatYandexGpt.node.js",
       "dist/nodes/YandexCloudPostbox/YandexCloudPostbox.node.js",

@@ -9,6 +9,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Yandex Cloud YandexART Node**: AI-powered image generation using Foundation Models API
+  - Generate high-quality images from text descriptions with YandexART model
+  - Support for negative prompts to specify unwanted elements in generated images
+  - Multiple aspect ratio options: Square (1:1), Landscape (16:9, 21:9), Portrait (9:16, 9:21)
+  - Output format selection: JPEG or PNG
+  - Optional seed parameter for reproducible image generation
+  - Asynchronous operation handling with automatic polling until completion
+  - Configurable polling interval and maximum wait time
+  - Option to return operation ID immediately without waiting
+  - Returns generated images as binary data ready for download or further processing
+  - Comprehensive error handling with detailed timeout and failure messages
+  - First node in codebase to implement async operation polling pattern
+
 ### Changed
 
 ### Fixed

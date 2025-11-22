@@ -24,6 +24,7 @@ Integration package for working with Yandex Cloud services in n8n.
 15. [Yandex Cloud Search](#yandex-cloud-search)
 16. [Yandex Cloud Vision OCR](#yandex-cloud-vision-ocr)
 17. [Yandex Cloud Logging](#yandex-cloud-logging)
+18. [Yandex Cloud YandexART](#yandex-cloud-yandexart)
 
 ---
 
@@ -1112,6 +1113,107 @@ Each log entry returned as separate item with:
 - **Resource Locator** - easy log group selection from dropdown
 
 **Authentication:** Uses service account JSON via `yandexCloudAuthorizedApi` credentials with automatic IAM token generation. Requires `logging.writer` role for writing entries and `logging.reader` role for reading entries. The node is ideal for building observability systems, monitoring dashboards, log analysis workflows, alerting pipelines, and any applications requiring centralized structured logging with powerful filtering and querying capabilities in n8n workflows.
+
+---
+
+## Yandex Cloud YandexART
+
+**Node for AI-powered image generation using Yandex Cloud Foundation Models YandexART API.** Generate high-quality images from text descriptions with support for negative prompts, aspect ratios, and reproducible results using seeds. Features asynchronous operation handling with automatic polling until completion.
+
+| Parameter | Type | Resources | Operations |
+|----------|-----|---------|----------|
+| **Image** | Resource | Image | Generate |
+
+**Image Operations:**
+
+- **Generate** - create images from text prompts with:
+  - Text description (prompt) for desired image
+  - Negative prompt to specify what to avoid
+  - Configurable aspect ratio (Square, Landscape 16:9, 21:9, Portrait 9:16, 9:21)
+  - Output format selection (JPEG, PNG)
+  - Optional seed for reproducible generation
+  - Automatic operation polling until completion
+  - Returns generated image as binary data
+
+**Generate Parameters:**
+
+- `prompt` - text description of the image to generate (required)
+- **Additional Options:**
+  - `negativePrompt` - describe what to exclude from image (optional)
+  - `mimeType` - output format: JPEG or PNG (default: JPEG)
+  - `aspectRatio` - image proportions:
+    - Square (1:1)
+    - Landscape 16:9 (widescreen)
+    - Landscape 21:9 (ultra-wide)
+    - Portrait 9:16 (mobile-friendly)
+    - Portrait 9:21 (tall format)
+  - `seed` - numeric seed for reproducibility (optional)
+- **Advanced Options:**
+  - `waitForCompletion` - wait for generation or return operation ID (default: true)
+  - `pollInterval` - milliseconds between status checks (default: 2000)
+  - `maxWaitTime` - maximum wait time in milliseconds (default: 300000 / 5 minutes)
+
+**Returned Data (Wait for Completion):**
+
+- `success` - operation status (true)
+- `operationId` - Yandex Cloud operation ID
+- `modelVersion` - YandexART model version used
+- `prompt` - original prompt text
+- `negativePrompt` - negative prompt if provided
+- `aspectRatio` - aspect ratio key (e.g., "SQUARE")
+- `aspectRatioValues` - width and height ratio values
+- `mimeType` - generated image MIME type
+- `seed` - seed used (number or "auto")
+- `imageSize` - image size in bytes
+- `filename` - generated filename
+- `binary.data` - generated image as downloadable file
+
+**Returned Data (Without Wait):**
+
+- `success` - operation status (true)
+- `operationId` - operation ID for manual status checking
+- `done` - operation completion status (false)
+- `message` - informational message
+- `prompt` - original prompt text
+- `aspectRatio` - aspect ratio key
+- `mimeType` - requested MIME type
+
+**Async Operation Handling:**
+
+The node implements automatic polling for asynchronous operations:
+
+1. Sends generation request to YandexART API
+2. Receives operation ID
+3. Polls operation status every 2 seconds (configurable)
+4. Continues polling until completion or timeout
+5. Extracts generated image from completed operation
+6. Returns image as binary data with metadata
+
+If `waitForCompletion` is false, returns operation ID immediately for manual status checking.
+
+**Use Cases:**
+
+- Marketing content creation (product images, banners, ads)
+- Social media visual content generation
+- Illustration and concept art for blogs and articles
+- Prototype mockups and design concepts
+- Educational material visualization
+- Creative workflows and artistic projects
+- Automated visual content pipelines
+- Brand asset generation
+
+**Features:**
+
+- **Negative Prompts** - specify unwanted elements for better control
+- **Aspect Ratio Control** - optimize for different platforms and use cases
+- **Reproducible Results** - use seeds to regenerate exact images
+- **Multiple Formats** - output as JPEG or PNG
+- **Automatic Polling** - handles async operations seamlessly
+- **Binary Output** - generated images ready for download or further processing
+- **Timeout Protection** - configurable max wait time with clear error messages
+- **Flexible Workflow** - can return operation ID for manual checking
+
+**Authentication:** Uses service account JSON via `yandexCloudAuthorizedApi` credentials with automatic IAM token generation. Requires Foundation Models API access in the specified folder. The model URI is automatically constructed from the folder ID as `art://{folderId}/yandex-art/latest`. The node is ideal for automated content creation, marketing automation, creative workflows, and any applications requiring AI-generated visual content integrated into n8n workflows.
 
 ---
 
