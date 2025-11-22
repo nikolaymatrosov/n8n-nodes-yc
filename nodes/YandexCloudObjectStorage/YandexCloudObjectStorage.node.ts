@@ -4,28 +4,10 @@ import type {
 	INodeType,
 	INodeTypeDescription,
 } from 'n8n-workflow';
-import { NodeOperationError } from 'n8n-workflow';
 
-import {
-	CopyObjectCommand,
-	CreateBucketCommand,
-	DeleteBucketCommand,
-	DeleteObjectCommand,
-	GetBucketLocationCommand,
-	GetObjectCommand,
-	HeadBucketCommand,
-	HeadObjectCommand,
-	ListBucketsCommand,
-	ListObjectsV2Command,
-	PutBucketAclCommand,
-	PutBucketVersioningCommand,
-	PutObjectAclCommand,
-	PutObjectCommand,
-} from '@aws-sdk/client-s3';
-import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
-import { Readable } from 'stream';
-
-import { createS3Client, getObjectUrl, loadBuckets, loadObjects, streamToBuffer } from './GenericFunctions';
+import { createS3Client, loadBuckets, loadObjects } from './GenericFunctions';
+import { executeBucketOperation, executeObjectOperation } from './resources';
+import { RESOURCES, BUCKET_OPERATIONS, OBJECT_OPERATIONS } from './types';
 
 export class YandexCloudObjectStorage implements INodeType {
 	description: INodeTypeDescription = {
@@ -54,17 +36,17 @@ export class YandexCloudObjectStorage implements INodeType {
 				name: 'resource',
 				type: 'options',
 				noDataExpression: true,
+				default: 'object',
 				options: [
 					{
 						name: 'Bucket',
-						value: 'bucket',
+						value: RESOURCES.BUCKET,
 					},
 					{
 						name: 'Object',
-						value: 'object',
+						value: RESOURCES.OBJECT,
 					},
 				],
-				default: 'object',
 			},
 
 			// =====================================
@@ -74,51 +56,51 @@ export class YandexCloudObjectStorage implements INodeType {
 				displayName: 'Operation',
 				name: 'operation',
 				type: 'options',
+				default: 'list',
 				noDataExpression: true,
 				displayOptions: {
 					show: {
-						resource: ['bucket'],
+						resource: [RESOURCES.BUCKET],
 					},
 				},
 				options: [
 					{
 						name: 'Create',
-						value: 'create',
+						value: BUCKET_OPERATIONS.CREATE,
 						description: 'Create a new bucket',
 						action: 'Create a bucket',
 					},
 					{
 						name: 'Delete',
-						value: 'delete',
+						value: BUCKET_OPERATIONS.DELETE,
 						description: 'Delete a bucket',
 						action: 'Delete a bucket',
 					},
 					{
 						name: 'Get',
-						value: 'get',
+						value: BUCKET_OPERATIONS.GET,
 						description: 'Get bucket information',
 						action: 'Get a bucket',
 					},
 					{
 						name: 'List',
-						value: 'list',
+						value: BUCKET_OPERATIONS.LIST,
 						description: 'List all buckets',
 						action: 'List buckets',
 					},
 					{
 						name: 'Set ACL',
-						value: 'setAcl',
+						value: BUCKET_OPERATIONS.SET_ACL,
 						description: 'Set bucket access control list',
 						action: 'Set bucket ACL',
 					},
 					{
 						name: 'Set Versioning',
-						value: 'setVersioning',
+						value: BUCKET_OPERATIONS.SET_VERSIONING,
 						description: 'Enable or disable versioning',
 						action: 'Set bucket versioning',
 					},
 				],
-				default: 'list',
 			},
 
 			// =====================================
@@ -128,69 +110,69 @@ export class YandexCloudObjectStorage implements INodeType {
 				displayName: 'Operation',
 				name: 'operation',
 				type: 'options',
+				default: 'upload',
 				noDataExpression: true,
 				displayOptions: {
 					show: {
-						resource: ['object'],
+						resource: [RESOURCES.OBJECT],
 					},
 				},
 				options: [
 					{
 						name: 'Copy',
-						value: 'copy',
+						value: OBJECT_OPERATIONS.COPY,
 						description: 'Copy an object',
 						action: 'Copy an object',
 					},
 					{
 						name: 'Delete',
-						value: 'delete',
+						value: OBJECT_OPERATIONS.DELETE,
 						description: 'Delete an object',
 						action: 'Delete an object',
 					},
 					{
 						name: 'Download',
-						value: 'download',
+						value: OBJECT_OPERATIONS.DOWNLOAD,
 						description: 'Download an object',
 						action: 'Download an object',
 					},
 					{
 						name: 'Get',
-						value: 'get',
+						value: OBJECT_OPERATIONS.GET,
 						description: 'Get object metadata',
 						action: 'Get object metadata',
 					},
 					{
 						name: 'Get Presigned URL',
-						value: 'getPresignedUrl',
+						value: OBJECT_OPERATIONS.GET_PRESIGNED_URL,
 						description: 'Generate a presigned URL for temporary access',
 						action: 'Get presigned URL',
 					},
 					{
 						name: 'List',
-						value: 'list',
+						value: OBJECT_OPERATIONS.LIST,
 						description: 'List objects in a bucket',
 						action: 'List objects',
 					},
 					{
 						name: 'Move',
-						value: 'move',
+						value: OBJECT_OPERATIONS.MOVE,
 						description: 'Move an object',
 						action: 'Move an object',
 					},
 					{
 						name: 'Set ACL',
-						value: 'setAcl',
+						value: OBJECT_OPERATIONS.SET_ACL,
 						description: 'Set object access control list',
 						action: 'Set object ACL',
 					},
 					{
 						name: 'Upload',
-						value: 'upload',
+						value: OBJECT_OPERATIONS.UPLOAD,
 						description: 'Upload an object',
 						action: 'Upload an object',
 					},
 				],
-				default: 'upload',
 			},
 
 			// =====================================
@@ -203,8 +185,8 @@ export class YandexCloudObjectStorage implements INodeType {
 				required: true,
 				displayOptions: {
 					show: {
-						resource: ['bucket'],
-						operation: ['create'],
+						resource: [RESOURCES.BUCKET],
+						operation: [BUCKET_OPERATIONS.CREATE],
 					},
 				},
 				default: '',
@@ -219,8 +201,8 @@ export class YandexCloudObjectStorage implements INodeType {
 				default: {},
 				displayOptions: {
 					show: {
-						resource: ['bucket'],
-						operation: ['create'],
+						resource: [RESOURCES.BUCKET],
+						operation: [BUCKET_OPERATIONS.CREATE],
 					},
 				},
 				options: [
@@ -251,8 +233,8 @@ export class YandexCloudObjectStorage implements INodeType {
 				required: true,
 				displayOptions: {
 					show: {
-						resource: ['bucket'],
-						operation: ['delete', 'get', 'setAcl', 'setVersioning'],
+						resource: [RESOURCES.BUCKET],
+						operation: [BUCKET_OPERATIONS.DELETE, BUCKET_OPERATIONS.GET, BUCKET_OPERATIONS.SET_ACL, BUCKET_OPERATIONS.SET_VERSIONING],
 					},
 				},
 				description: 'The bucket to operate on',
@@ -283,8 +265,8 @@ export class YandexCloudObjectStorage implements INodeType {
 				required: true,
 				displayOptions: {
 					show: {
-						resource: ['bucket'],
-						operation: ['setAcl'],
+						resource: [RESOURCES.BUCKET],
+						operation: [BUCKET_OPERATIONS.SET_ACL],
 					},
 				},
 				options: [
@@ -305,8 +287,8 @@ export class YandexCloudObjectStorage implements INodeType {
 				required: true,
 				displayOptions: {
 					show: {
-						resource: ['bucket'],
-						operation: ['setVersioning'],
+						resource: [RESOURCES.BUCKET],
+						operation: [BUCKET_OPERATIONS.SET_VERSIONING],
 					},
 				},
 				options: [
@@ -328,8 +310,8 @@ export class YandexCloudObjectStorage implements INodeType {
 				required: true,
 				displayOptions: {
 					show: {
-						resource: ['object'],
-						operation: ['upload'],
+						resource: [RESOURCES.OBJECT],
+						operation: [OBJECT_OPERATIONS.UPLOAD],
 					},
 				},
 				description: 'The bucket to upload to',
@@ -358,8 +340,8 @@ export class YandexCloudObjectStorage implements INodeType {
 				required: true,
 				displayOptions: {
 					show: {
-						resource: ['object'],
-						operation: ['upload'],
+						resource: [RESOURCES.OBJECT],
+						operation: [OBJECT_OPERATIONS.UPLOAD],
 					},
 				},
 				default: '',
@@ -372,8 +354,8 @@ export class YandexCloudObjectStorage implements INodeType {
 				type: 'options',
 				displayOptions: {
 					show: {
-						resource: ['object'],
-						operation: ['upload'],
+						resource: [RESOURCES.OBJECT],
+						operation: [OBJECT_OPERATIONS.UPLOAD],
 					},
 				},
 				options: [
@@ -403,8 +385,8 @@ export class YandexCloudObjectStorage implements INodeType {
 				required: true,
 				displayOptions: {
 					show: {
-						resource: ['object'],
-						operation: ['upload'],
+						resource: [RESOURCES.OBJECT],
+						operation: [OBJECT_OPERATIONS.UPLOAD],
 						inputDataType: ['binary'],
 					},
 				},
@@ -421,8 +403,8 @@ export class YandexCloudObjectStorage implements INodeType {
 				required: true,
 				displayOptions: {
 					show: {
-						resource: ['object'],
-						operation: ['upload'],
+						resource: [RESOURCES.OBJECT],
+						operation: [OBJECT_OPERATIONS.UPLOAD],
 						inputDataType: ['text'],
 					},
 				},
@@ -439,8 +421,8 @@ export class YandexCloudObjectStorage implements INodeType {
 				required: true,
 				displayOptions: {
 					show: {
-						resource: ['object'],
-						operation: ['upload'],
+						resource: [RESOURCES.OBJECT],
+						operation: [OBJECT_OPERATIONS.UPLOAD],
 						inputDataType: ['json'],
 					},
 				},
@@ -454,8 +436,8 @@ export class YandexCloudObjectStorage implements INodeType {
 				default: {},
 				displayOptions: {
 					show: {
-						resource: ['object'],
-						operation: ['upload'],
+						resource: [RESOURCES.OBJECT],
+						operation: [OBJECT_OPERATIONS.UPLOAD],
 					},
 				},
 				options: [
@@ -539,8 +521,8 @@ export class YandexCloudObjectStorage implements INodeType {
 				required: true,
 				displayOptions: {
 					show: {
-						resource: ['object'],
-						operation: ['download', 'delete', 'get', 'setAcl', 'getPresignedUrl'],
+						resource: [RESOURCES.OBJECT],
+						operation: [OBJECT_OPERATIONS.DOWNLOAD, OBJECT_OPERATIONS.DELETE, OBJECT_OPERATIONS.GET, OBJECT_OPERATIONS.SET_ACL, OBJECT_OPERATIONS.GET_PRESIGNED_URL],
 					},
 				},
 				description: 'The bucket containing the object',
@@ -569,8 +551,8 @@ export class YandexCloudObjectStorage implements INodeType {
 				required: true,
 				displayOptions: {
 					show: {
-						resource: ['object'],
-						operation: ['download', 'delete', 'get', 'setAcl', 'getPresignedUrl'],
+						resource: [RESOURCES.OBJECT],
+						operation: [OBJECT_OPERATIONS.DOWNLOAD, OBJECT_OPERATIONS.DELETE, OBJECT_OPERATIONS.GET, OBJECT_OPERATIONS.SET_ACL, OBJECT_OPERATIONS.GET_PRESIGNED_URL],
 					},
 				},
 				default: '',
@@ -586,8 +568,8 @@ export class YandexCloudObjectStorage implements INodeType {
 				required: true,
 				displayOptions: {
 					show: {
-						resource: ['object'],
-						operation: ['setAcl'],
+						resource: [RESOURCES.OBJECT],
+						operation: [OBJECT_OPERATIONS.SET_ACL],
 					},
 				},
 				options: [
@@ -607,8 +589,8 @@ export class YandexCloudObjectStorage implements INodeType {
 				type: 'number',
 				displayOptions: {
 					show: {
-						resource: ['object'],
-						operation: ['getPresignedUrl'],
+						resource: [RESOURCES.OBJECT],
+						operation: [OBJECT_OPERATIONS.GET_PRESIGNED_URL],
 					},
 				},
 				default: 3600,
@@ -626,8 +608,8 @@ export class YandexCloudObjectStorage implements INodeType {
 				required: true,
 				displayOptions: {
 					show: {
-						resource: ['object'],
-						operation: ['list'],
+						resource: [RESOURCES.OBJECT],
+						operation: [OBJECT_OPERATIONS.LIST],
 					},
 				},
 				description: 'The bucket to list objects from',
@@ -657,8 +639,8 @@ export class YandexCloudObjectStorage implements INodeType {
 				default: {},
 				displayOptions: {
 					show: {
-						resource: ['object'],
-						operation: ['list'],
+						resource: [RESOURCES.OBJECT],
+						operation: [OBJECT_OPERATIONS.LIST],
 					},
 				},
 				options: [
@@ -702,8 +684,8 @@ export class YandexCloudObjectStorage implements INodeType {
 				required: true,
 				displayOptions: {
 					show: {
-						resource: ['object'],
-						operation: ['copy', 'move'],
+						resource: [RESOURCES.OBJECT],
+						operation: [OBJECT_OPERATIONS.COPY, OBJECT_OPERATIONS.MOVE],
 					},
 				},
 				modes: [
@@ -731,8 +713,8 @@ export class YandexCloudObjectStorage implements INodeType {
 				required: true,
 				displayOptions: {
 					show: {
-						resource: ['object'],
-						operation: ['copy', 'move'],
+						resource: [RESOURCES.OBJECT],
+						operation: [OBJECT_OPERATIONS.COPY, OBJECT_OPERATIONS.MOVE],
 					},
 				},
 				default: '',
@@ -747,8 +729,8 @@ export class YandexCloudObjectStorage implements INodeType {
 				required: true,
 				displayOptions: {
 					show: {
-						resource: ['object'],
-						operation: ['copy', 'move'],
+						resource: [RESOURCES.OBJECT],
+						operation: [OBJECT_OPERATIONS.COPY, OBJECT_OPERATIONS.MOVE],
 					},
 				},
 				modes: [
@@ -776,8 +758,8 @@ export class YandexCloudObjectStorage implements INodeType {
 				required: true,
 				displayOptions: {
 					show: {
-						resource: ['object'],
-						operation: ['copy', 'move'],
+						resource: [RESOURCES.OBJECT],
+						operation: [OBJECT_OPERATIONS.COPY, OBJECT_OPERATIONS.MOVE],
 					},
 				},
 				default: '',
@@ -813,134 +795,27 @@ export class YandexCloudObjectStorage implements INodeType {
 		// Bucket Operations
 		// =====================================
 		if (resource === 'bucket') {
-			// List Buckets
+			// List Buckets - special case: returns immediately
 			if (operation === 'list') {
 				try {
-					const response = await client.send(new ListBucketsCommand({}));
-
-					const buckets = (response.Buckets || []).map((bucket) => ({
-						json: {
-							name: bucket.Name,
-							creationDate: bucket.CreationDate,
-						},
-						pairedItem: { item: 0 },
-					}));
-
-					return [buckets];
+					const results = await executeBucketOperation(
+						{ executeFunctions: this, client, itemIndex: 0 },
+						operation,
+					);
+					return [results as INodeExecutionData[]];
 				} catch (error) {
-					throw new NodeOperationError(this.getNode(), `Failed to list buckets: ${error.message}`);
+					throw error;
 				}
 			}
 
 			// Other bucket operations (per item)
 			for (let i = 0; i < items.length; i++) {
 				try {
-					let bucketName: string;
-
-					if (operation === 'create') {
-						bucketName = this.getNodeParameter('bucketName', i) as string;
-						const additionalFields = this.getNodeParameter('additionalFields', i) as {
-							acl?: string;
-						};
-
-						const params: any = {
-							Bucket: bucketName,
-						};
-
-						if (additionalFields.acl) {
-							params.ACL = additionalFields.acl;
-						}
-
-						await client.send(new CreateBucketCommand(params));
-
-						returnData.push({
-							json: {
-								success: true,
-								bucket: bucketName,
-								message: 'Bucket created successfully',
-							},
-							pairedItem: { item: i },
-						});
-					} else {
-						bucketName = this.getNodeParameter('bucketName', i, '', {
-							extractValue: true,
-						}) as string;
-
-						if (operation === 'delete') {
-							await client.send(new DeleteBucketCommand({ Bucket: bucketName }));
-
-							returnData.push({
-								json: {
-									success: true,
-									bucket: bucketName,
-									message: 'Bucket deleted successfully',
-								},
-								pairedItem: { item: i },
-							});
-						} else if (operation === 'get') {
-							const headResponse = await client.send(new HeadBucketCommand({ Bucket: bucketName }));
-
-							let location;
-							try {
-								const locationResponse = await client.send(
-									new GetBucketLocationCommand({ Bucket: bucketName }),
-								);
-								location = locationResponse.LocationConstraint;
-							} catch (error) {
-								// Ignore location errors
-							}
-
-							returnData.push({
-								json: {
-									success: true,
-									bucket: bucketName,
-									location,
-									metadata: headResponse.$metadata,
-								},
-								pairedItem: { item: i },
-							});
-						} else if (operation === 'setAcl') {
-							const acl = this.getNodeParameter('acl', i) as string;
-
-							await client.send(
-								new PutBucketAclCommand({
-									Bucket: bucketName,
-									ACL: acl as any,
-								}),
-							);
-
-							returnData.push({
-								json: {
-									success: true,
-									bucket: bucketName,
-									acl,
-									message: 'Bucket ACL set successfully',
-								},
-								pairedItem: { item: i },
-							});
-						} else if (operation === 'setVersioning') {
-							const versioningStatus = this.getNodeParameter('versioningStatus', i) as string;
-
-							await client.send(
-								new PutBucketVersioningCommand({
-									Bucket: bucketName,
-									VersioningConfiguration: {
-										Status: versioningStatus as any,
-									},
-								}),
-							);
-
-							returnData.push({
-								json: {
-									success: true,
-									bucket: bucketName,
-									versioningStatus,
-									message: 'Bucket versioning set successfully',
-								},
-								pairedItem: { item: i },
-							});
-						}
-					}
+					const result = await executeBucketOperation(
+						{ executeFunctions: this, client, itemIndex: i },
+						operation,
+					);
+					returnData.push(result as INodeExecutionData);
 				} catch (error) {
 					if (this.continueOnFail()) {
 						returnData.push({
@@ -963,334 +838,16 @@ export class YandexCloudObjectStorage implements INodeType {
 		if (resource === 'object') {
 			for (let i = 0; i < items.length; i++) {
 				try {
-					const bucketName = this.getNodeParameter('bucketName', i, '', {
-						extractValue: true,
-					}) as string;
-
-					if (operation === 'upload') {
-						const objectKey = this.getNodeParameter('objectKey', i) as string;
-						const inputDataType = this.getNodeParameter('inputDataType', i) as string;
-						const additionalFields = this.getNodeParameter('additionalFields', i) as {
-							acl?: string;
-							contentType?: string;
-							storageClass?: string;
-							metadata?: {
-								metadataItem?: Array<{
-									key: string;
-									value: string;
-								}>;
-							};
-						};
-
-						let body: Buffer;
-						let contentType = additionalFields.contentType;
-
-						if (inputDataType === 'binary') {
-							const binaryProperty = this.getNodeParameter('binaryProperty', i) as string;
-							const binaryData = await this.helpers.getBinaryDataBuffer(i, binaryProperty);
-							body = binaryData;
-
-							// Try to get content type from binary data if not specified
-							if (!contentType) {
-								const itemBinaryData = items[i].binary?.[binaryProperty];
-								if (itemBinaryData?.mimeType) {
-									contentType = itemBinaryData.mimeType;
-								}
-							}
-						} else if (inputDataType === 'text') {
-							const textContent = this.getNodeParameter('textContent', i) as string;
-							body = Buffer.from(textContent, 'utf-8');
-							if (!contentType) {
-								contentType = 'text/plain';
-							}
-						} else if (inputDataType === 'json') {
-							const jsonContent = this.getNodeParameter('jsonContent', i);
-							body = Buffer.from(JSON.stringify(jsonContent), 'utf-8');
-							if (!contentType) {
-								contentType = 'application/json';
-							}
-						} else {
-							throw new NodeOperationError(
-								this.getNode(),
-								`Unknown input data type: ${inputDataType}`,
-							);
-						}
-
-						const params: any = {
-							Bucket: bucketName,
-							Key: objectKey,
-							Body: body,
-						};
-
-						if (contentType) {
-							params.ContentType = contentType;
-						}
-
-						if (additionalFields.acl) {
-							params.ACL = additionalFields.acl;
-						}
-
-						if (additionalFields.storageClass) {
-							params.StorageClass = additionalFields.storageClass;
-						}
-
-						if (additionalFields.metadata?.metadataItem) {
-							const metadata: Record<string, string> = {};
-							for (const item of additionalFields.metadata.metadataItem) {
-								if (item.key) {
-									metadata[item.key] = item.value;
-								}
-							}
-							params.Metadata = metadata;
-						}
-
-					const response = await client.send(new PutObjectCommand(params));
-
-					returnData.push({
-						json: {
-							success: true,
-							bucket: bucketName,
-							key: objectKey,
-							objectUrl: getObjectUrl(bucketName, objectKey),
-							etag: response.ETag,
-							versionId: response.VersionId,
-						},
-						pairedItem: { item: i },
-					});
-					} else if (operation === 'download') {
-						const objectKey = this.getNodeParameter('objectKey', i) as string;
-
-						const response = await client.send(
-							new GetObjectCommand({
-								Bucket: bucketName,
-								Key: objectKey,
-							}),
-						);
-
-						const bodyBuffer = await streamToBuffer(response.Body as Readable);
-
-						const binaryData = await this.helpers.prepareBinaryData(
-							bodyBuffer,
-							objectKey.split('/').pop() || 'file',
-							response.ContentType,
-						);
-
-						returnData.push({
-							json: {
-								success: true,
-								bucket: bucketName,
-								key: objectKey,
-								size: response.ContentLength,
-								contentType: response.ContentType,
-								lastModified: response.LastModified,
-								etag: response.ETag,
-							},
-							binary: {
-								data: binaryData,
-							},
-							pairedItem: { item: i },
-						});
-					} else if (operation === 'delete') {
-						const objectKey = this.getNodeParameter('objectKey', i) as string;
-
-						await client.send(
-							new DeleteObjectCommand({
-								Bucket: bucketName,
-								Key: objectKey,
-							}),
-						);
-
-						returnData.push({
-							json: {
-								success: true,
-								bucket: bucketName,
-								key: objectKey,
-								message: 'Object deleted successfully',
-							},
-							pairedItem: { item: i },
-						});
-					} else if (operation === 'list') {
-						const additionalFields = this.getNodeParameter('additionalFields', i) as {
-							prefix?: string;
-							maxKeys?: number;
-							startAfter?: string;
-						};
-
-						const params: any = {
-							Bucket: bucketName,
-						};
-
-						if (additionalFields.prefix) {
-							params.Prefix = additionalFields.prefix;
-						}
-
-						if (additionalFields.maxKeys) {
-							params.MaxKeys = additionalFields.maxKeys;
-						}
-
-						if (additionalFields.startAfter) {
-							params.StartAfter = additionalFields.startAfter;
-						}
-
-						const response = await client.send(new ListObjectsV2Command(params));
-
-						const objects = (response.Contents || []).map((object) => ({
-							json: {
-								key: object.Key,
-								size: object.Size,
-								lastModified: object.LastModified,
-								etag: object.ETag,
-								storageClass: object.StorageClass,
-							},
-							pairedItem: { item: i },
-						}));
-
-						returnData.push(...objects);
-					} else if (operation === 'get') {
-						const objectKey = this.getNodeParameter('objectKey', i) as string;
-
-						const response = await client.send(
-							new HeadObjectCommand({
-								Bucket: bucketName,
-								Key: objectKey,
-							}),
-						);
-
-						returnData.push({
-							json: {
-								success: true,
-								bucket: bucketName,
-								key: objectKey,
-								size: response.ContentLength,
-								contentType: response.ContentType,
-								lastModified: response.LastModified,
-								etag: response.ETag,
-								versionId: response.VersionId,
-								storageClass: response.StorageClass,
-								metadata: response.Metadata,
-							},
-							pairedItem: { item: i },
-						});
-					} else if (operation === 'copy') {
-						const sourceBucket = this.getNodeParameter('sourceBucket', i, '', {
-							extractValue: true,
-						}) as string;
-						const sourceObjectKey = this.getNodeParameter('sourceObjectKey', i) as string;
-						const destinationBucket = this.getNodeParameter('destinationBucket', i, '', {
-							extractValue: true,
-						}) as string;
-						const destinationObjectKey = this.getNodeParameter('destinationObjectKey', i) as string;
-
-						const copySource = `${sourceBucket}/${sourceObjectKey}`;
-
-					const response = await client.send(
-						new CopyObjectCommand({
-							Bucket: destinationBucket,
-							Key: destinationObjectKey,
-							CopySource: copySource,
-						}),
+					const result = await executeObjectOperation(
+						{ executeFunctions: this, client, itemIndex: i },
+						operation,
 					);
 
-					returnData.push({
-						json: {
-							success: true,
-							sourceBucket,
-							sourceKey: sourceObjectKey,
-							destinationBucket,
-							destinationKey: destinationObjectKey,
-							objectUrl: getObjectUrl(destinationBucket, destinationObjectKey),
-							etag: response.CopyObjectResult?.ETag,
-							lastModified: response.CopyObjectResult?.LastModified,
-						},
-						pairedItem: { item: i },
-					});
-					} else if (operation === 'move') {
-						const sourceBucket = this.getNodeParameter('sourceBucket', i, '', {
-							extractValue: true,
-						}) as string;
-						const sourceObjectKey = this.getNodeParameter('sourceObjectKey', i) as string;
-						const destinationBucket = this.getNodeParameter('destinationBucket', i, '', {
-							extractValue: true,
-						}) as string;
-						const destinationObjectKey = this.getNodeParameter('destinationObjectKey', i) as string;
-
-						const copySource = `${sourceBucket}/${sourceObjectKey}`;
-
-						// Copy object
-						const copyResponse = await client.send(
-							new CopyObjectCommand({
-								Bucket: destinationBucket,
-								Key: destinationObjectKey,
-								CopySource: copySource,
-							}),
-						);
-
-					// Delete source object
-					await client.send(
-						new DeleteObjectCommand({
-							Bucket: sourceBucket,
-							Key: sourceObjectKey,
-						}),
-					);
-
-					returnData.push({
-						json: {
-							success: true,
-							sourceBucket,
-							sourceKey: sourceObjectKey,
-							destinationBucket,
-							destinationKey: destinationObjectKey,
-							objectUrl: getObjectUrl(destinationBucket, destinationObjectKey),
-							etag: copyResponse.CopyObjectResult?.ETag,
-							lastModified: copyResponse.CopyObjectResult?.LastModified,
-						},
-						pairedItem: { item: i },
-					});
-					} else if (operation === 'setAcl') {
-						const objectKey = this.getNodeParameter('objectKey', i) as string;
-						const acl = this.getNodeParameter('acl', i) as string;
-
-						await client.send(
-							new PutObjectAclCommand({
-								Bucket: bucketName,
-								Key: objectKey,
-								ACL: acl as any,
-							}),
-						);
-
-						returnData.push({
-							json: {
-								success: true,
-								bucket: bucketName,
-								key: objectKey,
-								acl,
-								message: 'Object ACL set successfully',
-							},
-							pairedItem: { item: i },
-						});
-					} else if (operation === 'getPresignedUrl') {
-						const objectKey = this.getNodeParameter('objectKey', i) as string;
-						const expiresIn = this.getNodeParameter('expiresIn', i) as number;
-
-						const command = new GetObjectCommand({
-							Bucket: bucketName,
-							Key: objectKey,
-						});
-
-						const presignedUrl = await getSignedUrl(client, command, {
-							expiresIn,
-						});
-
-						returnData.push({
-							json: {
-								success: true,
-								bucket: bucketName,
-								key: objectKey,
-								presignedUrl,
-								expiresIn,
-							},
-							pairedItem: { item: i },
-						});
+					// Handle operations that return arrays (like 'list')
+					if (Array.isArray(result)) {
+						returnData.push(...result);
+					} else {
+						returnData.push(result);
 					}
 				} catch (error) {
 					if (this.continueOnFail()) {

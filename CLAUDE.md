@@ -1199,6 +1199,462 @@ export { utilParseServiceAccountJson as parseServiceAccountJson };
 
 **Example:** [YandexCloudVisionOcr GenericFunctions.ts:11](nodes/YandexCloudVisionOcr/GenericFunctions.ts#L11)
 
+### 11. Node Refactoring Guidelines
+
+When nodes grow large and complex (500+ lines, 10+ operations), refactor them into a modular structure for better maintainability and testability.
+
+#### 11.1 When to Refactor
+
+Refactor a node when it meets **any** of these criteria:
+
+- ✅ Main node file exceeds 500 lines
+- ✅ Node implements 10+ operations
+- ✅ Execute method contains complex nested if/else or switch logic
+- ✅ Operations contain 50+ lines of logic each
+- ✅ Difficult to locate specific operation implementations
+- ✅ Adding new operations requires significant scrolling
+
+**Example:** YandexCloudObjectStorage was refactored from 1314 lines with 15 operations into a modular structure.
+
+#### 11.2 Refactored File Structure
+
+Organize refactored nodes using this structure:
+
+```
+nodes/NodeName/
+├── NodeName.node.ts         # Main file (150-200 lines)
+├── GenericFunctions.ts      # Shared helpers
+├── types.ts                 # Constants and interfaces
+├── resources/               # NEW: Operation modules
+│   ├── resource1.operations.ts  # Operations for resource1
+│   ├── resource2.operations.ts  # Operations for resource2
+│   └── index.ts                 # Re-exports all operations
+└── test/
+    └── NodeName.node.test.ts    # Existing tests (unchanged)
+```
+
+**Reference:** [YandexCloudObjectStorage](nodes/YandexCloudObjectStorage/)
+
+#### 11.3 Define Typed Constants (types.ts)
+
+Create a `types.ts` file with resource and operation constants:
+
+```typescript
+import type { IExecuteFunctions, INodeExecutionData } from 'n8n-workflow';
+import type { S3Client } from '@aws-sdk/client-s3';
+
+/**
+ * Context passed to all operation functions
+ */
+export interface IOperationContext {
+ executeFunctions: IExecuteFunctions;
+ client: S3Client;  // Or your client type
+ itemIndex: number;
+}
+
+/**
+ * Shared return type for operations
+ */
+export type OperationResult = INodeExecutionData | INodeExecutionData[];
+
+/**
+ * Resource constants
+ */
+export const RESOURCES = {
+ RESOURCE1: 'resource1',
+ RESOURCE2: 'resource2',
+} as const;
+
+export type Resource = (typeof RESOURCES)[keyof typeof RESOURCES];
+
+/**
+ * Resource1 operation constants
+ */
+export const RESOURCE1_OPERATIONS = {
+ LIST: 'list',
+ CREATE: 'create',
+ DELETE: 'delete',
+ GET: 'get',
+ UPDATE: 'update',
+} as const;
+
+export type Resource1Operation = (typeof RESOURCE1_OPERATIONS)[keyof typeof RESOURCE1_OPERATIONS];
+
+/**
+ * Resource2 operation constants
+ */
+export const RESOURCE2_OPERATIONS = {
+ UPLOAD: 'upload',
+ DOWNLOAD: 'download',
+ DELETE: 'delete',
+} as const;
+
+export type Resource2Operation = (typeof RESOURCE2_OPERATIONS)[keyof typeof RESOURCE2_OPERATIONS];
+```
+
+**Key points:**
+
+- Use `as const` for literal type inference
+- Export both constants and derived types
+- Define `IOperationContext` with your specific client type
+- Use consistent naming: `RESOURCES`, `RESOURCE1_OPERATIONS`, etc.
+
+**Reference:** [YandexCloudObjectStorage types.ts](nodes/YandexCloudObjectStorage/types.ts)
+
+#### 11.4 Extract Operations by Resource (resources/*.operations.ts)
+
+Create one file per resource containing all its operations:
+
+```typescript
+import type { IExecuteFunctions, INodeExecutionData } from 'n8n-workflow';
+import { NodeOperationError } from 'n8n-workflow';
+import type { S3Client } from '@aws-sdk/client-s3';
+import { ListCommand, CreateCommand, DeleteCommand } from '@aws-sdk/client-s3';
+
+import type { IOperationContext, OperationResult } from '../types';
+import { RESOURCE1_OPERATIONS } from '../types';
+
+/**
+ * Execute a resource1 operation based on the operation type
+ */
+export async function executeResource1Operation(
+ context: IOperationContext,
+ operation: string,
+): Promise<OperationResult> {
+ const { executeFunctions, client, itemIndex } = context;
+
+ switch (operation) {
+  case RESOURCE1_OPERATIONS.LIST:
+   return await listResource1(executeFunctions, client, itemIndex);
+  case RESOURCE1_OPERATIONS.CREATE:
+   return await createResource1(executeFunctions, client, itemIndex);
+  case RESOURCE1_OPERATIONS.DELETE:
+   return await deleteResource1(executeFunctions, client, itemIndex);
+  case RESOURCE1_OPERATIONS.GET:
+   return await getResource1(executeFunctions, client, itemIndex);
+  case RESOURCE1_OPERATIONS.UPDATE:
+   return await updateResource1(executeFunctions, client, itemIndex);
+  default:
+   throw new NodeOperationError(
+    executeFunctions.getNode(),
+    `Unknown resource1 operation: ${operation}`,
+   );
+ }
+}
+
+/**
+ * List all resource1 items
+ */
+async function listResource1(
+ executeFunctions: IExecuteFunctions,
+ client: S3Client,
+ i: number,
+): Promise<INodeExecutionData[]> {
+ // Copy exact logic from original execute() method
+ // Replace 'this.' with 'executeFunctions.'
+ // Keep all parameter extraction and processing identical
+ const param = executeFunctions.getNodeParameter('param', i) as string;
+
+ const response = await client.send(new ListCommand({ Param: param }));
+
+ return response.Items.map(item => ({
+  json: item,
+  pairedItem: { item: i },
+ }));
+}
+
+/**
+ * Create a resource1 item
+ */
+async function createResource1(
+ executeFunctions: IExecuteFunctions,
+ client: S3Client,
+ i: number,
+): Promise<INodeExecutionData> {
+ // Copy exact logic from original execute() method
+ // ...operation implementation...
+
+ return {
+  json: { success: true },
+  pairedItem: { item: i },
+ };
+}
+
+// ... other operations ...
+```
+
+**Migration steps:**
+
+1. Copy entire operation code block from `execute()` method
+2. Wrap in new function with parameters: `executeFunctions`, `client`, `i`
+3. Replace `this.` with `executeFunctions.` (use find-replace)
+4. Keep ALL logic identical - no refactoring yet
+5. Make operation functions `async` and `private` (not exported)
+6. Export only the main `executeResourceOperation()` function
+
+**Reference:** [YandexCloudObjectStorage bucket.operations.ts](nodes/YandexCloudObjectStorage/resources/bucket.operations.ts)
+
+#### 11.5 Create Index File (resources/index.ts)
+
+Re-export all operation functions:
+
+```typescript
+export * from './resource1.operations';
+export * from './resource2.operations';
+```
+
+This allows clean imports in the main node file.
+
+#### 11.6 Refactor Main Node File
+
+Reduce the main node file to routing logic only:
+
+```typescript
+import type {
+ IExecuteFunctions,
+ INodeExecutionData,
+ INodeType,
+ INodeTypeDescription,
+} from 'n8n-workflow';
+
+import { createClient, loadResources } from './GenericFunctions';
+import { executeResource1Operation, executeResource2Operation } from './resources';
+import { RESOURCES, RESOURCE1_OPERATIONS, RESOURCE2_OPERATIONS } from './types';
+
+export class YandexCloudNodeName implements INodeType {
+ description: INodeTypeDescription = {
+  displayName: 'Node Name',
+  name: 'nodeName',
+  // ... node metadata ...
+  properties: [
+   {
+    displayName: 'Resource',
+    name: 'resource',
+    type: 'options',
+    default: 'resource1',  // Use literal for default
+    noDataExpression: true,
+    options: [
+     {
+      name: 'Resource1',
+      value: RESOURCES.RESOURCE1,  // Use constant for value
+     },
+     {
+      name: 'Resource2',
+      value: RESOURCES.RESOURCE2,
+     },
+    ],
+   },
+   {
+    displayName: 'Operation',
+    name: 'operation',
+    type: 'options',
+    default: 'list',  // Use literal for default
+    noDataExpression: true,
+    displayOptions: {
+     show: {
+      resource: [RESOURCES.RESOURCE1],  // Use constant
+     },
+    },
+    options: [
+     {
+      name: 'List',
+      value: RESOURCE1_OPERATIONS.LIST,  // Use constant
+      description: 'List all items',
+      action: 'List items',
+     },
+     // ... other operations ...
+    ],
+   },
+   // ... other properties with constants ...
+  ],
+ };
+
+ methods = {
+  listSearch: {
+   loadResources,
+  },
+ };
+
+ async execute(this: IExecuteFunctions): Promise<INodeExecutionData[][]> {
+  const items = this.getInputData();
+  const returnData: INodeExecutionData[] = [];
+  const resource = this.getNodeParameter('resource', 0) as string;
+  const operation = this.getNodeParameter('operation', 0) as string;
+
+  // Get credentials and create client
+  const credentials = await this.getCredentials('credentialType');
+  const client = createClient(credentials);
+
+  // Resource1 operations
+  if (resource === RESOURCES.RESOURCE1) {
+   // Handle operations that return immediately (like list)
+   if (operation === RESOURCE1_OPERATIONS.LIST) {
+    const results = await executeResource1Operation(
+     { executeFunctions: this, client, itemIndex: 0 },
+     operation,
+    );
+    return [results as INodeExecutionData[]];
+   }
+
+   // Per-item operations
+   for (let i = 0; i < items.length; i++) {
+    try {
+     const result = await executeResource1Operation(
+      { executeFunctions: this, client, itemIndex: i },
+      operation,
+     );
+     returnData.push(result as INodeExecutionData);
+    } catch (error) {
+     if (this.continueOnFail()) {
+      returnData.push({
+       json: { error: error.message, success: false },
+       pairedItem: { item: i },
+      });
+      continue;
+     }
+     throw error;
+    }
+   }
+  }
+
+  // Resource2 operations
+  if (resource === RESOURCES.RESOURCE2) {
+   for (let i = 0; i < items.length; i++) {
+    try {
+     const result = await executeResource2Operation(
+      { executeFunctions: this, client, itemIndex: i },
+      operation,
+     );
+
+     // Handle operations that return arrays
+     if (Array.isArray(result)) {
+      returnData.push(...result);
+     } else {
+      returnData.push(result);
+     }
+    } catch (error) {
+     if (this.continueOnFail()) {
+      returnData.push({
+       json: { error: error.message, success: false },
+       pairedItem: { item: i },
+      });
+      continue;
+     }
+     throw error;
+    }
+   }
+  }
+
+  return [returnData];
+ }
+}
+```
+
+**Key points:**
+
+- Main file handles: routing, credentials, client creation, error handling
+- Operation files handle: all business logic, parameter extraction, API calls
+- Use constants in `displayOptions.show` arrays for resources and operations
+- Use **literal strings** for `default` properties (linter requirement)
+- Use **constants** for option `value` properties
+- Preserve exact error handling behavior with `continueOnFail()`
+
+**Reference:** [YandexCloudObjectStorage.node.ts](nodes/YandexCloudObjectStorage/YandexCloudObjectStorage.node.ts)
+
+#### 11.7 Testing Requirements
+
+**Critical:** All existing tests must pass unchanged after refactoring.
+
+1. **Do not modify test files** during initial refactoring
+2. **Run tests after each step**:
+
+   ```bash
+   npm run build
+   npm test -- YourNode.node.test.ts
+   npm run lint
+   ```
+
+3. **Verify zero behavior changes**: Tests validate identical functionality
+4. **Add new tests later** (optional): After refactoring succeeds, add unit tests for individual operations
+
+**Validation checklist:**
+
+- ✅ All existing tests pass
+- ✅ Build completes successfully
+- ✅ Linting passes
+- ✅ Node appears correctly in n8n UI
+- ✅ All operations work identically to before
+
+#### 11.8 Constants Usage Rules
+
+**In node properties:**
+
+- Use **literal strings** for `default` values: `default: 'resource1'`
+- Use **constants** for option `value` fields: `value: RESOURCES.RESOURCE1`
+- Use **constants** in `displayOptions.show` arrays: `resource: [RESOURCES.RESOURCE1]`
+
+**In operation files:**
+
+- Use **constants** in switch statements: `case RESOURCE1_OPERATIONS.LIST:`
+- Use **constants** for comparisons: `if (operation === RESOURCE1_OPERATIONS.LIST)`
+
+**Rationale:** n8n's linter requires literal `default` values for property validation, but constants everywhere else provide type safety and prevent typos.
+
+#### 11.9 Benefits of Refactoring
+
+**Quantified improvements from YandexCloudObjectStorage refactoring:**
+
+| Metric | Before | After | Improvement |
+|--------|--------|-------|-------------|
+| Main file size | 1314 lines | 869 lines | 34% smaller |
+| Largest function | 500+ lines | ~90 lines | 82% smaller |
+| Operation size | Mixed in execute() | 20-50 lines each | Isolated |
+| File organization | 1 monolithic file | 5 focused files | Modular |
+
+**Qualitative benefits:**
+
+- ✅ Each operation is self-contained and easy to understand
+- ✅ Operations can be unit tested in isolation
+- ✅ Main file focuses on routing, not implementation
+- ✅ Single source of truth for operation names (constants)
+- ✅ Better IDE support with autocomplete for constants
+- ✅ Easier to locate and modify specific operations
+- ✅ Reduced cognitive load when reading code
+
+#### 11.10 Refactoring Checklist
+
+Use this checklist when refactoring a node:
+
+- [ ] Node meets refactoring criteria (500+ lines or 10+ operations)
+- [ ] Create `types.ts` with constants and interfaces
+- [ ] Create `resources/` subfolder
+- [ ] Extract operations to `resources/resource.operations.ts` files
+- [ ] Create `resources/index.ts` with exports
+- [ ] Update main node file to use operation functions
+- [ ] Replace magic strings with constants in properties
+- [ ] Use literals for `default`, constants for `value`
+- [ ] Run build: `npm run build`
+- [ ] Run tests: `npm test -- YourNode.node.test.ts`
+- [ ] Verify all tests pass unchanged
+- [ ] Run linter: `npm run lint`
+- [ ] Manually test node in n8n UI (if possible)
+- [ ] Document refactoring in commit message
+
+**Example commit:**
+
+```
+refactor(storage): extract operations into modular structure
+
+- Create types.ts with resource/operation constants
+- Extract 6 bucket operations to bucket.operations.ts
+- Extract 9 object operations to object.operations.ts
+- Reduce main file from 1314 to 869 lines (34% smaller)
+- All 62 existing tests pass unchanged
+- Improve maintainability and testability
+
+Ref: YandexCloudObjectStorage refactoring pattern
+```
+
 ## Important Development Rules
 
 ### Code Quality
