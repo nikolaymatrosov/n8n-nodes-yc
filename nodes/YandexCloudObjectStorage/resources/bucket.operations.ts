@@ -12,7 +12,7 @@ import {
 } from '@aws-sdk/client-s3';
 
 import type { IOperationContext, OperationResult } from '../types';
-import { BUCKET_OPERATIONS } from '../types';
+import { BUCKET_OPERATIONS, PARAMS } from '../types';
 
 /**
  * Execute a bucket operation based on the operation type
@@ -79,8 +79,8 @@ async function createBucket(
 	client: S3Client,
 	i: number,
 ): Promise<INodeExecutionData> {
-	const bucketName = executeFunctions.getNodeParameter('bucketName', i) as string;
-	const additionalFields = executeFunctions.getNodeParameter('additionalFields', i) as {
+	const bucketName = executeFunctions.getNodeParameter(PARAMS.BUCKET_NAME, i) as string;
+	const additionalFields = executeFunctions.getNodeParameter(PARAMS.ADDITIONAL_FIELDS, i) as {
 		acl?: string;
 	};
 
@@ -112,7 +112,7 @@ async function deleteBucket(
 	client: S3Client,
 	i: number,
 ): Promise<INodeExecutionData> {
-	const bucketName = executeFunctions.getNodeParameter('bucketName', i, '', {
+	const bucketName = executeFunctions.getNodeParameter(PARAMS.BUCKET_NAME, i, '', {
 		extractValue: true,
 	}) as string;
 
@@ -136,7 +136,7 @@ async function getBucket(
 	client: S3Client,
 	i: number,
 ): Promise<INodeExecutionData> {
-	const bucketName = executeFunctions.getNodeParameter('bucketName', i, '', {
+	const bucketName = executeFunctions.getNodeParameter(PARAMS.BUCKET_NAME, i, '', {
 		extractValue: true,
 	}) as string;
 
@@ -171,10 +171,10 @@ async function setBucketAcl(
 	client: S3Client,
 	i: number,
 ): Promise<INodeExecutionData> {
-	const bucketName = executeFunctions.getNodeParameter('bucketName', i, '', {
+	const bucketName = executeFunctions.getNodeParameter(PARAMS.BUCKET_NAME, i, '', {
 		extractValue: true,
 	}) as string;
-	const acl = executeFunctions.getNodeParameter('acl', i) as string;
+	const acl = executeFunctions.getNodeParameter(PARAMS.ACL, i) as string;
 
 	await client.send(
 		new PutBucketAclCommand({
@@ -202,10 +202,10 @@ async function setBucketVersioning(
 	client: S3Client,
 	i: number,
 ): Promise<INodeExecutionData> {
-	const bucketName = executeFunctions.getNodeParameter('bucketName', i, '', {
+	const bucketName = executeFunctions.getNodeParameter(PARAMS.BUCKET_NAME, i, '', {
 		extractValue: true,
 	}) as string;
-	const versioningStatus = executeFunctions.getNodeParameter('versioningStatus', i) as string;
+	const versioningStatus = executeFunctions.getNodeParameter(PARAMS.VERSIONING_STATUS, i) as string;
 
 	await client.send(
 		new PutBucketVersioningCommand({

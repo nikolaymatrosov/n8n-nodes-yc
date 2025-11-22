@@ -55,3 +55,35 @@ export const OBJECT_OPERATIONS = {
 } as const;
 
 export type ObjectOperation = (typeof OBJECT_OPERATIONS)[keyof typeof OBJECT_OPERATIONS];
+
+/**
+ * Parameter name constants
+ * Used with getNodeParameter() to ensure type safety and consistency
+ */
+export const PARAMS = {
+	// Common parameters
+	BUCKET_NAME: 'bucketName',
+	OBJECT_KEY: 'objectKey',
+	ACL: 'acl',
+	ADDITIONAL_FIELDS: 'additionalFields',
+
+	// Object upload parameters
+	INPUT_DATA_TYPE: 'inputDataType',
+	BINARY_PROPERTY: 'binaryProperty',
+	TEXT_CONTENT: 'textContent',
+	JSON_CONTENT: 'jsonContent',
+
+	// Object copy/move parameters
+	SOURCE_BUCKET: 'sourceBucket',
+	SOURCE_OBJECT_KEY: 'sourceObjectKey',
+	DESTINATION_BUCKET: 'destinationBucket',
+	DESTINATION_OBJECT_KEY: 'destinationObjectKey',
+
+	// Bucket versioning parameter
+	VERSIONING_STATUS: 'versioningStatus',
+
+	// Presigned URL parameter
+	EXPIRES_IN: 'expiresIn',
+} as const;
+
+export type ParamName = (typeof PARAMS)[keyof typeof PARAMS];

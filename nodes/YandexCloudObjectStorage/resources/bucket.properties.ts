@@ -1,5 +1,5 @@
 import type { INodeProperties } from 'n8n-workflow';
-import { RESOURCES, BUCKET_OPERATIONS } from '../types';
+import { RESOURCES, BUCKET_OPERATIONS, PARAMS } from '../types';
 
 /**
  * Properties for bucket operations
@@ -64,7 +64,7 @@ export const bucketProperties: INodeProperties[] = [
 	// =====================================
 	{
 		displayName: 'Bucket Name',
-		name: 'bucketName',
+		name: PARAMS.BUCKET_NAME,
 		type: 'string',
 		required: true,
 		displayOptions: {
@@ -79,7 +79,7 @@ export const bucketProperties: INodeProperties[] = [
 	},
 	{
 		displayName: 'Additional Fields',
-		name: 'additionalFields',
+		name: PARAMS.ADDITIONAL_FIELDS,
 		type: 'collection',
 		placeholder: 'Add Field',
 		default: {},
@@ -92,7 +92,7 @@ export const bucketProperties: INodeProperties[] = [
 		options: [
 			{
 				displayName: 'ACL',
-				name: 'acl',
+				name: PARAMS.ACL,
 				type: 'options',
 				options: [
 					{ name: 'Private', value: 'private' },
@@ -111,7 +111,7 @@ export const bucketProperties: INodeProperties[] = [
 	// =====================================
 	{
 		displayName: 'Bucket',
-		name: 'bucketName',
+		name: PARAMS.BUCKET_NAME,
 		type: 'resourceLocator',
 		default: { mode: 'list', value: '' },
 		required: true,
@@ -144,7 +144,7 @@ export const bucketProperties: INodeProperties[] = [
 	// Bucket: Set ACL - ACL parameter
 	{
 		displayName: 'ACL',
-		name: 'acl',
+		name: PARAMS.ACL,
 		type: 'options',
 		required: true,
 		displayOptions: {
@@ -166,7 +166,7 @@ export const bucketProperties: INodeProperties[] = [
 	// Bucket: Set Versioning - Status parameter
 	{
 		displayName: 'Versioning Status',
-		name: 'versioningStatus',
+		name: PARAMS.VERSIONING_STATUS,
 		type: 'options',
 		required: true,
 		displayOptions: {

@@ -15,7 +15,7 @@ import { Readable } from 'stream';
 
 import { getObjectUrl, streamToBuffer } from '../GenericFunctions';
 import type { IOperationContext, OperationResult } from '../types';
-import { OBJECT_OPERATIONS } from '../types';
+import { OBJECT_OPERATIONS, PARAMS } from '../types';
 
 /**
  * Execute an object operation based on the operation type
@@ -61,12 +61,12 @@ async function uploadObject(
 	client: S3Client,
 	i: number,
 ): Promise<INodeExecutionData> {
-	const bucketName = executeFunctions.getNodeParameter('bucketName', i, '', {
+	const bucketName = executeFunctions.getNodeParameter(PARAMS.BUCKET_NAME, i, '', {
 		extractValue: true,
 	}) as string;
-	const objectKey = executeFunctions.getNodeParameter('objectKey', i) as string;
-	const inputDataType = executeFunctions.getNodeParameter('inputDataType', i) as string;
-	const additionalFields = executeFunctions.getNodeParameter('additionalFields', i) as {
+	const objectKey = executeFunctions.getNodeParameter(PARAMS.OBJECT_KEY, i) as string;
+	const inputDataType = executeFunctions.getNodeParameter(PARAMS.INPUT_DATA_TYPE, i) as string;
+	const additionalFields = executeFunctions.getNodeParameter(PARAMS.ADDITIONAL_FIELDS, i) as {
 		acl?: string;
 		contentType?: string;
 		storageClass?: string;
@@ -83,7 +83,7 @@ async function uploadObject(
 	let contentType = additionalFields.contentType;
 
 	if (inputDataType === 'binary') {
-		const binaryProperty = executeFunctions.getNodeParameter('binaryProperty', i) as string;
+		const binaryProperty = executeFunctions.getNodeParameter(PARAMS.BINARY_PROPERTY, i) as string;
 		const binaryData = await executeFunctions.helpers.getBinaryDataBuffer(i, binaryProperty);
 		body = binaryData;
 
@@ -95,13 +95,13 @@ async function uploadObject(
 			}
 		}
 	} else if (inputDataType === 'text') {
-		const textContent = executeFunctions.getNodeParameter('textContent', i) as string;
+		const textContent = executeFunctions.getNodeParameter(PARAMS.TEXT_CONTENT, i) as string;
 		body = Buffer.from(textContent, 'utf-8');
 		if (!contentType) {
 			contentType = 'text/plain';
 		}
 	} else if (inputDataType === 'json') {
-		const jsonContent = executeFunctions.getNodeParameter('jsonContent', i);
+		const jsonContent = executeFunctions.getNodeParameter(PARAMS.JSON_CONTENT, i);
 		body = Buffer.from(JSON.stringify(jsonContent), 'utf-8');
 		if (!contentType) {
 			contentType = 'application/json';
@@ -164,10 +164,10 @@ async function downloadObject(
 	client: S3Client,
 	i: number,
 ): Promise<INodeExecutionData> {
-	const bucketName = executeFunctions.getNodeParameter('bucketName', i, '', {
+	const bucketName = executeFunctions.getNodeParameter(PARAMS.BUCKET_NAME, i, '', {
 		extractValue: true,
 	}) as string;
-	const objectKey = executeFunctions.getNodeParameter('objectKey', i) as string;
+	const objectKey = executeFunctions.getNodeParameter(PARAMS.OBJECT_KEY, i) as string;
 
 	const response = await client.send(
 		new GetObjectCommand({
@@ -209,10 +209,10 @@ async function deleteObject(
 	client: S3Client,
 	i: number,
 ): Promise<INodeExecutionData> {
-	const bucketName = executeFunctions.getNodeParameter('bucketName', i, '', {
+	const bucketName = executeFunctions.getNodeParameter(PARAMS.BUCKET_NAME, i, '', {
 		extractValue: true,
 	}) as string;
-	const objectKey = executeFunctions.getNodeParameter('objectKey', i) as string;
+	const objectKey = executeFunctions.getNodeParameter(PARAMS.OBJECT_KEY, i) as string;
 
 	await client.send(
 		new DeleteObjectCommand({
@@ -240,10 +240,10 @@ async function listObjects(
 	client: S3Client,
 	i: number,
 ): Promise<INodeExecutionData[]> {
-	const bucketName = executeFunctions.getNodeParameter('bucketName', i, '', {
+	const bucketName = executeFunctions.getNodeParameter(PARAMS.BUCKET_NAME, i, '', {
 		extractValue: true,
 	}) as string;
-	const additionalFields = executeFunctions.getNodeParameter('additionalFields', i) as {
+	const additionalFields = executeFunctions.getNodeParameter(PARAMS.ADDITIONAL_FIELDS, i) as {
 		prefix?: string;
 		maxKeys?: number;
 		startAfter?: string;
@@ -289,10 +289,10 @@ async function getObjectMetadata(
 	client: S3Client,
 	i: number,
 ): Promise<INodeExecutionData> {
-	const bucketName = executeFunctions.getNodeParameter('bucketName', i, '', {
+	const bucketName = executeFunctions.getNodeParameter(PARAMS.BUCKET_NAME, i, '', {
 		extractValue: true,
 	}) as string;
-	const objectKey = executeFunctions.getNodeParameter('objectKey', i) as string;
+	const objectKey = executeFunctions.getNodeParameter(PARAMS.OBJECT_KEY, i) as string;
 
 	const response = await client.send(
 		new HeadObjectCommand({
@@ -326,15 +326,15 @@ async function copyObject(
 	client: S3Client,
 	i: number,
 ): Promise<INodeExecutionData> {
-	const sourceBucket = executeFunctions.getNodeParameter('sourceBucket', i, '', {
+	const sourceBucket = executeFunctions.getNodeParameter(PARAMS.SOURCE_BUCKET, i, '', {
 		extractValue: true,
 	}) as string;
-	const sourceObjectKey = executeFunctions.getNodeParameter('sourceObjectKey', i) as string;
-	const destinationBucket = executeFunctions.getNodeParameter('destinationBucket', i, '', {
+	const sourceObjectKey = executeFunctions.getNodeParameter(PARAMS.SOURCE_OBJECT_KEY, i) as string;
+	const destinationBucket = executeFunctions.getNodeParameter(PARAMS.DESTINATION_BUCKET, i, '', {
 		extractValue: true,
 	}) as string;
 	const destinationObjectKey = executeFunctions.getNodeParameter(
-		'destinationObjectKey',
+		PARAMS.DESTINATION_OBJECT_KEY,
 		i,
 	) as string;
 
@@ -371,15 +371,15 @@ async function moveObject(
 	client: S3Client,
 	i: number,
 ): Promise<INodeExecutionData> {
-	const sourceBucket = executeFunctions.getNodeParameter('sourceBucket', i, '', {
+	const sourceBucket = executeFunctions.getNodeParameter(PARAMS.SOURCE_BUCKET, i, '', {
 		extractValue: true,
 	}) as string;
-	const sourceObjectKey = executeFunctions.getNodeParameter('sourceObjectKey', i) as string;
-	const destinationBucket = executeFunctions.getNodeParameter('destinationBucket', i, '', {
+	const sourceObjectKey = executeFunctions.getNodeParameter(PARAMS.SOURCE_OBJECT_KEY, i) as string;
+	const destinationBucket = executeFunctions.getNodeParameter(PARAMS.DESTINATION_BUCKET, i, '', {
 		extractValue: true,
 	}) as string;
 	const destinationObjectKey = executeFunctions.getNodeParameter(
-		'destinationObjectKey',
+		PARAMS.DESTINATION_OBJECT_KEY,
 		i,
 	) as string;
 
@@ -425,11 +425,11 @@ async function setObjectAcl(
 	client: S3Client,
 	i: number,
 ): Promise<INodeExecutionData> {
-	const bucketName = executeFunctions.getNodeParameter('bucketName', i, '', {
+	const bucketName = executeFunctions.getNodeParameter(PARAMS.BUCKET_NAME, i, '', {
 		extractValue: true,
 	}) as string;
-	const objectKey = executeFunctions.getNodeParameter('objectKey', i) as string;
-	const acl = executeFunctions.getNodeParameter('acl', i) as string;
+	const objectKey = executeFunctions.getNodeParameter(PARAMS.OBJECT_KEY, i) as string;
+	const acl = executeFunctions.getNodeParameter(PARAMS.ACL, i) as string;
 
 	await client.send(
 		new PutObjectAclCommand({
@@ -459,11 +459,11 @@ async function getPresignedUrl(
 	client: S3Client,
 	i: number,
 ): Promise<INodeExecutionData> {
-	const bucketName = executeFunctions.getNodeParameter('bucketName', i, '', {
+	const bucketName = executeFunctions.getNodeParameter(PARAMS.BUCKET_NAME, i, '', {
 		extractValue: true,
 	}) as string;
-	const objectKey = executeFunctions.getNodeParameter('objectKey', i) as string;
-	const expiresIn = executeFunctions.getNodeParameter('expiresIn', i) as number;
+	const objectKey = executeFunctions.getNodeParameter(PARAMS.OBJECT_KEY, i) as string;
+	const expiresIn = executeFunctions.getNodeParameter(PARAMS.EXPIRES_IN, i) as number;
 
 	const command = new GetObjectCommand({
 		Bucket: bucketName,

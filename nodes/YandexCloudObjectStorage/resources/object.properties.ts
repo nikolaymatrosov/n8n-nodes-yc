@@ -1,5 +1,5 @@
 import type { INodeProperties } from 'n8n-workflow';
-import { RESOURCES, OBJECT_OPERATIONS } from '../types';
+import { RESOURCES, OBJECT_OPERATIONS, PARAMS } from '../types';
 
 /**
  * Properties for object operations
@@ -82,7 +82,7 @@ export const objectProperties: INodeProperties[] = [
 	// =====================================
 	{
 		displayName: 'Bucket',
-		name: 'bucketName',
+		name: PARAMS.BUCKET_NAME,
 		type: 'resourceLocator',
 		default: { mode: 'list', value: '' },
 		required: true,
@@ -113,7 +113,7 @@ export const objectProperties: INodeProperties[] = [
 	},
 	{
 		displayName: 'Object Key',
-		name: 'objectKey',
+		name: PARAMS.OBJECT_KEY,
 		type: 'string',
 		required: true,
 		displayOptions: {
@@ -128,7 +128,7 @@ export const objectProperties: INodeProperties[] = [
 	},
 	{
 		displayName: 'Input Data Type',
-		name: 'inputDataType',
+		name: PARAMS.INPUT_DATA_TYPE,
 		type: 'options',
 		displayOptions: {
 			show: {
@@ -157,7 +157,7 @@ export const objectProperties: INodeProperties[] = [
 	},
 	{
 		displayName: 'Binary Property',
-		name: 'binaryProperty',
+		name: PARAMS.BINARY_PROPERTY,
 		type: 'string',
 		default: 'data',
 		required: true,
@@ -172,7 +172,7 @@ export const objectProperties: INodeProperties[] = [
 	},
 	{
 		displayName: 'Text Content',
-		name: 'textContent',
+		name: PARAMS.TEXT_CONTENT,
 		type: 'string',
 		typeOptions: {
 			rows: 5,
@@ -190,7 +190,7 @@ export const objectProperties: INodeProperties[] = [
 	},
 	{
 		displayName: 'JSON Content',
-		name: 'jsonContent',
+		name: PARAMS.JSON_CONTENT,
 		type: 'json',
 		typeOptions: {
 			rows: 5,
@@ -208,7 +208,7 @@ export const objectProperties: INodeProperties[] = [
 	},
 	{
 		displayName: 'Additional Fields',
-		name: 'additionalFields',
+		name: PARAMS.ADDITIONAL_FIELDS,
 		type: 'collection',
 		placeholder: 'Add Field',
 		default: {},
@@ -221,7 +221,7 @@ export const objectProperties: INodeProperties[] = [
 		options: [
 			{
 				displayName: 'ACL',
-				name: 'acl',
+				name: PARAMS.ACL,
 				type: 'options',
 				options: [
 					{ name: 'Private', value: 'private' },
@@ -293,7 +293,7 @@ export const objectProperties: INodeProperties[] = [
 	// =====================================
 	{
 		displayName: 'Bucket',
-		name: 'bucketName',
+		name: PARAMS.BUCKET_NAME,
 		type: 'resourceLocator',
 		default: { mode: 'list', value: '' },
 		required: true,
@@ -324,7 +324,7 @@ export const objectProperties: INodeProperties[] = [
 	},
 	{
 		displayName: 'Object Key',
-		name: 'objectKey',
+		name: PARAMS.OBJECT_KEY,
 		type: 'string',
 		required: true,
 		displayOptions: {
@@ -341,7 +341,7 @@ export const objectProperties: INodeProperties[] = [
 	// Object: Set ACL - ACL parameter
 	{
 		displayName: 'ACL',
-		name: 'acl',
+		name: PARAMS.ACL,
 		type: 'options',
 		required: true,
 		displayOptions: {
@@ -363,7 +363,7 @@ export const objectProperties: INodeProperties[] = [
 	// Object: Get Presigned URL - Expiration
 	{
 		displayName: 'Expires In',
-		name: 'expiresIn',
+		name: PARAMS.EXPIRES_IN,
 		type: 'number',
 		displayOptions: {
 			show: {
@@ -380,7 +380,7 @@ export const objectProperties: INodeProperties[] = [
 	// =====================================
 	{
 		displayName: 'Bucket',
-		name: 'bucketName',
+		name: PARAMS.BUCKET_NAME,
 		type: 'resourceLocator',
 		default: { mode: 'list', value: '' },
 		required: true,
@@ -411,7 +411,7 @@ export const objectProperties: INodeProperties[] = [
 	},
 	{
 		displayName: 'Additional Fields',
-		name: 'additionalFields',
+		name: PARAMS.ADDITIONAL_FIELDS,
 		type: 'collection',
 		placeholder: 'Add Field',
 		default: {},
@@ -456,7 +456,7 @@ export const objectProperties: INodeProperties[] = [
 	// =====================================
 	{
 		displayName: 'Source Bucket',
-		name: 'sourceBucket',
+		name: PARAMS.SOURCE_BUCKET,
 		type: 'resourceLocator',
 		default: { mode: 'list', value: '' },
 		required: true,
@@ -486,7 +486,7 @@ export const objectProperties: INodeProperties[] = [
 	},
 	{
 		displayName: 'Source Object Key',
-		name: 'sourceObjectKey',
+		name: PARAMS.SOURCE_OBJECT_KEY,
 		type: 'string',
 		required: true,
 		displayOptions: {
@@ -501,7 +501,7 @@ export const objectProperties: INodeProperties[] = [
 	},
 	{
 		displayName: 'Destination Bucket',
-		name: 'destinationBucket',
+		name: PARAMS.DESTINATION_BUCKET,
 		type: 'resourceLocator',
 		default: { mode: 'list', value: '' },
 		required: true,
@@ -531,7 +531,7 @@ export const objectProperties: INodeProperties[] = [
 	},
 	{
 		displayName: 'Destination Object Key',
-		name: 'destinationObjectKey',
+		name: PARAMS.DESTINATION_OBJECT_KEY,
 		type: 'string',
 		required: true,
 		displayOptions: {

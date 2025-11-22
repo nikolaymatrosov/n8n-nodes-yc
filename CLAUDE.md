@@ -891,6 +891,87 @@ export interface IReadCriteria {
 
 **Example:** [YandexCloudLogging types.ts:57-70](nodes/YandexCloudLogging/types.ts#L57-L70)
 
+#### 7.4 Parameter Name Constants
+
+**IMPORTANT:** Always use parameter name constants with `getNodeParameter()` for type safety and consistency.
+
+Define all parameter names used in `getNodeParameter()` calls as constants in the `types.ts` file:
+
+```typescript
+/**
+ * Parameter name constants
+ * Used with getNodeParameter() to ensure type safety and consistency
+ */
+export const PARAMS = {
+  // Common parameters
+  BUCKET_NAME: 'bucketName',
+  OBJECT_KEY: 'objectKey',
+  ACL: 'acl',
+  ADDITIONAL_FIELDS: 'additionalFields',
+
+  // Resource-specific parameters
+  INPUT_DATA_TYPE: 'inputDataType',
+  BINARY_PROPERTY: 'binaryProperty',
+  TEXT_CONTENT: 'textContent',
+  JSON_CONTENT: 'jsonContent',
+
+  // Copy/move parameters
+  SOURCE_BUCKET: 'sourceBucket',
+  SOURCE_OBJECT_KEY: 'sourceObjectKey',
+  DESTINATION_BUCKET: 'destinationBucket',
+  DESTINATION_OBJECT_KEY: 'destinationObjectKey',
+} as const;
+
+export type ParamName = (typeof PARAMS)[keyof typeof PARAMS];
+```
+
+**Usage in operation files:**
+
+```typescript
+import { PARAMS } from '../types';
+
+// Before (string literal - error-prone)
+const bucketName = executeFunctions.getNodeParameter('bucketName', i) as string;
+const objectKey = executeFunctions.getNodeParameter('objectKey', i) as string;
+
+// After (type-safe constants)
+const bucketName = executeFunctions.getNodeParameter(PARAMS.BUCKET_NAME, i) as string;
+const objectKey = executeFunctions.getNodeParameter(PARAMS.OBJECT_KEY, i) as string;
+```
+
+**Usage in property files:**
+
+```typescript
+import { PARAMS } from '../types';
+
+export const objectProperties: INodeProperties[] = [
+  {
+    displayName: 'Bucket Name',
+    name: PARAMS.BUCKET_NAME,  // Use constant instead of 'bucketName' string
+    type: 'string',
+    required: true,
+    // ...
+  },
+  {
+    displayName: 'Object Key',
+    name: PARAMS.OBJECT_KEY,  // Use constant instead of 'objectKey' string
+    type: 'string',
+    required: true,
+    // ...
+  },
+];
+```
+
+**Benefits:**
+
+- ✅ TypeScript catches typos at compile time (e.g., `PARAMS.BUCKT_NAME` → error)
+- ✅ IDE autocomplete helps discover available parameters
+- ✅ Single source of truth for parameter names
+- ✅ Easier to refactor (change once, updates everywhere)
+- ✅ Self-documenting with clear organization
+
+**Example:** [YandexCloudObjectStorage types.ts:63-89](nodes/YandexCloudObjectStorage/types.ts#L63-L89)
+
 ### 8. Testing Patterns
 
 #### 8.1 Test File Structure
