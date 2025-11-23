@@ -9,6 +9,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+### Changed
+
+### Fixed
+
+### Removed
+
+## [0.9.0] - 2025-11-23
+
+### Added
+
 - **Yandex Cloud YandexART Node**: AI-powered image generation using Foundation Models API
   - Generate high-quality images from text descriptions with YandexART model
   - Support for negative prompts to specify unwanted elements in generated images
