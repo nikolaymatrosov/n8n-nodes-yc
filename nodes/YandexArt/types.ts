@@ -95,6 +95,7 @@ export const PARAMS = {
 	WAIT_FOR_COMPLETION: 'waitForCompletion',
 	POLL_INTERVAL: 'pollInterval',
 	MAX_WAIT_TIME: 'maxWaitTime',
+	TRUNCATE_PROMPT: 'truncatePrompt',
 } as const;
 
 export type ParamName = (typeof PARAMS)[keyof typeof PARAMS];
@@ -107,4 +108,5 @@ export const DEFAULTS = {
 	MAX_WAIT_TIME_SECONDS: 300, // 5 minutes (300 seconds)
 	MIME_TYPE: SUPPORTED_MIME_TYPES.JPEG,
 	ASPECT_RATIO: 'SQUARE',
+	MAX_PROMPT_LENGTH: 500, // Maximum characters allowed by Yandex ART API
 } as const;

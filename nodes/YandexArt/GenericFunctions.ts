@@ -187,3 +187,28 @@ export function getFileExtensionFromMimeType(mimeType: string): string {
 
 	return mimeToExt[mimeType.toLowerCase()] || 'bin';
 }
+
+/**
+ * Truncates prompt text to maximum length without cutting words mid-way
+ * @param prompt - The prompt text to truncate
+ * @param maxLength - Maximum length (default: 500)
+ * @returns Truncated text that doesn't exceed maxLength and ends at word boundary
+ */
+export function truncatePrompt(prompt: string, maxLength: number = 500): string {
+	// If prompt is within limit, return as-is
+	if (prompt.length <= maxLength) {
+		return prompt;
+	}
+
+	// Find the last space before maxLength to avoid cutting words
+	const truncated = prompt.substring(0, maxLength);
+	const lastSpaceIndex = truncated.lastIndexOf(' ');
+
+	// If no space found, return full truncated string (single long word)
+	if (lastSpaceIndex === -1) {
+		return truncated;
+	}
+
+	// Return text up to last complete word
+	return truncated.substring(0, lastSpaceIndex);
+}

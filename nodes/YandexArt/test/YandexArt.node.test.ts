@@ -27,6 +27,12 @@ jest.mock('../GenericFunctions', () => ({
 		};
 		return map[mimeType] || 'bin';
 	}),
+	truncatePrompt: jest.fn((text: string, maxLength: number = 500) => {
+		if (text.length <= maxLength) return text;
+		const truncated = text.substring(0, maxLength);
+		const lastSpaceIndex = truncated.lastIndexOf(' ');
+		return lastSpaceIndex === -1 ? truncated : truncated.substring(0, lastSpaceIndex);
+	}),
 }));
 
 // Mock ImageGenerationRequest
@@ -284,6 +290,121 @@ describe('YandexArt', () => {
 					mimeType: 'image/jpeg',
 					seed: 'auto',
 				});
+			});
+		});
+
+		describe('Prompt Truncation', () => {
+			it('should truncate prompt when enabled (default)', async () => {
+				// Create a long prompt > 500 characters
+				const longPrompt = 'A'.repeat(450) + ' beautiful sunset over mountains ' + 'B'.repeat(100);
+
+				(mockExecuteFunctions.getNodeParameter as jest.Mock).mockImplementation(
+					(paramName: string) => {
+						const params: Record<string, any> = {
+							resource: 'image',
+							operation: 'generate',
+							prompt: longPrompt,
+							additionalOptions: {},
+							advancedOptions: {
+								truncatePrompt: true, // Explicitly enabled
+								waitForCompletion: false,
+							},
+						};
+						return params[paramName];
+					},
+				);
+
+				const mockTruncate = GenericFunctions.truncatePrompt as jest.Mock;
+				await node.execute.call(mockExecuteFunctions as IExecuteFunctions);
+
+				// Verify truncatePrompt was called with the trimmed prompt
+				expect(mockTruncate).toHaveBeenCalledWith(longPrompt.trim(), 500);
+			});
+
+			it('should not truncate prompt when disabled', async () => {
+				const longPrompt = 'A'.repeat(600); // Over 500 characters
+
+				(mockExecuteFunctions.getNodeParameter as jest.Mock).mockImplementation(
+					(paramName: string) => {
+						const params: Record<string, any> = {
+							resource: 'image',
+							operation: 'generate',
+							prompt: longPrompt,
+							additionalOptions: {},
+							advancedOptions: {
+								truncatePrompt: false, // Disabled
+								waitForCompletion: false,
+							},
+						};
+						return params[paramName];
+					},
+				);
+
+				const mockTruncate = GenericFunctions.truncatePrompt as jest.Mock;
+				mockTruncate.mockClear();
+
+				await node.execute.call(mockExecuteFunctions as IExecuteFunctions);
+
+				// Verify truncatePrompt was NOT called
+				expect(mockTruncate).not.toHaveBeenCalled();
+			});
+
+			it('should truncate negative prompt when enabled', async () => {
+				const longNegativePrompt = 'blurry, low quality, ' + 'bad '.repeat(200);
+
+				(mockExecuteFunctions.getNodeParameter as jest.Mock).mockImplementation(
+					(paramName: string) => {
+						const params: Record<string, any> = {
+							resource: 'image',
+							operation: 'generate',
+							prompt: 'Test prompt',
+							additionalOptions: {
+								negativePrompt: longNegativePrompt,
+							},
+							advancedOptions: {
+								truncatePrompt: true,
+								waitForCompletion: false,
+							},
+						};
+						return params[paramName];
+					},
+				);
+
+				const mockTruncate = GenericFunctions.truncatePrompt as jest.Mock;
+				await node.execute.call(mockExecuteFunctions as IExecuteFunctions);
+
+				// Should be called twice: once for prompt, once for negative prompt
+				expect(mockTruncate).toHaveBeenCalledTimes(2);
+				expect(mockTruncate).toHaveBeenCalledWith('Test prompt', 500);
+				expect(mockTruncate).toHaveBeenCalledWith(longNegativePrompt.trim(), 500);
+			});
+
+			it('should handle short prompts without truncation', async () => {
+				const shortPrompt = 'A beautiful sunset';
+
+				(mockExecuteFunctions.getNodeParameter as jest.Mock).mockImplementation(
+					(paramName: string) => {
+						const params: Record<string, any> = {
+							resource: 'image',
+							operation: 'generate',
+							prompt: shortPrompt,
+							additionalOptions: {},
+							advancedOptions: {
+								truncatePrompt: true,
+								waitForCompletion: false,
+							},
+						};
+						return params[paramName];
+					},
+				);
+
+				const mockTruncate = GenericFunctions.truncatePrompt as jest.Mock;
+				// The mock returns the same text if under 500 chars
+				mockTruncate.mockReturnValue(shortPrompt);
+
+				await node.execute.call(mockExecuteFunctions as IExecuteFunctions);
+
+				expect(mockTruncate).toHaveBeenCalledWith(shortPrompt, 500);
 			});
 		});
 	});
