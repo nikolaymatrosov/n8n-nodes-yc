@@ -14,6 +14,7 @@ import {
 	extractImageResponse,
 	buildModelUri,
 	getFileExtensionFromMimeType,
+	truncatePrompt,
 } from './GenericFunctions';
 import {
 	RESOURCES,
@@ -101,7 +102,8 @@ export class YandexArt implements INodeType {
 				default: '',
 				required: true,
 				placeholder: 'A serene mountain landscape at sunset with snow-capped peaks',
-				description: 'Text description of the image to generate',
+				description:
+					'Text description of the image to generate. Maximum 500 characters (API limit). Enable "Truncate Prompt" in Advanced Options for automatic truncation.',
 			},
 			// Additional Options
 			{
@@ -126,7 +128,8 @@ export class YandexArt implements INodeType {
 						},
 						default: '',
 						placeholder: 'blurry, low quality, distorted',
-						description: 'Text description of what to avoid in the generated image (weight: -1)',
+						description:
+							'Text description of what to avoid in the generated image (weight: -1). Maximum 500 characters (API limit).',
 					},
 					{
 						displayName: 'MIME Type',
@@ -203,6 +206,14 @@ export class YandexArt implements INodeType {
 				},
 				default: {},
 				options: [
+					{
+						displayName: 'Truncate Prompt',
+						name: PARAMS.TRUNCATE_PROMPT,
+						type: 'boolean',
+						default: true,
+						description:
+							'Whether to automatically truncate prompts to 500 characters (API limit). Truncation is word-safe and will not cut words mid-way. Disable if you want to handle long prompts manually.',
+					},
 					{
 						displayName: 'Wait for Completion',
 						name: PARAMS.WAIT_FOR_COMPLETION,
@@ -284,6 +295,10 @@ export class YandexArt implements INodeType {
 						DEFAULTS.ASPECT_RATIO) as keyof typeof ASPECT_RATIOS;
 					const seed = additionalOptions[PARAMS.SEED] as number | undefined;
 
+					const truncatePromptEnabled =
+						advancedOptions[PARAMS.TRUNCATE_PROMPT] !== undefined
+							? (advancedOptions[PARAMS.TRUNCATE_PROMPT] as boolean)
+							: true;
 					const waitForCompletion =
 						advancedOptions[PARAMS.WAIT_FOR_COMPLETION] !== undefined
 							? (advancedOptions[PARAMS.WAIT_FOR_COMPLETION] as boolean)
@@ -302,18 +317,32 @@ export class YandexArt implements INodeType {
 						throw new NodeOperationError(this.getNode(), 'Prompt cannot be empty');
 					}
 
+					// Process prompts (trim and optionally truncate)
+					let processedPrompt = prompt.trim();
+					let processedNegativePrompt = negativePrompt.trim();
+
+					if (truncatePromptEnabled) {
+						processedPrompt = truncatePrompt(processedPrompt, DEFAULTS.MAX_PROMPT_LENGTH);
+						if (processedNegativePrompt.length > 0) {
+							processedNegativePrompt = truncatePrompt(
+								processedNegativePrompt,
+								DEFAULTS.MAX_PROMPT_LENGTH,
+							);
+						}
+					}
+
 					// Build messages array
 					const messages: IImageGenerationMessage[] = [
 						{
-							text: prompt.trim(),
+							text: processedPrompt,
 							weight: 1,
 						},
 					];
 
 					// Add negative prompt if provided
-					if (negativePrompt && negativePrompt.trim().length > 0) {
+					if (processedNegativePrompt.length > 0) {
 						messages.push({
-							text: negativePrompt.trim(),
+							text: processedNegativePrompt,
 							weight: -1,
 						});
 					}
