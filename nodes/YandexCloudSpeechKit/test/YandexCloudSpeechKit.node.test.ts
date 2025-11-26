@@ -471,7 +471,7 @@ describe('YandexCloudSpeechKit Node', () => {
 
 			await expect(
 				node.execute.call(mockExecuteFunctions as IExecuteFunctions),
-			).rejects.toThrow('Synthesis failed');
+			).rejects.toThrow('Yandex Cloud SDK error in synthesize');
 		});
 
 		it('should handle error with continueOnFail enabled', async () => {
@@ -483,7 +483,7 @@ describe('YandexCloudSpeechKit Node', () => {
 			const result = await node.execute.call(mockExecuteFunctions as IExecuteFunctions);
 
 			expect(result[0][0].json).toMatchObject({
-				error: 'API Error',
+				error: 'Yandex Cloud SDK error in synthesize speech',
 				success: false,
 			});
 		});
@@ -495,9 +495,12 @@ describe('YandexCloudSpeechKit Node', () => {
 				throw new Error('Stream error');
 			};
 
-			await node.execute.call(mockExecuteFunctions as IExecuteFunctions);
+			const result = await node.execute.call(mockExecuteFunctions as IExecuteFunctions);
 
-			// Test passes if execution completes without throwing
+			expect(result[0][0].json).toMatchObject({
+				error: 'Yandex Cloud SDK error in synthesize speech',
+				success: false,
+			});
 			expect(mockExecuteFunctions.continueOnFail).toHaveBeenCalled();
 		});
 	});

@@ -11,6 +11,8 @@ import { NodeOperationError } from 'n8n-workflow';
 import { Session } from '@yandex-cloud/nodejs-sdk';
 import { translationService } from '@yandex-cloud/nodejs-sdk/dist/clients/ai-translate-v2/index';
 import { mapKeys, camelCase } from 'lodash';
+import { YandexCloudSdkError } from '@utils/sdkErrorHandling';
+import { withSdkErrorHandling } from '@utils/errorHandling';
 
 interface IIAmCredentials {
 	serviceAccountId: string;
@@ -371,8 +373,12 @@ export class YandexCloudTranslate implements INodeType {
 					const client = session.client(translationService.TranslationServiceClient);
 
 					// Fetch languages
-					const response = await client.listLanguages(
-						translationService.ListLanguagesRequest.fromPartial({ folderId }),
+					const response = await withSdkErrorHandling(
+						this.getNode(),
+						() => client.listLanguages(
+							translationService.ListLanguagesRequest.fromPartial({ folderId }),
+						),
+						'list languages'
 					);
 
 					// Build options list with auto-detect first
@@ -399,9 +405,13 @@ export class YandexCloudTranslate implements INodeType {
 
 					return options;
 				} catch (error) {
+					// Re-throw SDK errors as-is
+					if (error instanceof YandexCloudSdkError) {
+						throw error;
+					}
 					throw new NodeOperationError(
 						this.getNode(),
-						`Failed to load languages: ${error.message}`,
+						`Failed to load language options: ${(error as Error).message}`,
 					);
 				}
 			},
@@ -452,8 +462,12 @@ export class YandexCloudTranslate implements INodeType {
 					const client = session.client(translationService.TranslationServiceClient);
 
 					// Fetch languages
-					const response = await client.listLanguages(
-						translationService.ListLanguagesRequest.fromPartial({ folderId }),
+					const response = await withSdkErrorHandling(
+						this.getNode(),
+						() => client.listLanguages(
+							translationService.ListLanguagesRequest.fromPartial({ folderId }),
+						),
+						'list languages'
 					);
 
 					// Build options list
@@ -467,9 +481,13 @@ export class YandexCloudTranslate implements INodeType {
 
 					return options;
 				} catch (error) {
+					// Re-throw SDK errors as-is
+					if (error instanceof YandexCloudSdkError) {
+						throw error;
+					}
 					throw new NodeOperationError(
 						this.getNode(),
-						`Failed to load languages: ${error.message}`,
+						`Failed to load language options: ${(error as Error).message}`,
 					);
 				}
 			},
@@ -528,8 +546,12 @@ export class YandexCloudTranslate implements INodeType {
 		// Handle Languages > List operation
 		if (resource === 'languages' && operation === 'list') {
 			try {
-				const response = await client.listLanguages(
-					translationService.ListLanguagesRequest.fromPartial({ folderId }),
+				const response = await withSdkErrorHandling(
+					this.getNode(),
+					() => client.listLanguages(
+						translationService.ListLanguagesRequest.fromPartial({ folderId }),
+					),
+					'list languages'
 				);
 
 				const languages = response.languages.map((lang) => ({
@@ -542,9 +564,13 @@ export class YandexCloudTranslate implements INodeType {
 
 				return [languages];
 			} catch (error) {
+				// Re-throw SDK errors as-is
+				if (error instanceof YandexCloudSdkError) {
+					throw error;
+				}
 				throw new NodeOperationError(
 					this.getNode(),
-					`Failed to list languages: ${error.message}`,
+					`Failed to list languages: ${(error as Error).message}`,
 				);
 			}
 		}
@@ -623,8 +649,13 @@ export class YandexCloudTranslate implements INodeType {
 					}
 
 					// Call API
-					const response = await client.translate(
-						translationService.TranslateRequest.fromPartial(request),
+					const response = await withSdkErrorHandling(
+						this.getNode(),
+						() => client.translate(
+							translationService.TranslateRequest.fromPartial(request),
+						),
+						'translate text',
+						i
 					);
 
 					// Return results
@@ -651,12 +682,17 @@ export class YandexCloudTranslate implements INodeType {
 						: [];
 
 					// Call API
-					const response = await client.detectLanguage(
-						translationService.DetectLanguageRequest.fromPartial({
-							text,
-							languageCodeHints: hints,
-							folderId,
-						}),
+					const response = await withSdkErrorHandling(
+						this.getNode(),
+						() => client.detectLanguage(
+							translationService.DetectLanguageRequest.fromPartial({
+								text,
+								languageCodeHints: hints,
+								folderId,
+							}),
+						),
+						'detect language',
+						i
 					);
 
 					// Return result
@@ -673,14 +709,22 @@ export class YandexCloudTranslate implements INodeType {
 				if (this.continueOnFail()) {
 					returnData.push({
 						json: {
-							error: error.message,
+							error: (error as Error).message,
 							success: false,
 						},
 						pairedItem: { item: i },
 					});
 					continue;
 				}
-				throw error;
+				// If it's already one of our custom errors, re-throw as-is
+				if (error instanceof YandexCloudSdkError || error instanceof NodeOperationError) {
+					throw error;
+				}
+				// Otherwise wrap in YandexCloudSdkError
+				throw new YandexCloudSdkError(this.getNode(), error as Error, {
+					operation: operation as string,
+					itemIndex: i,
+				});
 			}
 		}
 

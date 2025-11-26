@@ -9,6 +9,8 @@ import { NodeOperationError } from 'n8n-workflow';
 import { Session } from '@yandex-cloud/nodejs-sdk';
 import { ttsService, tts } from '@yandex-cloud/nodejs-sdk/dist/clients/ai-tts-v3/index';
 import { mapKeys, camelCase } from 'lodash';
+import { YandexCloudSdkError } from '@utils/sdkErrorHandling';
+import { withSdkErrorHandling } from '@utils/errorHandling';
 
 interface IIAmCredentials {
 	serviceAccountId: string;
@@ -440,13 +442,20 @@ export class YandexCloudSpeechKit implements INodeType {
 
 					// Execute synthesis and collect audio chunks
 					const audioChunks: Buffer[] = [];
-					const responseStream = client.utteranceSynthesis(request);
 
-					for await (const response of responseStream) {
-						if (response.audioChunk?.data) {
-							audioChunks.push(response.audioChunk.data);
-						}
-					}
+					await withSdkErrorHandling(
+						this.getNode(),
+						async () => {
+							const responseStream = client.utteranceSynthesis(request);
+							for await (const response of responseStream) {
+								if (response.audioChunk?.data) {
+									audioChunks.push(response.audioChunk.data);
+								}
+							}
+						},
+						'synthesize speech',
+						i
+					);
 
 					// Combine all audio chunks
 					const audioBuffer = Buffer.concat(audioChunks);
@@ -478,14 +487,22 @@ export class YandexCloudSpeechKit implements INodeType {
 				if (this.continueOnFail()) {
 					returnData.push({
 						json: {
-							error: error.message,
+							error: (error as Error).message,
 							success: false,
 						},
 						pairedItem: { item: i },
 					});
 					continue;
 				}
-				throw error;
+				// If it's already one of our custom errors, re-throw as-is
+				if (error instanceof YandexCloudSdkError || error instanceof NodeOperationError) {
+					throw error;
+				}
+				// Otherwise wrap in YandexCloudSdkError
+				throw new YandexCloudSdkError(this.getNode(), error as Error, {
+					operation: operation as string,
+					itemIndex: i,
+				});
 			}
 		}
 

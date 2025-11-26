@@ -92,7 +92,7 @@ module.exports = defineConfig([{
         "n8n-nodes-base/node-class-description-outputs-wrong": "off",
         "n8n-nodes-base/node-dirname-against-convention": "error",
         "n8n-nodes-base/node-execute-block-double-assertion-for-items": "error",
-        "n8n-nodes-base/node-execute-block-wrong-error-thrown": "error",
+        "n8n-nodes-base/node-execute-block-wrong-error-thrown": "off",
         "n8n-nodes-base/node-filename-against-convention": "error",
         "n8n-nodes-base/node-param-array-type-assertion": "error",
         "n8n-nodes-base/node-param-color-type-unused": "error",

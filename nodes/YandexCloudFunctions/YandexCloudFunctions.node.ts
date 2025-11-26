@@ -12,6 +12,7 @@ import { Session } from '@yandex-cloud/nodejs-sdk';
 import { IamTokenService } from '@yandex-cloud/nodejs-sdk/dist/token-service/iam-token-service';
 import { functionService, function as functionType } from '@yandex-cloud/nodejs-sdk/dist/clients/serverless-functions-v1/index';
 import { mapKeys, camelCase } from 'lodash';
+import { YandexCloudSdkError } from '@utils/sdkErrorHandling';
 
 interface IIAmCredentials {
 	serviceAccountId: string;
@@ -298,9 +299,16 @@ export class YandexCloudFunctions implements INodeType {
 					const client = session.client(functionService.FunctionServiceClient);
 
 					// List functions
-					const response = await client.list(
-						functionService.ListFunctionsRequest.fromPartial({ folderId }),
-					);
+					let response;
+					try {
+						response = await client.list(
+							functionService.ListFunctionsRequest.fromPartial({ folderId }),
+						);
+					} catch (error) {
+						throw new YandexCloudSdkError(this.getNode(), error as Error, {
+							operation: 'list functions',
+						});
+					}
 
 					// Return function options
 					return response.functions.map((func: functionType.Function) => ({
@@ -309,6 +317,11 @@ export class YandexCloudFunctions implements INodeType {
 						description: func.httpInvokeUrl || func.id,
 					}));
 				} catch (error) {
+					// Re-throw SDK errors as-is
+					if (error instanceof YandexCloudSdkError) {
+						throw error;
+					}
+					// Wrap other errors in NodeOperationError for backward compatibility
 					throw new NodeOperationError(
 						this.getNode(),
 						`Failed to list functions: ${error.message}`,
@@ -382,7 +395,15 @@ export class YandexCloudFunctions implements INodeType {
 					}
 
 					// Get IAM token
-					const token = await iamTokenService.getToken();
+					let token;
+					try {
+						token = await iamTokenService.getToken();
+					} catch (error) {
+						throw new YandexCloudSdkError(this.getNode(), error as Error, {
+							operation: 'get IAM token',
+							itemIndex: i,
+						});
+					}
 
 					// Build function invoke URL
 					const invokeUrl = `https://functions.yandexcloud.net/${functionId}`;
@@ -468,14 +489,22 @@ export class YandexCloudFunctions implements INodeType {
 				if (this.continueOnFail()) {
 					returnData.push({
 						json: {
-							error: error.message,
+							error: (error as Error).message,
 							success: false,
 						},
 						pairedItem: { item: i },
 					});
 					continue;
 				}
-				throw error;
+				// If it's already one of our custom errors, re-throw as-is
+				if (error instanceof YandexCloudSdkError || error instanceof NodeOperationError) {
+					throw error;
+				}
+				// Otherwise wrap in YandexCloudSdkError
+				throw new YandexCloudSdkError(this.getNode(), error as Error, {
+					operation: 'invoke function',
+					itemIndex: i,
+				});
 			}
 		}
 

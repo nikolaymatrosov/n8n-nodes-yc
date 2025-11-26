@@ -219,7 +219,7 @@ describe('YandexCloudCompute Node', () => {
 				node.methods!.loadOptions!.loadInstances.call(
 					mockLoadOptionsFunctions as ILoadOptionsFunctions,
 				),
-			).rejects.toThrow('Failed to list instances: API Error');
+			).rejects.toThrow('Yandex Cloud SDK error in list instances');
 		});
 
 		it('should handle instances without status', async () => {
@@ -547,7 +547,7 @@ describe('YandexCloudCompute Node', () => {
 
 			await expect(
 				node.execute.call(mockExecuteFunctions as IExecuteFunctions),
-			).rejects.toThrow('Start failed');
+			).rejects.toThrow('Yandex Cloud SDK error in start instance');
 		});
 
 		it('should return error object when continueOnFail is true', async () => {
@@ -557,7 +557,7 @@ describe('YandexCloudCompute Node', () => {
 			const result = await node.execute.call(mockExecuteFunctions as IExecuteFunctions);
 
 			expect(result[0][0].json).toMatchObject({
-				error: 'Start failed',
+				error: 'Yandex Cloud SDK error in start instance',
 				success: false,
 			});
 		});
@@ -580,7 +580,7 @@ describe('YandexCloudCompute Node', () => {
 
 			expect(result[0]).toHaveLength(2);
 			expect(result[0][0].json).toMatchObject({
-				error: 'First start failed',
+				error: 'Yandex Cloud SDK error in start instance',
 				success: false,
 			});
 			expect(result[0][1].json).toMatchObject({

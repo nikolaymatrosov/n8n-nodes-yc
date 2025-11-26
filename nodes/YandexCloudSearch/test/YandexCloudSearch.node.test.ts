@@ -246,7 +246,7 @@ describe('YandexCloudSearch Node', () => {
 			const result = await node.execute.call(mockExecuteFunctions as IExecuteFunctions);
 
 			expect(result[0][0].json).toMatchObject({
-				error: 'Search API Error',
+				error: 'Yandex Cloud SDK error in web search',
 				success: false,
 			});
 		});

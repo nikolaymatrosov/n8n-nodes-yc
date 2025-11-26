@@ -17,6 +17,8 @@ import {
 	validateServiceAccountCredentials,
 	createYandexSession,
 } from '@utils/authUtils';
+import { YandexCloudSdkError } from '@utils/sdkErrorHandling';
+import { withSdkErrorHandling } from '@utils/errorHandling';
 
 // Re-export for backward compatibility
 export { parseServiceAccountJson };
@@ -117,12 +119,17 @@ export async function loadLogGroups(
 		const client = session.client(logGroupService.LogGroupServiceClient);
 
 		// List log groups
-		const response = await client.list({
-			folderId,
-			pageSize: 1000,
-			pageToken: '',
-			filter: '',
-		});
+		const response = await withSdkErrorHandling(
+			this.getNode(),
+			() =>
+				client.list({
+					folderId,
+					pageSize: 1000,
+					pageToken: '',
+					filter: '',
+				}),
+			'load log groups',
+		);
 
 		let results = (response.groups as any[]).map((group: any) => ({
 			name: `${group.name} (${group.id})`,
@@ -141,6 +148,11 @@ export async function loadLogGroups(
 
 		return { results };
 	} catch (error) {
+		// Re-throw SDK errors as-is
+		if (error instanceof YandexCloudSdkError) {
+			throw error;
+		}
+		// Wrap other errors in NodeApiError for backward compatibility
 		throw new NodeApiError(this.getNode(), {
 			message: `Failed to load log groups: ${(error as Error).message}`,
 			description: 'Please check your credentials and folder ID',

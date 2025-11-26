@@ -15,6 +15,7 @@ import {
 import { LANGUAGE_CODES, OCR_MODELS, SUPPORTED_MIME_TYPES } from './types';
 import { RecognizeTextRequest } from '@yandex-cloud/nodejs-sdk/dist/generated/yandex/cloud/ai/ocr/v1/ocr_service';
 import { validateServiceAccountCredentials } from '@utils/authUtils';
+import { YandexCloudSdkError, withSdkErrorHandling } from '@utils/sdkErrorHandling';
 
 export class YandexCloudVisionOcr implements INodeType {
 	description: INodeTypeDescription = {
@@ -326,11 +327,18 @@ export class YandexCloudVisionOcr implements INodeType {
 						const textAnnotations: any[] = [];
 						const responseStream = client.recognize(request);
 
-						for await (const response of responseStream) {
-							if (response.textAnnotation) {
-								textAnnotations.push(response.textAnnotation);
-							}
-						}
+						await withSdkErrorHandling(
+							this.getNode(),
+							async () => {
+								for await (const response of responseStream) {
+									if (response.textAnnotation) {
+										textAnnotations.push(response.textAnnotation);
+									}
+								}
+							},
+							'recognize text',
+							i,
+						);
 
 						// Format response
 						const result = formatOcrResponse(textAnnotations, outputFormat);
@@ -345,14 +353,22 @@ export class YandexCloudVisionOcr implements INodeType {
 				if (this.continueOnFail()) {
 					returnData.push({
 						json: {
-							error: error.message,
+							error: (error as Error).message,
 							success: false,
 						},
 						pairedItem: { item: i },
 					});
 					continue;
 				}
-				throw error;
+				// If it's already one of our custom errors, re-throw as-is
+				if (error instanceof YandexCloudSdkError || error instanceof NodeOperationError) {
+					throw error;
+				}
+				// Otherwise wrap in YandexCloudSdkError
+				throw new YandexCloudSdkError(this.getNode(), error as Error, {
+					operation: operation as string,
+					itemIndex: i,
+				});
 			}
 		}
 

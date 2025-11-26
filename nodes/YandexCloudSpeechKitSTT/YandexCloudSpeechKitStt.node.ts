@@ -9,6 +9,8 @@ import { NodeOperationError } from 'n8n-workflow';
 import { Session } from '@yandex-cloud/nodejs-sdk';
 import { sttService, stt } from '@yandex-cloud/nodejs-sdk/dist/clients/ai-stt-v3/index';
 import { mapKeys, camelCase } from 'lodash';
+import { YandexCloudSdkError } from '@utils/sdkErrorHandling';
+import { withSdkErrorHandling } from '@utils/errorHandling';
 
 interface IIAmCredentials {
 	serviceAccountId: string;
@@ -552,7 +554,12 @@ export class YandexCloudSpeechKitStt implements INodeType {
 					});
 
 					// Start recognition
-					const operation = await client.recognizeFile(request);
+					const operation = await withSdkErrorHandling(
+						this.getNode(),
+						() => client.recognizeFile(request),
+						'recognize audio file',
+						i,
+					);
 
 					returnData.push({
 						json: {
@@ -598,42 +605,49 @@ export class YandexCloudSpeechKitStt implements INodeType {
 					attempt++;
 
 					try {
-						// Get recognition status - this returns a stream
-						const responseStream = client.getRecognition({
-							operationId,
-						});
+						// Get recognition status and process stream
+						await withSdkErrorHandling(
+							this.getNode(),
+							async () => {
+								const responseStream = client.getRecognition({
+									operationId,
+								});
 
-						// Collect all responses from the stream
-						for await (const response of responseStream) {
-							if (response.channelTag) {
-								channelTag = response.channelTag;
-							}
+								// Collect all responses from the stream
+								for await (const response of responseStream) {
+									if (response.channelTag) {
+										channelTag = response.channelTag;
+									}
 
-							if (response.eouUpdate) {
-								// End of utterance - recognition is done
-								isDone = true;
-							}
+									if (response.eouUpdate) {
+										// End of utterance - recognition is done
+										isDone = true;
+									}
 
-							if (response.final) {
-								// Final results
-								finalResults.push(response.final);
-								isDone = true;
-							}
+									if (response.final) {
+										// Final results
+										finalResults.push(response.final);
+										isDone = true;
+									}
 
-							if (response.partial) {
-								// Partial results
-								partialResults.push(response.partial);
-							}
-						}
+									if (response.partial) {
+										// Partial results
+										partialResults.push(response.partial);
+									}
+								}
+							},
+							'get recognition results',
+							i,
+						);
 					} catch (error: any) {
 						// Handle race condition: operation data is not ready yet
 						// This can happen when polling starts immediately after recognition starts
-						const isNotReadyError = error.message &&
-							error.message.includes('NOT_FOUND') &&
-							error.message.includes('operation data is not ready');
+						const errorText = error.description || error.message || '';
+						const isNotReadyError = errorText.includes('NOT_FOUND') &&
+							errorText.includes('operation data is not ready');
 
 						if (!isNotReadyError) {
-							// Re-throw if it's not the "not ready" error
+							// Re-throw SDK errors that aren't the "not ready" race condition
 							throw error;
 						}
 						// If it's the "not ready" error, continue polling
@@ -705,14 +719,23 @@ export class YandexCloudSpeechKitStt implements INodeType {
 				if (this.continueOnFail()) {
 					returnData.push({
 						json: {
-							error: error.message,
+							error: (error as Error).message,
 							success: false,
 						},
 						pairedItem: { item: i },
 					});
 					continue;
 				}
-				throw error;
+				// If it's already one of our custom errors, re-throw as-is
+				if (error instanceof YandexCloudSdkError || error instanceof NodeOperationError) {
+					throw error;
+				}
+				// Otherwise wrap in YandexCloudSdkError
+				 
+				throw new YandexCloudSdkError(this.getNode(), error as Error, {
+					operation: operation as string,
+					itemIndex: i,
+				});
 			}
 		}
 

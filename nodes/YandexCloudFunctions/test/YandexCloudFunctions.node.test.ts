@@ -236,7 +236,7 @@ describe('YandexCloudFunctions Node', () => {
 				node.methods!.loadOptions!.loadFunctions.call(
 					mockLoadOptionsFunctions as ILoadOptionsFunctions,
 				),
-			).rejects.toThrow('Failed to list functions: API Error');
+			).rejects.toThrow('Yandex Cloud SDK error in list functions');
 		});
 
 		it('should handle camelCase credentials format', async () => {
@@ -756,7 +756,7 @@ describe('YandexCloudFunctions Node', () => {
 
 			await expect(
 				node.execute.call(mockExecuteFunctions as IExecuteFunctions),
-			).rejects.toThrow('Network error');
+			).rejects.toThrow('Yandex Cloud SDK error in invoke function');
 		});
 
 		it('should return error object when continueOnFail is true', async () => {

@@ -237,7 +237,7 @@ export class YandexCloudYdb implements INodeType {
 		let driver: Driver | null = null;
 
 		try {
-			driver = await createYDBDriver(serviceAccountJson, endpoint, database);
+			driver = await createYDBDriver(serviceAccountJson, endpoint, database, this.getNode());
 
 			// Process each item
 			for (let i = 0; i < items.length; i++) {

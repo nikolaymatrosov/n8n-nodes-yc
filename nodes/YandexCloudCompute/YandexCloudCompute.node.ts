@@ -11,6 +11,8 @@ import { NodeOperationError } from 'n8n-workflow';
 import { Session } from '@yandex-cloud/nodejs-sdk';
 import { instanceService, instance as instanceType } from '@yandex-cloud/nodejs-sdk/dist/clients/compute-v1/index';
 import { mapKeys, camelCase } from 'lodash';
+import { YandexCloudSdkError } from '@utils/sdkErrorHandling';
+import { withSdkErrorHandling } from '@utils/errorHandling';
 
 interface IIAmCredentials {
 	serviceAccountId: string;
@@ -180,8 +182,10 @@ export class YandexCloudCompute implements INodeType {
 					const client = session.client(instanceService.InstanceServiceClient);
 
 					// List instances
-					const response = await client.list(
-						instanceService.ListInstancesRequest.fromPartial({ folderId }),
+					const response = await withSdkErrorHandling(
+						this.getNode(),
+						() => client.list(instanceService.ListInstancesRequest.fromPartial({ folderId })),
+						'list instances',
 					);
 
 					// Return instance options
@@ -191,6 +195,11 @@ export class YandexCloudCompute implements INodeType {
 						description: inst.status ? `Status: ${instanceType.Instance_Status[inst.status]}` : inst.id,
 					}));
 				} catch (error) {
+					// Re-throw SDK errors as-is
+					if (error instanceof YandexCloudSdkError) {
+						throw error;
+					}
+					// Wrap other errors in NodeOperationError for backward compatibility
 					throw new NodeOperationError(
 						this.getNode(),
 						`Failed to list instances: ${error.message}`,
@@ -262,8 +271,11 @@ export class YandexCloudCompute implements INodeType {
 
 					if (operation === 'start') {
 						// Start the instance
-						const operationResult = await client.start(
-							instanceService.StartInstanceRequest.fromPartial({ instanceId }),
+						const operationResult = await withSdkErrorHandling(
+							this.getNode(),
+							() => client.start(instanceService.StartInstanceRequest.fromPartial({ instanceId })),
+							'start instance',
+							i,
 						);
 
 						returnData.push({
@@ -279,8 +291,11 @@ export class YandexCloudCompute implements INodeType {
 						});
 					} else if (operation === 'stop') {
 						// Stop the instance
-						const operationResult = await client.stop(
-							instanceService.StopInstanceRequest.fromPartial({ instanceId }),
+						const operationResult = await withSdkErrorHandling(
+							this.getNode(),
+							() => client.stop(instanceService.StopInstanceRequest.fromPartial({ instanceId })),
+							'stop instance',
+							i,
 						);
 
 						returnData.push({
@@ -300,14 +315,22 @@ export class YandexCloudCompute implements INodeType {
 				if (this.continueOnFail()) {
 					returnData.push({
 						json: {
-							error: error.message,
+							error: (error as Error).message,
 							success: false,
 						},
 						pairedItem: { item: i },
 					});
 					continue;
 				}
-				throw error;
+				// If it's already one of our custom errors, re-throw as-is
+				if (error instanceof YandexCloudSdkError || error instanceof NodeOperationError) {
+					throw error;
+				}
+				// Otherwise wrap in YandexCloudSdkError
+				throw new YandexCloudSdkError(this.getNode(), error as Error, {
+					operation: operation as string,
+					itemIndex: i,
+				});
 			}
 		}
 
