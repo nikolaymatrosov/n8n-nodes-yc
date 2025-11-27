@@ -11,8 +11,7 @@ import { NodeOperationError } from 'n8n-workflow';
 import { Session } from '@yandex-cloud/nodejs-sdk';
 import { translationService } from '@yandex-cloud/nodejs-sdk/dist/clients/ai-translate-v2/index';
 import { mapKeys, camelCase } from 'lodash';
-import { YandexCloudSdkError } from '@utils/sdkErrorHandling';
-import { withSdkErrorHandling } from '@utils/errorHandling';
+import { YandexCloudSdkError, withSdkErrorHandling } from '@utils/sdkErrorHandling';
 
 interface IIAmCredentials {
 	serviceAccountId: string;

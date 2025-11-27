@@ -9,8 +9,7 @@ import { NodeOperationError } from 'n8n-workflow';
 import { Session } from '@yandex-cloud/nodejs-sdk';
 import { sttService, stt } from '@yandex-cloud/nodejs-sdk/dist/clients/ai-stt-v3/index';
 import { mapKeys, camelCase } from 'lodash';
-import { YandexCloudSdkError } from '@utils/sdkErrorHandling';
-import { withSdkErrorHandling } from '@utils/errorHandling';
+import { YandexCloudSdkError, withSdkErrorHandling } from '@utils/sdkErrorHandling';
 
 interface IIAmCredentials {
 	serviceAccountId: string;
@@ -731,7 +730,7 @@ export class YandexCloudSpeechKitStt implements INodeType {
 					throw error;
 				}
 				// Otherwise wrap in YandexCloudSdkError
-				 
+
 				throw new YandexCloudSdkError(this.getNode(), error as Error, {
 					operation: operation as string,
 					itemIndex: i,

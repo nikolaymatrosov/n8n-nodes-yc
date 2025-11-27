@@ -26,8 +26,7 @@ import {
 import { Role } from '@yandex-cloud/nodejs-sdk/dist/generated/yandex/cloud/searchapi/v2/gen_search_service';
 import { mapKeys, camelCase } from 'lodash';
 import * as xml2js from 'xml2js';
-import { YandexCloudSdkError } from '@utils/sdkErrorHandling';
-import { withSdkErrorHandling } from '@utils/errorHandling';
+import { YandexCloudSdkError, withSdkErrorHandling } from '@utils/sdkErrorHandling';
 
 interface IIAmCredentials {
 	serviceAccountId: string;

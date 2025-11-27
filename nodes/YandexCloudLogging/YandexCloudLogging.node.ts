@@ -15,8 +15,7 @@ import {
 	createSession,
 	humanReadableLogLevel,
 } from './GenericFunctions';
-import { YandexCloudSdkError } from '@utils/sdkErrorHandling';
-import { withSdkErrorHandling } from '@utils/errorHandling';
+import { YandexCloudSdkError, withSdkErrorHandling } from '@utils/sdkErrorHandling';
 import {
 	logIngestionService,
 	logReadingService,

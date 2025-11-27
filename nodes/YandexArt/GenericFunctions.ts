@@ -6,8 +6,7 @@ import { imageGenerationService } from '@yandex-cloud/nodejs-sdk/dist/clients/ai
 import { operation, operationService } from '@yandex-cloud/nodejs-sdk/dist/clients/operation/index';
 import { ImageGenerationResponse } from '@yandex-cloud/nodejs-sdk/dist/generated/yandex/cloud/ai/foundation_models/v1/image_generation/image_generation_service';
 import { createYandexSession } from '@utils/authUtils';
-import { YandexCloudSdkError } from '@utils/sdkErrorHandling';
-import { withSdkErrorHandling } from '@utils/errorHandling';
+import { YandexCloudSdkError, withSdkErrorHandling } from '@utils/sdkErrorHandling';
 import type { IIAmCredentials } from './types';
 import { NodeOperationError } from 'n8n-workflow';
 import type { INode } from 'n8n-workflow';

@@ -12,8 +12,7 @@ import { Session } from '@yandex-cloud/nodejs-sdk';
 import { IamTokenService } from '@yandex-cloud/nodejs-sdk/dist/token-service/iam-token-service';
 import { containerService, container as containerType } from '@yandex-cloud/nodejs-sdk/dist/clients/serverless-containers-v1/index';
 import { mapKeys, camelCase } from 'lodash';
-import { YandexCloudSdkError } from '@utils/sdkErrorHandling';
-import { withSdkErrorHandling } from '@utils/errorHandling';
+import { YandexCloudSdkError, withSdkErrorHandling } from '@utils/sdkErrorHandling';
 
 interface IIAmCredentials {
 	serviceAccountId: string;

@@ -17,8 +17,7 @@ import {
 	validateServiceAccountCredentials,
 	createYandexSession,
 } from '@utils/authUtils';
-import { YandexCloudSdkError } from '@utils/sdkErrorHandling';
-import { withSdkErrorHandling } from '@utils/errorHandling';
+import { YandexCloudSdkError, withSdkErrorHandling } from '@utils/sdkErrorHandling';
 
 // Re-export for backward compatibility
 export { parseServiceAccountJson };

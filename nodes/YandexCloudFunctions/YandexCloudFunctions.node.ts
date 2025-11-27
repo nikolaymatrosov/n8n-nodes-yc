@@ -12,7 +12,7 @@ import { Session } from '@yandex-cloud/nodejs-sdk';
 import { IamTokenService } from '@yandex-cloud/nodejs-sdk/dist/token-service/iam-token-service';
 import { functionService, function as functionType } from '@yandex-cloud/nodejs-sdk/dist/clients/serverless-functions-v1/index';
 import { mapKeys, camelCase } from 'lodash';
-import { YandexCloudSdkError } from '@utils/sdkErrorHandling';
+import { YandexCloudSdkError, withSdkErrorHandling } from '@utils/sdkErrorHandling';
 
 interface IIAmCredentials {
 	serviceAccountId: string;
@@ -395,15 +395,12 @@ export class YandexCloudFunctions implements INodeType {
 					}
 
 					// Get IAM token
-					let token;
-					try {
-						token = await iamTokenService.getToken();
-					} catch (error) {
-						throw new YandexCloudSdkError(this.getNode(), error as Error, {
-							operation: 'get IAM token',
-							itemIndex: i,
-						});
-					}
+					const token = await withSdkErrorHandling(
+						this.getNode(),
+						() => iamTokenService.getToken(),
+						'get IAM token',
+						i,
+					);
 
 					// Build function invoke URL
 					const invokeUrl = `https://functions.yandexcloud.net/${functionId}`;

@@ -7,8 +7,7 @@ import type {
 import { NodeOperationError } from 'n8n-workflow';
 
 import { parseServiceAccountJson, validateServiceAccountCredentials } from '@utils/authUtils';
-import { YandexCloudSdkError } from '@utils/sdkErrorHandling';
-import { withSdkErrorHandling } from '@utils/errorHandling';
+import { YandexCloudSdkError, withSdkErrorHandling } from '@utils/sdkErrorHandling';
 import {
 	createImageGenerationClient,
 	createOperationClient,

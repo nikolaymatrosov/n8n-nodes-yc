@@ -11,8 +11,7 @@ import { NodeOperationError } from 'n8n-workflow';
 import { Session } from '@yandex-cloud/nodejs-sdk';
 import { workflowService, executionService, workflow as workflowType } from '@yandex-cloud/nodejs-sdk/dist/clients/serverless-workflows-v1/index';
 import { mapKeys, camelCase } from 'lodash';
-import { YandexCloudSdkError } from '@utils/sdkErrorHandling';
-import { withSdkErrorHandling } from '@utils/errorHandling';
+import { YandexCloudSdkError, withSdkErrorHandling } from '@utils/sdkErrorHandling';
 
 interface IIAmCredentials {
 	serviceAccountId: string;

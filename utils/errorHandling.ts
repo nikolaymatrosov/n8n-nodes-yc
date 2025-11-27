@@ -1,5 +1,4 @@
 import { NodeApiError, NodeOperationError, type INode } from 'n8n-workflow';
-export { withSdkErrorHandling } from './sdkErrorHandling';
 
 /**
  * Creates a standardized NodeOperationError with consistent messaging.
