@@ -179,7 +179,7 @@ describe('YandexCloudTranslate Node', () => {
 				node.methods!.loadOptions!.loadSourceLanguages.call(
 					mockLoadOptionsFunctions as ILoadOptionsFunctions,
 				),
-			).rejects.toThrow('Failed to load languages: API Error');
+			).rejects.toThrow('Yandex Cloud SDK error in list languages');
 		});
 	});
 
@@ -483,7 +483,7 @@ describe('YandexCloudTranslate Node', () => {
 			const result = await node.execute.call(mockExecuteFunctions as IExecuteFunctions);
 
 			expect(result[0][0].json).toMatchObject({
-				error: 'API Error',
+				error: 'Yandex Cloud SDK error in translate text',
 				success: false,
 			});
 		});
@@ -551,7 +551,7 @@ describe('YandexCloudTranslate Node', () => {
 			const result = await node.execute.call(mockExecuteFunctions as IExecuteFunctions);
 
 			expect(result[0][0].json).toMatchObject({
-				error: 'API Error',
+				error: 'Yandex Cloud SDK error in detect language',
 				success: false,
 			});
 		});
@@ -599,7 +599,7 @@ describe('YandexCloudTranslate Node', () => {
 
 			await expect(
 				node.execute.call(mockExecuteFunctions as IExecuteFunctions),
-			).rejects.toThrow('Failed to list languages: API Error');
+			).rejects.toThrow('Yandex Cloud SDK error in list languages');
 		});
 	});
 

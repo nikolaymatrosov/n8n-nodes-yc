@@ -12,6 +12,7 @@ import { Session } from '@yandex-cloud/nodejs-sdk';
 import { IamTokenService } from '@yandex-cloud/nodejs-sdk/dist/token-service/iam-token-service';
 import { containerService, container as containerType } from '@yandex-cloud/nodejs-sdk/dist/clients/serverless-containers-v1/index';
 import { mapKeys, camelCase } from 'lodash';
+import { YandexCloudSdkError, withSdkErrorHandling } from '@utils/sdkErrorHandling';
 
 interface IIAmCredentials {
 	serviceAccountId: string;
@@ -298,8 +299,12 @@ export class YandexCloudContainers implements INodeType {
 					const client = session.client(containerService.ContainerServiceClient);
 
 					// List containers
-					const response = await client.list(
-						containerService.ListContainersRequest.fromPartial({ folderId }),
+					const response = await withSdkErrorHandling(
+						this.getNode(),
+						() => client.list(
+							containerService.ListContainersRequest.fromPartial({ folderId }),
+						),
+						'list containers',
 					);
 
 					// Return container options
@@ -309,6 +314,11 @@ export class YandexCloudContainers implements INodeType {
 						description: cont.url || cont.id,
 					}));
 				} catch (error) {
+					// Re-throw SDK errors as-is
+					if (error instanceof YandexCloudSdkError) {
+						throw error;
+					}
+					// Wrap other errors in NodeOperationError for backward compatibility
 					throw new NodeOperationError(
 						this.getNode(),
 						`Failed to list containers: ${error.message}`,
@@ -386,8 +396,13 @@ export class YandexCloudContainers implements INodeType {
 
 					// Get container URL
 					const client = session.client(containerService.ContainerServiceClient);
-					const container = await client.get(
-						containerService.GetContainerRequest.fromPartial({ containerId }),
+					const container = await withSdkErrorHandling(
+						this.getNode(),
+						() => client.get(
+							containerService.GetContainerRequest.fromPartial({ containerId }),
+						),
+						'get container',
+						i,
 					);
 
 					if (!container.url) {
@@ -398,7 +413,12 @@ export class YandexCloudContainers implements INodeType {
 					}
 
 					// Get IAM token
-					const token = await iamTokenService.getToken();
+					const token = await withSdkErrorHandling(
+						this.getNode(),
+						() => iamTokenService.getToken(),
+						'get IAM token',
+						i,
+					);
 
 					// Build container invoke URL
 					const invokeUrl = container.url;
@@ -484,14 +504,22 @@ export class YandexCloudContainers implements INodeType {
 				if (this.continueOnFail()) {
 					returnData.push({
 						json: {
-							error: error.message,
+							error: (error as Error).message,
 							success: false,
 						},
 						pairedItem: { item: i },
 					});
 					continue;
 				}
-				throw error;
+				// If it's already one of our custom errors, re-throw as-is
+				if (error instanceof YandexCloudSdkError || error instanceof NodeOperationError) {
+					throw error;
+				}
+				// Otherwise wrap in YandexCloudSdkError
+				throw new YandexCloudSdkError(this.getNode(), error as Error, {
+					operation: 'invoke container',
+					itemIndex: i,
+				});
 			}
 		}
 

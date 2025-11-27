@@ -6,6 +6,7 @@ import { imageGenerationService } from '@yandex-cloud/nodejs-sdk/dist/clients/ai
 import { operation, operationService } from '@yandex-cloud/nodejs-sdk/dist/clients/operation/index';
 import { ImageGenerationResponse } from '@yandex-cloud/nodejs-sdk/dist/generated/yandex/cloud/ai/foundation_models/v1/image_generation/image_generation_service';
 import { createYandexSession } from '@utils/authUtils';
+import { YandexCloudSdkError, withSdkErrorHandling } from '@utils/sdkErrorHandling';
 import type { IIAmCredentials } from './types';
 import { NodeOperationError } from 'n8n-workflow';
 import type { INode } from 'n8n-workflow';
@@ -59,7 +60,11 @@ export async function pollOperationUntilDone(
 		pollCount++;
 
 		try {
-			const operation = await operationClient.get({ operationId });
+			const operation = await withSdkErrorHandling(
+				node,
+				() => operationClient.get({ operationId }),
+				'poll operation status',
+			);
 
 			if (operation.done) {
 				// Check if operation completed with error
@@ -79,15 +84,15 @@ export async function pollOperationUntilDone(
 			// Operation still in progress, wait before next poll
 			await new Promise((resolve) => setTimeout(resolve, pollInterval));
 		} catch (error) {
-			// If it's already a NodeOperationError, rethrow it
-			if (error instanceof NodeOperationError) {
+			// If it's already a custom error, rethrow it
+			if (error instanceof YandexCloudSdkError || error instanceof NodeOperationError) {
 				throw error;
 			}
 
 			// Otherwise, wrap the error
 			throw new NodeOperationError(
 				node,
-				`Failed to poll operation status: ${error.message}`,
+				`Failed to poll operation status: ${(error as Error).message}`,
 			);
 		}
 	}

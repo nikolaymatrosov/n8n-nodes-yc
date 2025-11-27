@@ -237,7 +237,7 @@ describe('YandexCloudContainers Node', () => {
 				node.methods!.loadOptions!.loadContainers.call(
 					mockLoadOptionsFunctions as ILoadOptionsFunctions,
 				),
-			).rejects.toThrow('Failed to list containers: API Error');
+			).rejects.toThrow('Yandex Cloud SDK error in list containers');
 		});
 
 		it('should handle containers without URL', async () => {
@@ -650,7 +650,7 @@ describe('YandexCloudContainers Node', () => {
 
 			await expect(
 				node.execute.call(mockExecuteFunctions as IExecuteFunctions),
-			).rejects.toThrow('Network error');
+			).rejects.toThrow('Yandex Cloud SDK error in invoke container');
 		});
 
 		it('should return error object when continueOnFail is true', async () => {

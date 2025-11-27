@@ -1,5 +1,6 @@
 import type { ILoadOptionsFunctions, INode } from 'n8n-workflow';
 import { NodeApiError } from 'n8n-workflow';
+import { YandexCloudSdkError } from '@utils/sdkErrorHandling';
 import { loadLogGroups } from '../GenericFunctions';
 
 // Mock dependencies
@@ -259,11 +260,11 @@ describe('YandexCloudLogging GenericFunctions', () => {
 
 			await expect(
 				loadLogGroups.call(mockLoadOptionsFunctions as ILoadOptionsFunctions),
-			).rejects.toThrow(NodeApiError);
+			).rejects.toThrow(YandexCloudSdkError);
 
 			await expect(
 				loadLogGroups.call(mockLoadOptionsFunctions as ILoadOptionsFunctions),
-			).rejects.toThrow('Failed to load log groups');
+			).rejects.toThrow('Yandex Cloud SDK error in load log groups');
 		});
 
 		it('should call API with correct parameters', async () => {

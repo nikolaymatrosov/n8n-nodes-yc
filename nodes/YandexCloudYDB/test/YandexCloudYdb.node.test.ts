@@ -164,6 +164,7 @@ describe('YandexCloudYDB Node', () => {
 				}),
 				'grpcs://test.ydb.net:2135',
 				'/test/database',
+				expect.objectContaining({ name: 'Test YDB Node' }),
 			);
 		});
 
@@ -221,6 +222,7 @@ describe('YandexCloudYDB Node', () => {
 				}),
 				'grpcs://test.ydb.net:2135',
 				'/test/database',
+				expect.objectContaining({ name: 'Test YDB Node' }),
 			);
 		});
 	});

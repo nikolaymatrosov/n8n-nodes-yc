@@ -380,7 +380,7 @@ describe('YandexCloudSpeechKitStt Node', () => {
 
 		await expect(
 			node.execute.call(mockExecuteFunctions as IExecuteFunctions),
-		).rejects.toThrow('API Error: Invalid audio URL');
+		).rejects.toThrow('Yandex Cloud SDK error in recognize audio file');
 	});
 
 	it('should handle error with continueOnFail enabled', async () => {
@@ -400,7 +400,7 @@ describe('YandexCloudSpeechKitStt Node', () => {
 		const result = await node.execute.call(mockExecuteFunctions as IExecuteFunctions);
 
 		expect(result[0][0].json).toMatchObject({
-			error: 'Network error',
+			error: 'Yandex Cloud SDK error in recognize audio file',
 			success: false,
 		});
 	});
@@ -624,7 +624,7 @@ describe('YandexCloudSpeechKitStt Node', () => {
 
 		await expect(
 			node.execute.call(mockExecuteFunctions as IExecuteFunctions),
-		).rejects.toThrow('PERMISSION_DENIED');
+		).rejects.toThrow('Yandex Cloud SDK error in get recognition results');
 	});
 
 		it('should handle API error in getResults', async () => {
@@ -638,7 +638,7 @@ describe('YandexCloudSpeechKitStt Node', () => {
 
 			await expect(
 				node.execute.call(mockExecuteFunctions as IExecuteFunctions),
-			).rejects.toThrow('API Error: Invalid operation ID');
+			).rejects.toThrow('Yandex Cloud SDK error in get recognition results');
 		});
 
 		it('should handle error with continueOnFail in getResults', async () => {
@@ -655,7 +655,7 @@ describe('YandexCloudSpeechKitStt Node', () => {
 			const result = await node.execute.call(mockExecuteFunctions as IExecuteFunctions);
 
 			expect(result[0][0].json).toMatchObject({
-				error: 'Connection timeout',
+				error: 'Yandex Cloud SDK error in get recognition results',
 				success: false,
 			});
 		});
@@ -724,7 +724,7 @@ describe('YandexCloudSpeechKitStt Node', () => {
 		expect(result[0]).toHaveLength(2);
 		expect(result[0][0].json.success).toBe(true);
 		expect(result[0][1].json.success).toBe(false);
-		expect(result[0][1].json.error).toBe('API Error');
+		expect(result[0][1].json.error).toBe('Yandex Cloud SDK error in recognize audio file');
 	});
 	});
 });

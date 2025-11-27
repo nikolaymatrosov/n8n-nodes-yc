@@ -40,12 +40,16 @@ The build process is multi-step:
 
 ### Testing
 
+Brief summary of testing configuration:
+
 - **Unit tests location:** `nodes/**/test/*.test.ts`
 - **Test framework:** Jest with ts-jest
 - **Mocking:** jest-mock-extended for interfaces, nock for HTTP requests
 - **Test timeout:** 10 seconds default
 - **Coverage threshold:** Aim for >85%
 - Always mock external dependencies (AWS SDK, Yandex Cloud SDK, HTTP calls)
+
+For detailed testing patterns and examples, see Section 8. For testing guidelines from .cursor/rules, see "Important Development Rules" below.
 
 ### Running Single Test
 
@@ -266,7 +270,7 @@ import { serviceModule } from '@yandex-cloud/nodejs-sdk/dist/clients/service-v1'
 // In execute method
 const credentials = await this.getCredentials('yandexCloudAuthorizedApi');
 const serviceAccountJson = parseServiceAccountJson(credentials.serviceAccountJson as string);
-validateServiceAccountCredentials(serviceAccountJson, this.getNode);
+validateServiceAccountCredentials(serviceAccountJson, this.getNode());
 const session = createYandexSession(serviceAccountJson);
 const client = session.client(serviceModule.ServiceClient);
 
@@ -723,6 +727,8 @@ for (const object of response.Contents || []) {
 
 **All nodes must implement this pattern:**
 
+**Note:** For Yandex Cloud SDK-specific error handling variations, see Section 6.4.
+
 ```typescript
 for (let i = 0; i < items.length; i++) {
  try {
@@ -765,7 +771,7 @@ let serviceAccountJson;
 try {
  const credentials = await this.getCredentials('yandexCloudAuthorizedApi');
  serviceAccountJson = parseServiceAccountJson(credentials.serviceAccountJson as string);
- validateServiceAccountCredentials(serviceAccountJson, this.getNode);
+ validateServiceAccountCredentials(serviceAccountJson, this.getNode());
 } catch (error) {
  throw new NodeOperationError(
   this.getNode(),
@@ -784,6 +790,7 @@ try {
 import {
  createOperationError,
  withErrorHandling,
+ withSdkErrorHandling,
  validateRequiredFields,
 } from '@utils/errorHandling';
 
@@ -794,12 +801,20 @@ throw createOperationError(
  'Check that the bucket exists and you have write permissions',
 );
 
-// Wrap operations with automatic error handling
+// Wrap general operations with automatic error handling
 const result = await withErrorHandling(
  this.getNode(),
  async () => await client.send(command),
  'Failed to execute command',
  'operation', // or 'api'
+);
+
+// Wrap Yandex Cloud SDK operations (extracts RequestId/ServerTraceId - see 6.4 for details)
+const result = await withSdkErrorHandling(
+ this.getNode(),
+ () => client.sdkMethod(request),
+ 'operation name',
+ i  // optional item index
 );
 
 // Validate required fields
@@ -810,10 +825,125 @@ validateRequiredFields(data, ['serviceAccountId', 'privateKey'], this.getNode(),
 
 - `createOperationError()` - Create NodeOperationError
 - `createApiError()` - Create NodeApiError
-- `withErrorHandling()` - Wrap async operations
+- `withErrorHandling()` - Wrap general async operations
+- `withSdkErrorHandling()` - Wrap Yandex Cloud SDK operations (see detailed patterns in Section 6.4)
 - `validateRequiredFields()` - Validate object fields
 
-#### 6.4 Operation-Specific Error Messages
+#### 6.4 Yandex Cloud SDK Error Handling Pattern
+
+**IMPORTANT:** All Yandex Cloud SDK calls must use `withSdkErrorHandling` to ensure consistent error handling with proper RequestId and ServerTraceId extraction.
+
+**Pattern for wrapping SDK calls:**
+
+```typescript
+import { withSdkErrorHandling } from '@utils/errorHandling';
+
+// Simple SDK call
+const response = await withSdkErrorHandling(
+ this.getNode(),
+ () => client.sdkMethod(request),
+ 'operation name'
+);
+
+// Per-item SDK call (includes itemIndex)
+const response = await withSdkErrorHandling(
+ this.getNode(),
+ () => client.sdkMethod(request),
+ 'operation name',
+ i  // item index
+);
+
+// Streaming SDK call
+await withSdkErrorHandling(
+ this.getNode(),
+ async () => {
+  const responseStream = client.streamMethod(request);
+  for await (const response of responseStream) {
+   // process response
+  }
+ },
+ 'operation name',
+ i  // optional item index
+);
+```
+
+**Main catch block pattern (re-throwing custom errors):**
+
+```typescript
+for (let i = 0; i < items.length; i++) {
+ try {
+  // SDK operations wrapped with withSdkErrorHandling
+  const result = await withSdkErrorHandling(
+   this.getNode(),
+   () => client.operation(params),
+   'operation name',
+   i
+  );
+
+  returnData.push({
+   json: result,
+   pairedItem: { item: i },
+  });
+ } catch (error) {
+  if (this.continueOnFail()) {
+   returnData.push({
+    json: {
+     error: error.message,
+     success: false,
+    },
+    pairedItem: { item: i },
+   });
+   continue;
+  }
+  // Re-throw SDK errors as-is (they're already wrapped)
+  if (error instanceof YandexCloudSdkError || error instanceof NodeOperationError) {
+   throw error;
+  }
+  // Wrap unexpected errors
+  throw new YandexCloudSdkError(this.getNode(), error as Error, {
+   operation: operation as string,
+   itemIndex: i,
+  });
+ }
+}
+```
+
+**Examples:**
+
+- [YandexCloudWorkflows.node.ts:197-203](nodes/YandexCloudWorkflows/YandexCloudWorkflows.node.ts#L197-L203) - Simple SDK call
+- [YandexCloudWorkflows.node.ts:296-308](nodes/YandexCloudWorkflows/YandexCloudWorkflows.node.ts#L296-L308) - Per-item SDK call
+- [YandexCloudSpeechKit.node.ts:446-458](nodes/YandexCloudSpeechKit/YandexCloudSpeechKit.node.ts#L446-L458) - Streaming SDK call
+- [YandexArt/GenericFunctions.ts:64-68](nodes/YandexArt/GenericFunctions.ts#L64-L68) - SDK call in helper function
+
+##### Special case: Race condition handling
+
+If your operation requires special error handling (e.g., race conditions), you can catch and inspect the error:
+
+```typescript
+try {
+ await withSdkErrorHandling(
+  this.getNode(),
+  async () => {
+   // SDK operation
+  },
+  'operation name',
+  i
+ );
+} catch (error: any) {
+ // Check error description or message for specific conditions
+ const errorText = error.description || error.message || '';
+ if (errorText.includes('EXPECTED_CONDITION')) {
+  // Handle special case
+  continue; // or other recovery logic
+ }
+ // Re-throw other errors
+ throw error;
+}
+```
+
+**Example:** [YandexCloudSpeechKitSTT.node.ts:642-654](nodes/YandexCloudSpeechKitSTT/YandexCloudSpeechKitStt.node.ts#L642-L654)
+
+#### 6.5 Operation-Specific Error Messages
 
 Always provide context in error messages:
 
@@ -825,6 +955,11 @@ throw new NodeOperationError(
 ```
 
 ### 7. Type Definition Patterns
+
+This section covers type definitions used throughout the project. There are two main categories of constants:
+
+1. **Parameter Name Constants (PARAMS)** - Used with `getNodeParameter()` for type-safe parameter access (Section 7.4)
+2. **Resource/Operation Constants (RESOURCES/OPERATIONS)** - Used for routing logic in refactored nodes (Section 11.3)
 
 #### 7.1 Credential Interface Types
 
@@ -1239,32 +1374,17 @@ Organize tests into these categories:
 
 ### 10. Utility Extraction Pattern
 
-Recent refactoring moved common code to centralized utilities. **Always use these utilities** instead of duplicating code:
+Recent refactoring moved common code to centralized utilities. **Always use these utilities** instead of duplicating code.
 
-**Authentication & Credentials:** [authUtils.ts](utils/authUtils.ts)
+For detailed usage examples and patterns, refer to the sections below:
 
-- `parseServiceAccountJson()` - Parse and normalize service account JSON
-- `parseStaticApiCredentials()` - Parse static API credentials
-- `validateServiceAccountCredentials()` - Validate required fields
-- `createYandexSession()` - Create Yandex SDK session
+**Authentication & Credentials:** [authUtils.ts](utils/authUtils.ts) - See Section 2.2 for usage patterns
 
-**Client Factories:** [awsClientFactory.ts](utils/awsClientFactory.ts)
+**Client Factories:** [awsClientFactory.ts](utils/awsClientFactory.ts) - See Section 2.1 for usage patterns
 
-- `createS3Client()` - S3/Object Storage client
-- `createKinesisClient()` - Kinesis/Data Streams client
-- `createSQSClient()` - SQS/Message Queue client
-- `createSESClient()` - SES/Postbox client
+**Resource Loaders:** [resourceLocator.ts](utils/resourceLocator.ts) - See Section 3.1 for usage patterns
 
-**Resource Loaders:** [resourceLocator.ts](utils/resourceLocator.ts)
-
-- `createResourceLoader()` - Generic factory for resource locators
-
-**Error Handling:** [errorHandling.ts](utils/errorHandling.ts)
-
-- `createOperationError()` - Create NodeOperationError
-- `createApiError()` - Create NodeApiError
-- `withErrorHandling()` - Wrap operations with error handling
-- `validateRequiredFields()` - Validate required fields
+**Error Handling:** [errorHandling.ts](utils/errorHandling.ts) - See Section 6.3 and 6.4 for detailed error handling patterns
 
 **Backwards Compatibility:**
 
@@ -1488,7 +1608,9 @@ This allows clean imports in the main node file.
 
 #### 11.6 Refactor Main Node File
 
-Reduce the main node file to routing logic only:
+Reduce the main node file to routing logic only.
+
+**Note:** For constants usage rules (when to use literals vs constants in properties), see Section 11.8 below.
 
 ```typescript
 import type {
@@ -1512,12 +1634,12 @@ export class YandexCloudNodeName implements INodeType {
     displayName: 'Resource',
     name: 'resource',
     type: 'options',
-    default: 'resource1',  // Use literal for default
+    default: 'resource1',  // IMPORTANT: Use literal string for default (linter requirement - see 11.8)
     noDataExpression: true,
     options: [
      {
       name: 'Resource1',
-      value: RESOURCES.RESOURCE1,  // Use constant for value
+      value: RESOURCES.RESOURCE1,  // Use constant for value (type safety)
      },
      {
       name: 'Resource2',
@@ -1529,17 +1651,17 @@ export class YandexCloudNodeName implements INodeType {
     displayName: 'Operation',
     name: 'operation',
     type: 'options',
-    default: 'list',  // Use literal for default
+    default: 'list',  // IMPORTANT: Use literal string for default (linter requirement - see 11.8)
     noDataExpression: true,
     displayOptions: {
      show: {
-      resource: [RESOURCES.RESOURCE1],  // Use constant
+      resource: [RESOURCES.RESOURCE1],  // Use constant in displayOptions (type safety)
      },
     },
     options: [
      {
       name: 'List',
-      value: RESOURCE1_OPERATIONS.LIST,  // Use constant
+      value: RESOURCE1_OPERATIONS.LIST,  // Use constant for value (type safety)
       description: 'List all items',
       action: 'List items',
      },

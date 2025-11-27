@@ -11,6 +11,7 @@ import { NodeOperationError } from 'n8n-workflow';
 import { Session } from '@yandex-cloud/nodejs-sdk';
 import { workflowService, executionService, workflow as workflowType } from '@yandex-cloud/nodejs-sdk/dist/clients/serverless-workflows-v1/index';
 import { mapKeys, camelCase } from 'lodash';
+import { YandexCloudSdkError, withSdkErrorHandling } from '@utils/sdkErrorHandling';
 
 interface IIAmCredentials {
 	serviceAccountId: string;
@@ -192,8 +193,12 @@ export class YandexCloudWorkflows implements INodeType {
 					const client = session.client(workflowService.WorkflowServiceClient);
 
 					// List workflows
-					const response = await client.list(
-						workflowService.ListWorkflowsRequest.fromPartial({ folderId }),
+					const response = await withSdkErrorHandling(
+						this.getNode(),
+						() => client.list(
+							workflowService.ListWorkflowsRequest.fromPartial({ folderId }),
+						),
+						'list workflows'
 					);
 
 					// Return workflow options
@@ -203,9 +208,13 @@ export class YandexCloudWorkflows implements INodeType {
 						description: wf.description || wf.id,
 					}));
 				} catch (error) {
+					// Re-throw SDK errors as-is
+					if (error instanceof YandexCloudSdkError) {
+						throw error;
+					}
 					throw new NodeOperationError(
 						this.getNode(),
-						`Failed to list workflows: ${error.message}`,
+						`Failed to load workflow options: ${(error as Error).message}`,
 					);
 				}
 			},
@@ -283,13 +292,18 @@ export class YandexCloudWorkflows implements INodeType {
 
 					// Start workflow execution
 					const client = session.client(executionService.ExecutionServiceClient);
-					const response = await client.start(
-						executionService.StartExecutionRequest.fromPartial({
-							workflowId,
-							input: {
-								inputJson: inputData,
-							},
-						}),
+					const response = await withSdkErrorHandling(
+						this.getNode(),
+						() => client.start(
+							executionService.StartExecutionRequest.fromPartial({
+								workflowId,
+								input: {
+									inputJson: inputData,
+								},
+							}),
+						),
+						'start workflow execution',
+						i
 					);
 
 					returnData.push({
@@ -305,14 +319,22 @@ export class YandexCloudWorkflows implements INodeType {
 				if (this.continueOnFail()) {
 					returnData.push({
 						json: {
-							error: error.message,
+							error: (error as Error).message,
 							success: false,
 						},
 						pairedItem: { item: i },
 					});
 					continue;
 				}
-				throw error;
+				// If it's already one of our custom errors, re-throw as-is
+				if (error instanceof YandexCloudSdkError || error instanceof NodeOperationError) {
+					throw error;
+				}
+				// Otherwise wrap in YandexCloudSdkError
+				throw new YandexCloudSdkError(this.getNode(), error as Error, {
+					operation: 'startExecution',
+					itemIndex: i,
+				});
 			}
 		}
 

@@ -2,6 +2,7 @@ import { Driver } from '@ydbjs/core';
 import { query } from '@ydbjs/query';
 import { fromJs, toJs } from '@ydbjs/value';
 import { IamTokenService } from '@yandex-cloud/nodejs-sdk/dist/token-service/iam-token-service';
+import { withSdkErrorHandling } from '@utils/sdkErrorHandling';
 import type { YDBQueryParams } from './types';
 import { type CallOptions, type ClientMiddlewareCall, Metadata } from 'nice-grpc';
 import {
@@ -20,12 +21,19 @@ export async function createYDBDriver(
 	serviceAccountJson: IIAmCredentials,
 	endpoint: string,
 	database: string,
+	node?: any,
 ): Promise<Driver> {
 	// Create IAM token service to get token
 	const iamTokenService = new IamTokenService(serviceAccountJson);
 
 	// Get IAM token
-	const iamToken = await iamTokenService.getToken();
+	const iamToken = node
+		? await withSdkErrorHandling(
+				node,
+				() => iamTokenService.getToken(),
+				'get IAM token',
+		  )
+		: await iamTokenService.getToken();
 
 	// Create credentials provider with IAM token
 	const credentialsProvider = new AccessTokenCredentialsProvider({

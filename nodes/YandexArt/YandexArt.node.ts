@@ -7,6 +7,7 @@ import type {
 import { NodeOperationError } from 'n8n-workflow';
 
 import { parseServiceAccountJson, validateServiceAccountCredentials } from '@utils/authUtils';
+import { YandexCloudSdkError, withSdkErrorHandling } from '@utils/sdkErrorHandling';
 import {
 	createImageGenerationClient,
 	createOperationClient,
@@ -365,7 +366,12 @@ export class YandexArt implements INodeType {
 					});
 
 					// Call generate API (returns Operation)
-					const operation = await imageClient.generate(request);
+					const operation = await withSdkErrorHandling(
+						this.getNode(),
+						() => imageClient.generate(request),
+						'generate image',
+						i,
+					);
 
 					// If not waiting for completion, return operation ID
 					if (!waitForCompletion) {
@@ -431,14 +437,22 @@ export class YandexArt implements INodeType {
 					if (this.continueOnFail()) {
 						returnData.push({
 							json: {
-								error: error.message,
+								error: (error as Error).message,
 								success: false,
 							},
 							pairedItem: { item: i },
 						});
 						continue;
 					}
-					throw error;
+					// If it's already one of our custom errors, re-throw as-is
+					if (error instanceof YandexCloudSdkError || error instanceof NodeOperationError) {
+						throw error;
+					}
+					// Otherwise wrap in YandexCloudSdkError
+					throw new YandexCloudSdkError(this.getNode(), error as Error, {
+						operation: operation as string,
+						itemIndex: i,
+					});
 				}
 			}
 		}

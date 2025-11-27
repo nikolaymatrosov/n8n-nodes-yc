@@ -26,6 +26,7 @@ import {
 import { Role } from '@yandex-cloud/nodejs-sdk/dist/generated/yandex/cloud/searchapi/v2/gen_search_service';
 import { mapKeys, camelCase } from 'lodash';
 import * as xml2js from 'xml2js';
+import { YandexCloudSdkError, withSdkErrorHandling } from '@utils/sdkErrorHandling';
 
 interface IIAmCredentials {
 	serviceAccountId: string;
@@ -599,7 +600,12 @@ export class YandexCloudSearch implements INodeType {
 					}
 
 					// Call API
-					const response = await client.search(searchService.WebSearchRequest.fromPartial(request));
+					const response = await withSdkErrorHandling(
+						this.getNode(),
+						() => client.search(searchService.WebSearchRequest.fromPartial(request)),
+						'web search',
+						i,
+					);
 
 					// Parse XML to JSON if requested
 					let resultData: any = {
@@ -685,20 +691,27 @@ export class YandexCloudSearch implements INodeType {
 
 					// Accumulate streaming responses
 					const responses: any[] = [];
-					for await (const response of stream) {
-						responses.push({
-							message: response.message,
-							sources: response.sources?.map((s: any) => ({
-								url: s.url,
-								title: s.title,
-								used: s.used,
-							})),
-							searchQueries: response.searchQueries,
-							fixedMisspellQuery: response.fixedMisspellQuery,
-							isAnswerRejected: response.isAnswerRejected,
-							isBulletAnswer: response.isBulletAnswer,
-						});
-					}
+					await withSdkErrorHandling(
+						this.getNode(),
+						async () => {
+							for await (const response of stream) {
+								responses.push({
+									message: response.message,
+									sources: response.sources?.map((s: any) => ({
+										url: s.url,
+										title: s.title,
+										used: s.used,
+									})),
+									searchQueries: response.searchQueries,
+									fixedMisspellQuery: response.fixedMisspellQuery,
+									isAnswerRejected: response.isAnswerRejected,
+									isBulletAnswer: response.isBulletAnswer,
+								});
+							}
+						},
+						'generative search',
+						i,
+					);
 
 					// Return accumulated responses
 					returnData.push({
@@ -713,14 +726,22 @@ export class YandexCloudSearch implements INodeType {
 				if (this.continueOnFail()) {
 					returnData.push({
 						json: {
-							error: error.message,
+							error: (error as Error).message,
 							success: false,
 						},
 						pairedItem: { item: i },
 					});
 					continue;
 				}
-				throw error;
+				// If it's already one of our custom errors, re-throw as-is
+				if (error instanceof YandexCloudSdkError || error instanceof NodeOperationError) {
+					throw error;
+				}
+				// Otherwise wrap in YandexCloudSdkError
+				throw new YandexCloudSdkError(this.getNode(), error as Error, {
+					operation: operation as string,
+					itemIndex: i,
+				});
 			}
 		}
 

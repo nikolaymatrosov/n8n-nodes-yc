@@ -307,7 +307,7 @@ describe('YandexCloudLogging Node', () => {
 			const result = await node.execute.call(mockExecuteFunctions as IExecuteFunctions);
 
 			expect(result[0][0].json).toMatchObject({
-				error: 'API Error',
+				error: 'Yandex Cloud SDK error in write log entries',
 				success: false,
 			});
 		});
@@ -317,7 +317,7 @@ describe('YandexCloudLogging Node', () => {
 
 			await expect(
 				node.execute.call(mockExecuteFunctions as IExecuteFunctions),
-			).rejects.toThrow('API Error');
+			).rejects.toThrow('Yandex Cloud SDK error in write log entries');
 		});
 	});
 
@@ -518,7 +518,7 @@ describe('YandexCloudLogging Node', () => {
 			const result = await node.execute.call(mockExecuteFunctions as IExecuteFunctions);
 
 			expect(result[0][0].json).toMatchObject({
-				error: 'API Error',
+				error: 'Yandex Cloud SDK error in read log entries',
 				success: false,
 			});
 		});

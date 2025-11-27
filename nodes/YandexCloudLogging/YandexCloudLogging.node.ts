@@ -15,6 +15,7 @@ import {
 	createSession,
 	humanReadableLogLevel,
 } from './GenericFunctions';
+import { YandexCloudSdkError, withSdkErrorHandling } from '@utils/sdkErrorHandling';
 import {
 	logIngestionService,
 	logReadingService,
@@ -596,7 +597,12 @@ export class YandexCloudLogging implements INodeType {
 						}
 
 						// Write log entries
-						const response = await client.write(request);
+						const response = await withSdkErrorHandling(
+							this.getNode(),
+							() => client.write(request),
+							'write log entries',
+							i,
+						);
 
 						returnData.push({
 							json: {
@@ -618,7 +624,15 @@ export class YandexCloudLogging implements INodeType {
 							});
 							continue;
 						}
-						throw error;
+						// Re-throw if it's already our custom error type
+						if (error instanceof YandexCloudSdkError || error instanceof NodeOperationError) {
+							throw error;
+						}
+						// Otherwise wrap in YandexCloudSdkError
+						throw new YandexCloudSdkError(this.getNode(), error as Error, {
+							operation: 'write',
+							itemIndex: i,
+						});
 					}
 				}
 			} else if (operation === 'read') {
@@ -693,7 +707,12 @@ export class YandexCloudLogging implements INodeType {
 								? logReadingService.ReadRequest.fromJSON({ pageToken })
 								: logReadingService.ReadRequest.fromJSON({ criteria });
 
-							const response = await client.read(request);
+							const response = await withSdkErrorHandling(
+								this.getNode(),
+								() => client.read(request),
+								'read log entries',
+								i,
+							);
 
 							if (response.entries && response.entries.length > 0) {
 								allEntries = allEntries.concat(response.entries);
@@ -737,7 +756,15 @@ export class YandexCloudLogging implements INodeType {
 							});
 							continue;
 						}
-						throw error;
+						// Re-throw if it's already our custom error type
+						if (error instanceof YandexCloudSdkError || error instanceof NodeOperationError) {
+							throw error;
+						}
+						// Otherwise wrap in YandexCloudSdkError
+						throw new YandexCloudSdkError(this.getNode(), error as Error, {
+							operation: 'read',
+							itemIndex: i,
+						});
 					}
 				}
 			}

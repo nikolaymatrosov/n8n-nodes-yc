@@ -461,7 +461,7 @@ describe('YandexCloudVisionOcr Node', () => {
 
 			await expect(
 				node.execute.call(mockExecuteFunctions as IExecuteFunctions),
-			).rejects.toThrow('OCR service error');
+			).rejects.toThrow('Yandex Cloud SDK error in recognize');
 		});
 
 		it('should continue on OCR errors when continueOnFail is enabled', async () => {
