@@ -15,6 +15,45 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 
+## [0.9.1] - 2025-11-27
+
+### Added
+
+- **Yandex Cloud SDK Error Handling**: Comprehensive error handling utilities for Yandex Cloud SDK operations
+  - New `YandexCloudSdkError` class for consistent SDK error representation
+  - Automatic extraction of RequestId and ServerTraceId from SDK errors for debugging
+  - Type guards for detecting SDK-specific error types (`isSdkError`, `isSdkStatusError`, `isGrpcStatusObject`)
+  - `withSdkErrorHandling` utility function to wrap SDK calls with automatic error enrichment
+  - Enhanced error messages with operation context and item index information
+  - Comprehensive test coverage (30+ test cases) for error handling utilities
+  - Applied consistent error handling across all SDK-based nodes: Compute, Containers, Functions, Logging, Search, SpeechKit, SpeechKitSTT, Translate, VisionOcr, Workflows, YDB, YandexART
+
+- **YandexART Node Enhancements**:
+  - Automatic prompt truncation to 1000 characters with warning messages
+  - `truncatePrompt` utility function with comprehensive tests
+  - Better user feedback when prompts exceed API limits
+
+### Changed
+
+- **Error Handling Improvements**: Updated error messages across multiple nodes to provide more specific and actionable feedback
+  - YandexCloudContainers: Enhanced error messages for container operations
+  - YandexCloudFunctions: Improved error context for function invocations and management
+  - YandexCloudLogging: Better error feedback for log operations
+  - YandexCloudSearch: More detailed error messages for search operations
+  - YandexCloudSpeechKit: Enhanced error handling for text-to-speech operations
+  - YandexCloudSpeechKitSTT: Improved error messages for speech recognition
+  - YandexCloudTranslate: Better error context for translation operations
+  - YandexCloudVisionOcr: Enhanced error feedback for OCR operations
+  - YandexCloudWorkflows: Improved error messages for workflow operations
+  - YandexCloudYDB: Enhanced IAM token retrieval error handling
+
+- **Code Quality**: Consolidated error handling imports across all Yandex Cloud nodes for consistency
+- **Documentation**: Updated CLAUDE.md with comprehensive error handling patterns (Section 6.4)
+
+### Fixed
+
+### Removed
+
 ## [0.9.0] - 2025-11-23
 
 ### Added
