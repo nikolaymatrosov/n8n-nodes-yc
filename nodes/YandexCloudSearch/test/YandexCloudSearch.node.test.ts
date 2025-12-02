@@ -133,8 +133,8 @@ describe('YandexCloudSearch Node', () => {
 
 			const result = await node.execute.call(mockExecuteFunctions as IExecuteFunctions);
 
-			expect(result[0][0].json.rawData).toBeDefined();
 			expect(result[0][0].json.parsedData).toBeDefined();
+			expect(result[0][0].json.rawData).toBeUndefined(); // Not included by default
 			expect(mockWebSearchClient.search).toHaveBeenCalledWith(
 				expect.objectContaining({
 					folderId: 'folder-test-id',
@@ -220,8 +220,9 @@ describe('YandexCloudSearch Node', () => {
 
 			const result = await node.execute.call(mockExecuteFunctions as IExecuteFunctions);
 
-			expect(result[0][0].json.rawData).toBe('<xml>data</xml>');
+			expect(result[0][0].json.data).toBe('<xml>data</xml>'); // 'data' not 'rawData'
 			expect(result[0][0].json.parsedData).toBeUndefined();
+			expect(result[0][0].json.rawData).toBeUndefined();
 		});
 
 		it('should handle XML parsing errors gracefully', async () => {
@@ -237,6 +238,7 @@ describe('YandexCloudSearch Node', () => {
 			const result = await node.execute.call(mockExecuteFunctions as IExecuteFunctions);
 
 			expect(result[0][0].json.parseError).toBe('Parse error');
+			expect(result[0][0].json.data).toBe('invalid xml'); // Always included on error
 		});
 
 		it('should handle web search error with continueOnFail', async () => {
@@ -249,6 +251,63 @@ describe('YandexCloudSearch Node', () => {
 				error: 'Yandex Cloud SDK error in web search',
 				success: false,
 			});
+		});
+
+		it('should return raw data for HTML format', async () => {
+			(mockExecuteFunctions.getNodeParameter as jest.Mock).mockImplementation(
+				(paramName: string) => {
+					if (paramName === 'webSearchOptions') {
+						return { responseFormat: 'HTML', parseXml: true };
+					}
+					const params: Record<string, any> = {
+						operation: 'webSearch',
+						folderId: 'folder-test-id',
+						queryText: 'test',
+						searchType: 'RU',
+					};
+					return params[paramName];
+				},
+			);
+
+			mockWebSearchClient.search.mockResolvedValue({
+				rawData: '<html><body>test</body></html>',
+			});
+
+			const result = await node.execute.call(mockExecuteFunctions as IExecuteFunctions);
+
+			expect(result[0][0].json.data).toBe('<html><body>test</body></html>');
+			expect(result[0][0].json.parsedData).toBeUndefined();
+		});
+
+		it('should convert Buffer responses to strings', async () => {
+			const xmlBuffer = Buffer.from('<xml>test</xml>', 'utf-8');
+
+			(mockExecuteFunctions.getNodeParameter as jest.Mock).mockImplementation(
+				(paramName: string) => {
+					if (paramName === 'webSearchOptions') {
+						return { parseXml: false };
+					}
+					const params: Record<string, any> = {
+						operation: 'webSearch',
+						folderId: 'folder-test-id',
+						queryText: 'test',
+						searchType: 'RU',
+					};
+					return params[paramName];
+				},
+			);
+
+			mockWebSearchClient.search.mockResolvedValue({
+				rawData: xmlBuffer, // Buffer instead of string
+			});
+
+			const result = await node.execute.call(mockExecuteFunctions as IExecuteFunctions);
+
+			expect(typeof result[0][0].json.data).toBe('string');
+			expect(result[0][0].json.data).toBe('<xml>test</xml>');
+			// Should NOT have Buffer serialization artifacts
+			expect(result[0][0].json.data).not.toHaveProperty('type');
+			expect(result[0][0].json.data).not.toHaveProperty('data');
 		});
 	});
 

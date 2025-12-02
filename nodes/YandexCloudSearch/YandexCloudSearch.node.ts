@@ -114,7 +114,7 @@ export class YandexCloudSearch implements INodeType {
 				displayName: 'Folder ID',
 				name: 'folderId',
 				type: 'string',
-				default: '={{$credentials.folderId}}',
+				default: '',
 				description:
 					'Folder ID to use. Defaults to the folder ID from credentials. Required if not set in credentials.',
 				hint: 'Leave empty to use folder ID from credentials',
@@ -607,23 +607,34 @@ export class YandexCloudSearch implements INodeType {
 						i,
 					);
 
-					// Parse XML to JSON if requested
-					let resultData: any = {
-						rawData: response.rawData,
-					};
+					// Convert Buffer to string immediately to prevent serialization issues
+					const rawDataString: string =
+						typeof response.rawData === 'string'
+							? response.rawData
+							: response.rawData.toString('utf-8');
 
-					if (options.parseXml !== false && response.rawData) {
+					const parseXml = options.parseXml !== false; // Default: true
+					const responseFormat = options.responseFormat || 'XML';
+
+					// Build response based on format and parseXml
+					let resultData: any = {};
+
+					// If HTML format, always return raw data as string
+					if (responseFormat === 'HTML') {
+						resultData.data = rawDataString;
+					} else if (parseXml) {
+						// XML format with parsing: return only parsed data
 						try {
-							// Convert Buffer to string if needed
-							const xmlString =
-								typeof response.rawData === 'string'
-									? response.rawData
-									: response.rawData.toString('utf-8');
-							const parsed = await parseXmlToJson(xmlString);
+							const parsed = await parseXmlToJson(rawDataString);
 							resultData.parsedData = parsed;
 						} catch (parseError: any) {
+							// Parsing failed - include raw data as fallback for debugging
 							resultData.parseError = parseError.message;
+							resultData.data = rawDataString;
 						}
+					} else {
+						// XML format without parsing: return raw data as string
+						resultData.data = rawDataString;
 					}
 
 					returnData.push({

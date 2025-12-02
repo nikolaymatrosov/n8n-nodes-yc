@@ -11,7 +11,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **YandexCloudSearch**: **BREAKING** Node version bumped to v2 with simplified response handling
+  - When XML format + `parseXml: true` (default): returns only `parsedData` (cleaner responses)
+  - When XML format + `parseXml: false`: returns only `data` field with raw string
+  - When HTML format: always returns only `data` field with raw string (parsing not applicable)
+  - Parse errors automatically include `data` field with raw response for debugging
+
 ### Fixed
+
+- **YandexCloudSearch**: Fixed Buffer serialization issue where responses were serialized as `{"type": "Buffer", "data": [...]}` instead of readable strings
+- **YandexCloudSearch**: Fixed response bloat from always including both raw and parsed data
 
 ### Removed
 
