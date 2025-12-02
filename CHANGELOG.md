@@ -11,6 +11,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+### Fixed
+
+### Removed
+
+## [0.9.2] - 2025-12-02
+
+### Added
+
+### Changed
+
 - **YandexCloudSearch**: **BREAKING** Node version bumped to v2 with simplified response handling
   - When XML format + `parseXml: true` (default): returns only `parsedData` (cleaner responses)
   - When XML format + `parseXml: false`: returns only `data` field with raw string
