@@ -15,6 +15,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 
+## [0.10.0] - 2025-12-16
+
+### Added
+
+- **Yandex Cloud Lockbox** node for secure secret management
+  - Secret CRUD operations: List, Get, Create, Update, Delete, Activate, Deactivate
+  - Version management: List, Add, Schedule Destruction, Cancel Destruction
+  - Payload retrieval: Get by ID (with optional version selection)
+  - Support for text and binary secrets (base64 encoding)
+  - KMS encryption support for enhanced security
+  - Deletion protection to prevent accidental removal
+  - Resource locators for convenient secret and version selection
+  - Comprehensive pagination support for list operations
+  - Labels for secret organization and filtering
+  - Version immutability and lifecycle management with grace period (default 7 days)
+  - Comprehensive test coverage with 60+ test cases
+  - Follows modular node structure pattern with separate operation files
+
+### Changed
+
+### Fixed
+
+### Removed
+
 ## [0.9.2] - 2025-12-02
 
 ### Added

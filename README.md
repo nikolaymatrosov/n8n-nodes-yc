@@ -25,6 +25,7 @@ Integration package for working with Yandex Cloud services in n8n.
 16. [Yandex Cloud Vision OCR](#yandex-cloud-vision-ocr)
 17. [Yandex Cloud Logging](#yandex-cloud-logging)
 18. [Yandex Cloud YandexART](#yandex-cloud-yandexart)
+19. [Yandex Cloud Lockbox](#yandex-cloud-lockbox)
 
 ---
 
@@ -1244,6 +1245,73 @@ The package uses four types of credentials:
 - Service Account JSON
 - Folder ID
 - Used for services requiring IAM tokens (Functions, Containers, Compute, SpeechKit, Workflows, YDB)
+
+---
+
+## Yandex Cloud Lockbox
+
+**Node for secure secret management using Yandex Cloud Lockbox service.** Store and retrieve sensitive data like API keys, passwords, certificates, and tokens with version control, encryption, and fine-grained access control. Supports both text and binary secrets with automatic IAM token authentication.
+
+| Parameter | Type | Resources | Operations |
+|----------|-----|---------|----------|
+| **Secret** | Resource | Secret | List, Get, Create, Update, Delete, Activate, Deactivate |
+| **Version** | Resource | Version | List, Add, Schedule Destruction, Cancel Destruction |
+| **Payload** | Resource | Payload | Get |
+
+**Secret Operations:**
+
+- **List** - enumerate all secrets in a folder with pagination support
+- **Get** - retrieve secret metadata by ID (name, description, status, labels, versions)
+- **Create** - create new secret with initial version and payload entries
+  - Supports text and binary values (base64 encoded)
+  - Optional KMS encryption key configuration
+  - Labels for organization and filtering
+  - Deletion protection flag
+- **Update** - modify secret metadata (name, description, labels, deletion protection)
+- **Delete** - permanently delete a secret (respects deletion protection)
+- **Activate** - change secret status from INACTIVE to ACTIVE
+- **Deactivate** - change secret status from ACTIVE to INACTIVE
+
+**Version Operations:**
+
+- **List** - enumerate all versions of a specific secret with pagination
+- **Add** - create new version with updated payload entries
+  - Supports text and binary values
+  - Optional base version ID reference
+- **Schedule Destruction** - schedule version for deletion with configurable grace period (default 7 days)
+- **Cancel Destruction** - cancel scheduled version deletion
+
+**Payload Operations:**
+
+- **Get** - retrieve secret payload (key-value pairs) by secret ID
+  - Optional version ID (defaults to current version)
+  - Text values returned as strings
+  - Binary values returned as base64 encoded strings
+- **Get by Name** - alternative payload retrieval using folder ID + secret name
+  - Useful for workflows without secret ID
+  - Same output format as standard Get operation
+
+**Create Secret Parameters:**
+
+- `secretName` - unique name for the secret (required)
+- `description` - human-readable description (optional)
+- `payloadEntries` - key-value pairs with type selection (text/binary)
+- `deletionProtection` - prevent accidental deletion (default: false)
+- **Additional Options:**
+  - `labels` - key-value labels for organization
+  - `kmsKeyId` - KMS encryption key for additional security
+  - `versionDescription` - description for initial version
+
+**Authentication:** Uses service account JSON via `yandexCloudAuthorizedApi` credentials with automatic IAM token management. Supports resource locators for convenient secret and version selection from searchable lists. The node is ideal for secure credential management, configuration storage, certificate rotation, and compliance with security best practices in automated workflows.
+
+**Security Features:**
+
+- ✅ Version immutability - versions cannot be modified after creation
+- ✅ Deletion protection - prevent accidental secret removal
+- ✅ KMS encryption - encrypt secrets with customer-managed keys
+- ✅ Access control - fine-grained IAM permissions
+- ✅ Audit trail - all operations logged via Cloud Logging
+- ✅ Version lifecycle - schedule destruction with grace period
 
 ---
 

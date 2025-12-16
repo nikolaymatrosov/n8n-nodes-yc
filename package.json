@@ -1,6 +1,6 @@
 {
   "name": "@nikolaymatrosov/n8n-nodes-yc",
-  "version": "0.9.2",
+  "version": "0.10.0",
   "description": "n8n nodes for Yandex Cloud services",
   "keywords": [
     "n8n-community-node-package"
@@ -65,7 +65,8 @@
       "dist/nodes/YandexCloudYDB/YandexCloudYdb.node.js",
       "dist/nodes/YandexCloudSearch/YandexCloudSearch.node.js",
       "dist/nodes/YandexCloudVisionOcr/YandexCloudVisionOcr.node.js",
-      "dist/nodes/YandexCloudLogging/YandexCloudLogging.node.js"
+      "dist/nodes/YandexCloudLogging/YandexCloudLogging.node.js",
+      "dist/nodes/YandexCloudLockbox/YandexCloudLockbox.node.js"
     ]
   },
   "devDependencies": {
