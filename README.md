@@ -1256,7 +1256,7 @@ The package uses four types of credentials:
 |----------|-----|---------|----------|
 | **Secret** | Resource | Secret | List, Get, Create, Update, Delete, Activate, Deactivate |
 | **Version** | Resource | Version | List, Add, Schedule Destruction, Cancel Destruction |
-| **Payload** | Resource | Payload | Get, Get by Name |
+| **Payload** | Resource | Payload | Get |
 
 **Secret Operations:**
 
