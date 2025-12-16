@@ -1,9 +1,15 @@
 import type { IExecuteFunctions, INodeExecutionData } from 'n8n-workflow';
 import { NodeOperationError } from 'n8n-workflow';
 import { withSdkErrorHandling } from '@utils/sdkErrorHandling';
-import type { IOperationContext, OperationResult, IPayloadEntry } from '../types';
+import type { IOperationContext, OperationResult, IPayloadEntry, SecretClientType } from '../types';
 import { VERSION_OPERATIONS, PARAMS } from '../types';
 import { parsePayloadEntries, formatVersionStatus } from '../GenericFunctions';
+import {
+	AddVersionRequest,
+	ListVersionsRequest,
+	ScheduleVersionDestructionRequest,
+	CancelVersionDestructionRequest,
+} from '@yandex-cloud/nodejs-sdk/dist/generated/yandex/cloud/lockbox/v1/secret_service';
 
 /**
  * Execute a version operation based on the operation type
@@ -36,7 +42,7 @@ export async function executeVersionOperation(
  */
 async function listVersions(
 	executeFunctions: IExecuteFunctions,
-	client: any,
+	client: SecretClientType,
 	i: number,
 ): Promise<INodeExecutionData[]> {
 	const secretId = executeFunctions.getNodeParameter(PARAMS.SECRET_ID, i, '', {
@@ -56,11 +62,11 @@ async function listVersions(
 	let pageToken: string | undefined;
 
 	do {
-		const request: any = {
+		const request = ListVersionsRequest.fromJSON({
 			secretId,
 			pageSize: 1000,
 			pageToken: pageToken || '',
-		};
+		});
 
 		const response = await withSdkErrorHandling(
 			executeFunctions.getNode(),
@@ -97,7 +103,7 @@ async function listVersions(
  */
 async function addVersion(
 	executeFunctions: IExecuteFunctions,
-	client: any,
+	client: SecretClientType,
 	i: number,
 ): Promise<INodeExecutionData> {
 	const secretId = executeFunctions.getNodeParameter(PARAMS.SECRET_ID, i, '', {
@@ -135,7 +141,7 @@ async function addVersion(
 		baseVersionId?: string;
 	};
 
-	const request: any = {
+	const requestData: any = {
 		secretId,
 		description,
 		payloadEntries: parsePayloadEntries(payloadEntries),
@@ -143,8 +149,9 @@ async function addVersion(
 
 	// Add base version ID if provided
 	if (additionalFields.baseVersionId) {
-		request.baseVersionId = additionalFields.baseVersionId;
+		requestData.baseVersionId = additionalFields.baseVersionId;
 	}
+	const request = AddVersionRequest.fromJSON(requestData);
 
 	const response = await withSdkErrorHandling(
 		executeFunctions.getNode(),
@@ -156,7 +163,7 @@ async function addVersion(
 	return {
 		json: {
 			success: true,
-			operation: 'addVersion',
+			operation: 'version.add',
 			secretId,
 			versionId: response?.metadata?.versionId,
 			operationId: response?.id,
@@ -171,7 +178,7 @@ async function addVersion(
  */
 async function scheduleVersionDestruction(
 	executeFunctions: IExecuteFunctions,
-	client: any,
+	client: SecretClientType,
 	i: number,
 ): Promise<INodeExecutionData> {
 	const secretId = executeFunctions.getNodeParameter(PARAMS.SECRET_ID, i, '', {
@@ -198,15 +205,17 @@ async function scheduleVersionDestruction(
 		pendingPeriod?: string;
 	};
 
-	const request: any = {
+	const requestData: any = {
 		secretId,
 		versionId,
 	};
 
 	// Add pending period if provided (e.g., "604800s" for 7 days)
 	if (additionalFields.pendingPeriod) {
-		request.pendingPeriod = additionalFields.pendingPeriod;
+		requestData.pendingPeriod = additionalFields.pendingPeriod;
 	}
+
+	const request = ScheduleVersionDestructionRequest.fromJSON(requestData);
 
 	const response = await withSdkErrorHandling(
 		executeFunctions.getNode(),
@@ -218,7 +227,7 @@ async function scheduleVersionDestruction(
 	return {
 		json: {
 			success: true,
-			operation: 'scheduleVersionDestruction',
+			operation: 'version.scheduleDestruction',
 			secretId,
 			versionId,
 			operationId: response?.id,
@@ -233,7 +242,7 @@ async function scheduleVersionDestruction(
  */
 async function cancelVersionDestruction(
 	executeFunctions: IExecuteFunctions,
-	client: any,
+	client: SecretClientType,
 	i: number,
 ): Promise<INodeExecutionData> {
 	const secretId = executeFunctions.getNodeParameter(PARAMS.SECRET_ID, i, '', {
@@ -255,10 +264,10 @@ async function cancelVersionDestruction(
 		});
 	}
 
-	const request = {
+	const request = CancelVersionDestructionRequest.fromJSON({
 		secretId,
 		versionId,
-	};
+	});
 
 	const response = await withSdkErrorHandling(
 		executeFunctions.getNode(),
@@ -270,7 +279,7 @@ async function cancelVersionDestruction(
 	return {
 		json: {
 			success: true,
-			operation: 'cancelVersionDestruction',
+			operation: 'version.cancelDestruction',
 			secretId,
 			versionId,
 			operationId: response?.id,

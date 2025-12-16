@@ -120,7 +120,7 @@ export class YandexCloudLockbox implements INodeType {
 						action: 'Deactivate a secret',
 					},
 				],
-				default: 'list',
+				default: 'secret.list',
 			},
 
 			// ==========================================
@@ -162,7 +162,7 @@ export class YandexCloudLockbox implements INodeType {
 						action: 'Cancel version destruction',
 					},
 				],
-				default: 'list',
+				default: 'version.list',
 			},
 
 			// ==========================================
@@ -185,14 +185,8 @@ export class YandexCloudLockbox implements INodeType {
 						description: 'Retrieve secret payload by ID',
 						action: 'Get payload',
 					},
-					{
-						name: 'Get by Name',
-						value: PAYLOAD_OPERATIONS.GET_BY_NAME,
-						description: 'Retrieve payload using folder ID + secret name',
-						action: 'Get payload by name',
-					},
 				],
-				default: 'get',
+				default: 'payload.get',
 			},
 
 			// ==========================================
@@ -316,41 +310,6 @@ export class YandexCloudLockbox implements INodeType {
 					},
 				},
 			},
-
-			// Secret Name for payload getByName
-			{
-				displayName: 'Secret Name',
-				name: PARAMS.SECRET_NAME,
-				type: 'string',
-				default: '',
-				required: true,
-				placeholder: 'my-secret',
-				description: 'The name of the secret',
-				displayOptions: {
-					show: {
-						resource: [RESOURCES.PAYLOAD],
-						operation: [PAYLOAD_OPERATIONS.GET_BY_NAME],
-					},
-				},
-			},
-
-			// Folder ID for payload getByName
-			{
-				displayName: 'Folder ID',
-				name: PARAMS.FOLDER_ID,
-				type: 'string',
-				default: '',
-				placeholder: 'b1gXXXXXXXXXXXXXXXXX',
-				description:
-					'The ID of the folder. If not specified, the folder ID from credentials will be used.',
-				displayOptions: {
-					show: {
-						resource: [RESOURCES.PAYLOAD],
-						operation: [PAYLOAD_OPERATIONS.GET_BY_NAME],
-					},
-				},
-			},
-
 			// Description
 			{
 				displayName: 'Description',
@@ -694,7 +653,7 @@ export class YandexCloudLockbox implements INodeType {
 				displayOptions: {
 					show: {
 						resource: [RESOURCES.PAYLOAD],
-						operation: [PAYLOAD_OPERATIONS.GET, PAYLOAD_OPERATIONS.GET_BY_NAME],
+						operation: [PAYLOAD_OPERATIONS.GET],
 					},
 				},
 				description: 'The version ID. If not specified, the current version will be used.',

@@ -1,13 +1,17 @@
 import type { IExecuteFunctions, INodeExecutionData } from 'n8n-workflow';
 import type { secretService, payloadService } from '@yandex-cloud/nodejs-sdk/dist/clients/lockbox-v1';
+import { WrappedServiceClientType } from '@yandex-cloud/nodejs-sdk';
+
+export type SecretClientType = WrappedServiceClientType<typeof secretService.SecretServiceService>;
+export type PayloadClientType = WrappedServiceClientType<typeof payloadService.PayloadServiceService>;
 
 /**
  * Context passed to all operation functions
  */
 export interface IOperationContext {
 	executeFunctions: IExecuteFunctions;
-	secretClient: secretService.SecretServiceClient;
-	payloadClient: payloadService.PayloadServiceClient;
+	secretClient: SecretClientType;
+	payloadClient: PayloadClientType;
 	itemIndex: number;
 }
 
@@ -31,13 +35,13 @@ export type Resource = (typeof RESOURCES)[keyof typeof RESOURCES];
  * Secret operation constants
  */
 export const SECRET_OPERATIONS = {
-	LIST: 'list',
-	GET: 'get',
-	CREATE: 'create',
-	UPDATE: 'update',
-	DELETE: 'delete',
-	ACTIVATE: 'activate',
-	DEACTIVATE: 'deactivate',
+	LIST: 'secret.list',
+	GET: 'secret.get',
+	CREATE: 'secret.create',
+	UPDATE: 'secret.update',
+	DELETE: 'secret.delete',
+	ACTIVATE: 'secret.activate',
+	DEACTIVATE: 'secret.deactivate',
 } as const;
 
 export type SecretOperation = (typeof SECRET_OPERATIONS)[keyof typeof SECRET_OPERATIONS];
@@ -46,10 +50,10 @@ export type SecretOperation = (typeof SECRET_OPERATIONS)[keyof typeof SECRET_OPE
  * Version operation constants
  */
 export const VERSION_OPERATIONS = {
-	LIST: 'list',
-	ADD: 'add',
-	SCHEDULE_DESTRUCTION: 'scheduleDestruction',
-	CANCEL_DESTRUCTION: 'cancelDestruction',
+	LIST: 'version.list',
+	ADD: 'version.add',
+	SCHEDULE_DESTRUCTION: 'version.scheduleDestruction',
+	CANCEL_DESTRUCTION: 'version.cancelDestruction',
 } as const;
 
 export type VersionOperation = (typeof VERSION_OPERATIONS)[keyof typeof VERSION_OPERATIONS];
@@ -58,8 +62,7 @@ export type VersionOperation = (typeof VERSION_OPERATIONS)[keyof typeof VERSION_
  * Payload operation constants
  */
 export const PAYLOAD_OPERATIONS = {
-	GET: 'get',
-	GET_BY_NAME: 'getByName',
+	GET: 'payload.get',
 } as const;
 
 export type PayloadOperation = (typeof PAYLOAD_OPERATIONS)[keyof typeof PAYLOAD_OPERATIONS];

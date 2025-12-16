@@ -1,8 +1,9 @@
 import type { IExecuteFunctions, INodeExecutionData } from 'n8n-workflow';
 import { NodeOperationError } from 'n8n-workflow';
 import { withSdkErrorHandling } from '@utils/sdkErrorHandling';
-import type { IOperationContext, OperationResult } from '../types';
+import type { IOperationContext, OperationResult, PayloadClientType } from '../types';
 import { PAYLOAD_OPERATIONS, PARAMS } from '../types';
+import { GetPayloadRequest } from '@yandex-cloud/nodejs-sdk/dist/generated/yandex/cloud/lockbox/v1/payload_service';
 
 /**
  * Execute a payload operation based on the operation type
@@ -16,8 +17,6 @@ export async function executePayloadOperation(
 	switch (operation) {
 		case PAYLOAD_OPERATIONS.GET:
 			return await getPayload(executeFunctions, payloadClient, itemIndex);
-		case PAYLOAD_OPERATIONS.GET_BY_NAME:
-			return await getPayloadByName(executeFunctions, payloadClient, itemIndex);
 		default:
 			throw new NodeOperationError(
 				executeFunctions.getNode(),
@@ -31,7 +30,7 @@ export async function executePayloadOperation(
  */
 async function getPayload(
 	executeFunctions: IExecuteFunctions,
-	client: any,
+	client: PayloadClientType,
 	i: number,
 ): Promise<INodeExecutionData> {
 	const secretId = executeFunctions.getNodeParameter(PARAMS.SECRET_ID, i, '', {
@@ -49,94 +48,21 @@ async function getPayload(
 		extractValue: true,
 	}) as string;
 
-	const request: any = {
+	const requestData: any = {
 		secretId,
 	};
 
 	// Add version ID if provided (otherwise uses current version)
 	if (versionId) {
-		request.versionId = versionId;
+		requestData.versionId = versionId;
 	}
+
+	const request = GetPayloadRequest.fromJSON(requestData);
 
 	const response = await withSdkErrorHandling(
 		executeFunctions.getNode(),
 		() => client.get(request),
 		'get payload',
-		i,
-	) as any;
-
-	// Convert entries to a more user-friendly format
-	const entries: Record<string, string> = {};
-	if (response?.entries) {
-		for (const [key, value] of Object.entries(response.entries)) {
-			// Check if value is a Buffer/Uint8Array
-			if (value instanceof Uint8Array || Buffer.isBuffer(value)) {
-				// Convert binary to base64 string
-				entries[key] = Buffer.from(value).toString('base64');
-			} else {
-				// Already a string
-				entries[key] = value as string;
-			}
-		}
-	}
-
-	return {
-		json: {
-			secretId: response?.secretId,
-			versionId: response?.versionId,
-			entries,
-		},
-		pairedItem: { item: i },
-	};
-}
-
-/**
- * Get payload using folder ID + secret name
- */
-async function getPayloadByName(
-	executeFunctions: IExecuteFunctions,
-	client: any,
-	i: number,
-): Promise<INodeExecutionData> {
-	const credentials = await executeFunctions.getCredentials('yandexCloudAuthorizedApi', i);
-	const folderId =
-		(executeFunctions.getNodeParameter(PARAMS.FOLDER_ID, i, '') as string) ||
-		(credentials.folderId as string);
-	const secretName = executeFunctions.getNodeParameter(PARAMS.SECRET_NAME, i) as string;
-
-	if (!folderId) {
-		throw new NodeOperationError(executeFunctions.getNode(), 'Folder ID is required', {
-			itemIndex: i,
-		});
-	}
-
-	if (!secretName) {
-		throw new NodeOperationError(executeFunctions.getNode(), 'Secret Name is required', {
-			itemIndex: i,
-		});
-	}
-
-	// Get optional version ID
-	const versionId = executeFunctions.getNodeParameter(PARAMS.VERSION_ID, i, '', {
-		extractValue: true,
-	}) as string;
-
-	const request: any = {
-		folderAndName: {
-			folderId,
-			secretName,
-		},
-	};
-
-	// Add version ID if provided (otherwise uses current version)
-	if (versionId) {
-		request.versionId = versionId;
-	}
-
-	const response = await withSdkErrorHandling(
-		executeFunctions.getNode(),
-		() => client.getEx(request),
-		'get payload by name',
 		i,
 	) as any;
 

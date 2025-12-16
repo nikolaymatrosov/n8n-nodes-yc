@@ -1,9 +1,14 @@
 import type { IExecuteFunctions, INodeExecutionData } from 'n8n-workflow';
 import { NodeOperationError } from 'n8n-workflow';
 import { withSdkErrorHandling } from '@utils/sdkErrorHandling';
-import type { IOperationContext, OperationResult, IPayloadEntry, ILabelEntry } from '../types';
+import type { IOperationContext, OperationResult, IPayloadEntry, ILabelEntry, SecretClientType } from '../types';
 import { SECRET_OPERATIONS, PARAMS } from '../types';
 import { parsePayloadEntries, formatSecretStatus } from '../GenericFunctions';
+import {
+	ListSecretsRequest,
+	CreateSecretRequest,
+	UpdateSecretRequest,
+} from '@yandex-cloud/nodejs-sdk/dist/generated/yandex/cloud/lockbox/v1/secret_service';
 
 /**
  * Execute a secret operation based on the operation type
@@ -42,7 +47,7 @@ export async function executeSecretOperation(
  */
 async function listSecrets(
 	executeFunctions: IExecuteFunctions,
-	client: any,
+	client: SecretClientType,
 	i: number,
 ): Promise<INodeExecutionData[]> {
 	const credentials = await executeFunctions.getCredentials('yandexCloudAuthorizedApi', i);
@@ -63,11 +68,11 @@ async function listSecrets(
 	let pageToken: string | undefined;
 
 	do {
-		const request: any = {
+		const request = ListSecretsRequest.fromJSON({
 			folderId,
 			pageSize: 1000,
 			pageToken: pageToken || '',
-		};
+		});
 
 		const response = await withSdkErrorHandling(
 			executeFunctions.getNode(),
@@ -104,7 +109,7 @@ async function listSecrets(
  */
 async function getSecret(
 	executeFunctions: IExecuteFunctions,
-	client: any,
+	client: SecretClientType,
 	i: number,
 ): Promise<INodeExecutionData> {
 	const secretId = executeFunctions.getNodeParameter(PARAMS.SECRET_ID, i, '', {
@@ -138,7 +143,7 @@ async function getSecret(
  */
 async function createSecret(
 	executeFunctions: IExecuteFunctions,
-	client: any,
+	client: SecretClientType,
 	i: number,
 ): Promise<INodeExecutionData> {
 	const credentials = await executeFunctions.getCredentials('yandexCloudAuthorizedApi', i);
@@ -181,7 +186,7 @@ async function createSecret(
 		versionDescription?: string;
 	};
 
-	const request: any = {
+	const requestData: any = {
 		folderId,
 		name,
 		description,
@@ -191,21 +196,23 @@ async function createSecret(
 
 	// Add labels if provided
 	if (additionalFields.labels?.labels && additionalFields.labels.labels.length > 0) {
-		request.labels = {};
+		requestData.labels = {};
 		for (const label of additionalFields.labels.labels) {
-			request.labels[label.key] = label.value;
+			requestData.labels[label.key] = label.value;
 		}
 	}
 
 	// Add KMS key ID if provided
 	if (additionalFields.kmsKeyId) {
-		request.kmsKeyId = additionalFields.kmsKeyId;
+		requestData.kmsKeyId = additionalFields.kmsKeyId;
 	}
 
 	// Add version description if provided
 	if (additionalFields.versionDescription) {
-		request.versionDescription = additionalFields.versionDescription;
+		requestData.versionDescription = additionalFields.versionDescription;
 	}
+
+	const request = CreateSecretRequest.fromJSON(requestData);
 
 	const response = await withSdkErrorHandling(
 		executeFunctions.getNode(),
@@ -232,7 +239,7 @@ async function createSecret(
  */
 async function updateSecret(
 	executeFunctions: IExecuteFunctions,
-	client: any,
+	client: SecretClientType,
 	i: number,
 ): Promise<INodeExecutionData> {
 	const secretId = executeFunctions.getNodeParameter(PARAMS.SECRET_ID, i, '', {
@@ -252,29 +259,31 @@ async function updateSecret(
 		labels?: { labels: ILabelEntry[] };
 	};
 
-	const request: any = {
+	const requestData: any = {
 		secretId,
 	};
 
 	// Add fields to update
 	if (updateFields.name) {
-		request.name = updateFields.name;
+		requestData.name = updateFields.name;
 	}
 
 	if (updateFields.description !== undefined) {
-		request.description = updateFields.description;
+		requestData.description = updateFields.description;
 	}
 
 	if (updateFields.deletionProtection !== undefined) {
-		request.deletionProtection = updateFields.deletionProtection;
+		requestData.deletionProtection = updateFields.deletionProtection;
 	}
 
 	if (updateFields.labels?.labels && updateFields.labels.labels.length > 0) {
-		request.labels = {};
+		requestData.labels = {};
 		for (const label of updateFields.labels.labels) {
-			request.labels[label.key] = label.value;
+			requestData.labels[label.key] = label.value;
 		}
 	}
+
+	const request = UpdateSecretRequest.fromJSON(requestData);
 
 	const response = await withSdkErrorHandling(
 		executeFunctions.getNode(),
@@ -300,7 +309,7 @@ async function updateSecret(
  */
 async function deleteSecret(
 	executeFunctions: IExecuteFunctions,
-	client: any,
+	client: SecretClientType,
 	i: number,
 ): Promise<INodeExecutionData> {
 	const secretId = executeFunctions.getNodeParameter(PARAMS.SECRET_ID, i, '', {
@@ -337,7 +346,7 @@ async function deleteSecret(
  */
 async function activateSecret(
 	executeFunctions: IExecuteFunctions,
-	client: any,
+	client: SecretClientType,
 	i: number,
 ): Promise<INodeExecutionData> {
 	const secretId = executeFunctions.getNodeParameter(PARAMS.SECRET_ID, i, '', {
@@ -374,7 +383,7 @@ async function activateSecret(
  */
 async function deactivateSecret(
 	executeFunctions: IExecuteFunctions,
-	client: any,
+	client: SecretClientType,
 	i: number,
 ): Promise<INodeExecutionData> {
 	const secretId = executeFunctions.getNodeParameter(PARAMS.SECRET_ID, i, '', {

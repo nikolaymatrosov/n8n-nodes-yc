@@ -1,10 +1,24 @@
+// Mock external dependencies BEFORE imports
+jest.mock('@yandex-cloud/nodejs-sdk');
+jest.mock('@yandex-cloud/nodejs-sdk/dist/token-service/iam-token-service');
+
+// Mock the lockbox-v1 module with manual mock
+jest.mock('@yandex-cloud/nodejs-sdk/dist/clients/lockbox-v1', () => {
+	return {
+		secretService: {
+			SecretServiceClient: class MockSecretServiceClient {},
+			SecretServiceService: {},
+		},
+		payloadService: {
+			PayloadServiceClient: class MockPayloadServiceClient {},
+			PayloadServiceService: {},
+		},
+	};
+}, { virtual: true });
+
 import { YandexCloudLockbox } from '../YandexCloudLockbox.node';
 import type { IExecuteFunctions, ILoadOptionsFunctions, INode } from 'n8n-workflow';
 import { NodeOperationError } from 'n8n-workflow';
-
-// Mock external dependencies
-jest.mock('@yandex-cloud/nodejs-sdk');
-jest.mock('@yandex-cloud/nodejs-sdk/dist/token-service/iam-token-service');
 
 describe('YandexCloudLockbox', () => {
 	let node: YandexCloudLockbox;
@@ -222,7 +236,7 @@ describe('YandexCloudLockbox', () => {
 					(paramName: string) => {
 						const params: Record<string, any> = {
 							resource: 'secret',
-							operation: 'list',
+							operation: 'secret.list',
 							folderId: '',
 							returnAll: false,
 							limit: 50,
@@ -255,7 +269,7 @@ describe('YandexCloudLockbox', () => {
 					(paramName: string) => {
 						if (paramName === 'returnAll') return true;
 						if (paramName === 'resource') return 'secret';
-						if (paramName === 'operation') return 'list';
+						if (paramName === 'operation') return 'secret.list';
 						return '';
 					},
 				);
@@ -283,7 +297,7 @@ describe('YandexCloudLockbox', () => {
 					(paramName: string, _index: number, _fallback?: any, options?: any) => {
 						const params: Record<string, any> = {
 							resource: 'secret',
-							operation: 'get',
+							operation: 'secret.get',
 							secretId: 'secret-123',
 						};
 
@@ -320,7 +334,7 @@ describe('YandexCloudLockbox', () => {
 					(paramName: string) => {
 						const params: Record<string, any> = {
 							resource: 'secret',
-							operation: 'create',
+							operation: 'secret.create',
 							folderId: '',
 							secretName: 'my-secret',
 							description: 'Test secret',
@@ -376,7 +390,7 @@ describe('YandexCloudLockbox', () => {
 						}
 						const params: Record<string, any> = {
 							resource: 'secret',
-							operation: 'create',
+							operation: 'secret.create',
 							secretName: 'my-secret',
 							description: 'Test',
 							deletionProtection: false,
@@ -406,7 +420,7 @@ describe('YandexCloudLockbox', () => {
 					(paramName: string, _index: number, _fallback?: any, options?: any) => {
 						const params: Record<string, any> = {
 							resource: 'secret',
-							operation: 'update',
+							operation: 'secret.update',
 							secretId: 'secret-123',
 							updateFields: {
 								name: 'updated-name',
@@ -445,7 +459,7 @@ describe('YandexCloudLockbox', () => {
 					(paramName: string, _index: number, _fallback?: any, options?: any) => {
 						const params: Record<string, any> = {
 							resource: 'secret',
-							operation: 'delete',
+							operation: 'secret.delete',
 							secretId: 'secret-123',
 						};
 
@@ -480,7 +494,7 @@ describe('YandexCloudLockbox', () => {
 					(paramName: string, _index: number, _fallback?: any, options?: any) => {
 						const params: Record<string, any> = {
 							resource: 'secret',
-							operation: 'activate',
+							operation: 'secret.activate',
 							secretId: 'secret-123',
 						};
 
@@ -515,7 +529,7 @@ describe('YandexCloudLockbox', () => {
 					(paramName: string, _index: number, _fallback?: any, options?: any) => {
 						const params: Record<string, any> = {
 							resource: 'secret',
-							operation: 'deactivate',
+							operation: 'secret.deactivate',
 							secretId: 'secret-123',
 						};
 
@@ -552,7 +566,7 @@ describe('YandexCloudLockbox', () => {
 					(paramName: string, _index: number, _fallback?: any, options?: any) => {
 						const params: Record<string, any> = {
 							resource: 'version',
-							operation: 'list',
+							operation: 'version.list',
 							secretId: 'secret-123',
 							returnAll: false,
 							limit: 50,
@@ -592,7 +606,7 @@ describe('YandexCloudLockbox', () => {
 					(paramName: string, _index: number, _fallback?: any, options?: any) => {
 						const params: Record<string, any> = {
 							resource: 'version',
-							operation: 'add',
+							operation: 'version.add',
 							secretId: 'secret-123',
 							versionDescription: 'New version',
 							payloadEntries: {
@@ -629,7 +643,7 @@ describe('YandexCloudLockbox', () => {
 
 				expect(result[0][0].json).toMatchObject({
 					success: true,
-					operation: 'addVersion',
+					operation: 'version.add',
 					secretId: 'secret-123',
 					versionId: 'version-123',
 				});
@@ -642,7 +656,7 @@ describe('YandexCloudLockbox', () => {
 					(paramName: string, _index: number, _fallback?: any, options?: any) => {
 						const params: Record<string, any> = {
 							resource: 'version',
-							operation: 'scheduleDestruction',
+							operation: 'version.scheduleDestruction',
 							secretId: 'secret-123',
 							versionId: 'version-123',
 							additionalFields: {},
@@ -670,7 +684,7 @@ describe('YandexCloudLockbox', () => {
 
 				expect(result[0][0].json).toMatchObject({
 					success: true,
-					operation: 'scheduleVersionDestruction',
+					operation: 'version.scheduleDestruction',
 					secretId: 'secret-123',
 					versionId: 'version-123',
 				});
@@ -683,7 +697,7 @@ describe('YandexCloudLockbox', () => {
 					(paramName: string, _index: number, _fallback?: any, options?: any) => {
 						const params: Record<string, any> = {
 							resource: 'version',
-							operation: 'cancelDestruction',
+							operation: 'version.cancelDestruction',
 							secretId: 'secret-123',
 							versionId: 'version-123',
 						};
@@ -710,7 +724,7 @@ describe('YandexCloudLockbox', () => {
 
 				expect(result[0][0].json).toMatchObject({
 					success: true,
-					operation: 'cancelVersionDestruction',
+					operation: 'version.cancelDestruction',
 					secretId: 'secret-123',
 					versionId: 'version-123',
 				});
@@ -725,7 +739,7 @@ describe('YandexCloudLockbox', () => {
 					(paramName: string, _index: number, _fallback?: any, options?: any) => {
 						const params: Record<string, any> = {
 							resource: 'payload',
-							operation: 'get',
+							operation: 'payload.get',
 							secretId: 'secret-123',
 							versionId: '',
 						};
@@ -763,52 +777,6 @@ describe('YandexCloudLockbox', () => {
 			});
 		});
 
-		describe('Get by Name Operation', () => {
-			beforeEach(() => {
-				(mockExecuteFunctions.getNodeParameter as jest.Mock).mockImplementation(
-					(paramName: string, _index: number, _fallback?: any, options?: any) => {
-						const params: Record<string, any> = {
-							resource: 'payload',
-							operation: 'getByName',
-							folderId: '',
-							secretName: 'my-secret',
-							versionId: '',
-						};
-
-						if (options?.extractValue && paramName === 'versionId') {
-							return params.versionId;
-						}
-
-						return params[paramName];
-					},
-				);
-			});
-
-			it('should get payload by name successfully', async () => {
-				mockPayloadClient.getEx.mockResolvedValue({
-					secretId: 'secret-123',
-					versionId: 'version-123',
-					entries: {
-						api_key: 'secret-value',
-					},
-				});
-
-				const result = await node.execute.call(mockExecuteFunctions as IExecuteFunctions);
-
-				expect(result[0][0].json).toMatchObject({
-					secretId: 'secret-123',
-					versionId: 'version-123',
-				});
-				expect(mockPayloadClient.getEx).toHaveBeenCalledWith(
-					expect.objectContaining({
-						folderAndName: {
-							folderId: 'folder-test-id',
-							secretName: 'my-secret',
-						},
-					}),
-				);
-			});
-		});
 	});
 
 	describe('Error Handling', () => {
@@ -817,7 +785,7 @@ describe('YandexCloudLockbox', () => {
 				(paramName: string, _index: number, _fallback?: any, options?: any) => {
 					const params: Record<string, any> = {
 						resource: 'secret',
-						operation: 'get',
+						operation: 'secret.get',
 						secretId: 'secret-123',
 					};
 
@@ -839,7 +807,7 @@ describe('YandexCloudLockbox', () => {
 				(paramName: string, _index: number, _fallback?: any, options?: any) => {
 					const params: Record<string, any> = {
 						resource: 'secret',
-						operation: 'get',
+						operation: 'secret.get',
 						secretId: 'secret-123',
 					};
 
@@ -875,12 +843,12 @@ describe('YandexCloudLockbox', () => {
 					const configs = [
 						{
 							resource: 'secret',
-							operation: 'get',
+							operation: 'secret.get',
 							secretId: 'secret-1',
 						},
 						{
 							resource: 'secret',
-							operation: 'get',
+							operation: 'secret.get',
 							secretId: 'secret-2',
 						},
 					];

@@ -1,20 +1,20 @@
 import type { ILoadOptionsFunctions, INodeListSearchResult } from 'n8n-workflow';
 import { NodeOperationError } from 'n8n-workflow';
-import { secretService, payloadService } from '@yandex-cloud/nodejs-sdk/dist/clients/lockbox-v1/index';
+import { secretService, payloadService } from '@yandex-cloud/nodejs-sdk/dist/clients/lockbox-v1';
 import {
 	parseServiceAccountJson,
 	validateServiceAccountCredentials,
 	createYandexSession,
 } from '@utils/authUtils';
 import { withSdkErrorHandling } from '@utils/sdkErrorHandling';
-import type { IPayloadEntry } from './types';
+import type { IPayloadEntry, PayloadClientType, SecretClientType } from './types';
 
 /**
  * Create Lockbox service clients from credentials
  */
 export function createLockboxClients(credentials: any): {
-	secretClient: any;
-	payloadClient: any;
+	secretClient: SecretClientType;
+	payloadClient: PayloadClientType;
 } {
 	const serviceAccountJson = parseServiceAccountJson(credentials.serviceAccountJson as string);
 	const session = createYandexSession(serviceAccountJson);
@@ -42,7 +42,7 @@ export async function loadSecrets(
 
 	const folderId = credentials.folderId as string;
 
-	const response = await withSdkErrorHandling(
+	const response = (await withSdkErrorHandling(
 		this.getNode(),
 		() =>
 			client.list({
@@ -51,7 +51,7 @@ export async function loadSecrets(
 				pageToken: '',
 			}),
 		'load secrets',
-	) as any;
+	)) as any;
 
 	let results = response.secrets.map((secret: any) => ({
 		name: `${secret.name} (${secret.id})`,
@@ -104,7 +104,7 @@ export async function loadVersions(
 		throw new NodeOperationError(this.getNode(), 'Secret ID is required to load versions');
 	}
 
-	const response = await withSdkErrorHandling(
+	const response = (await withSdkErrorHandling(
 		this.getNode(),
 		() =>
 			client.listVersions({
@@ -113,7 +113,7 @@ export async function loadVersions(
 				pageToken: '',
 			}),
 		'load versions',
-	) as any;
+	)) as any;
 
 	let results = response.versions.map((version: any) => ({
 		name: `${version.description || 'Version'} (${version.id})`,
