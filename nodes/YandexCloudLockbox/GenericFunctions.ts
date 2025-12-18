@@ -1,6 +1,6 @@
 import type { ILoadOptionsFunctions, INodeListSearchResult } from 'n8n-workflow';
 import { NodeOperationError } from 'n8n-workflow';
-import { secretService, payloadService } from '@yandex-cloud/nodejs-sdk/dist/clients/lockbox-v1';
+import { secretService, payloadService } from '@yandex-cloud/nodejs-sdk/dist/clients/lockbox-v1/index';
 import {
 	parseServiceAccountJson,
 	validateServiceAccountCredentials,
