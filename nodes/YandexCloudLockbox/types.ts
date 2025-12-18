@@ -1,5 +1,5 @@
 import type { IExecuteFunctions, INodeExecutionData } from 'n8n-workflow';
-import type { secretService, payloadService } from '@yandex-cloud/nodejs-sdk/dist/clients/lockbox-v1';
+import type { secretService, payloadService } from '@yandex-cloud/nodejs-sdk/dist/clients/lockbox-v1/index';
 import { WrappedServiceClientType } from '@yandex-cloud/nodejs-sdk';
 
 export type SecretClientType = WrappedServiceClientType<typeof secretService.SecretServiceService>;

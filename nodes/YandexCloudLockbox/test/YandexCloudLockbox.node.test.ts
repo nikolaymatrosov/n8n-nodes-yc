@@ -3,7 +3,7 @@ jest.mock('@yandex-cloud/nodejs-sdk');
 jest.mock('@yandex-cloud/nodejs-sdk/dist/token-service/iam-token-service');
 
 // Mock the lockbox-v1 module with manual mock
-jest.mock('@yandex-cloud/nodejs-sdk/dist/clients/lockbox-v1', () => {
+jest.mock('@yandex-cloud/nodejs-sdk/dist/clients/lockbox-v1/index', () => {
 	return {
 		secretService: {
 			SecretServiceClient: class MockSecretServiceClient {},
