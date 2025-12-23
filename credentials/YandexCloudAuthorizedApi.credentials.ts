@@ -1,7 +1,9 @@
-import type { ICredentialType, INodeProperties } from 'n8n-workflow';
+import type { Icon, ICredentialType, INodeProperties } from 'n8n-workflow';
 
 export class YandexCloudAuthorizedApi implements ICredentialType {
 	name = 'yandexCloudAuthorizedApi';
+
+	icon = `file:IAM.svg` as Icon;
 
 	displayName = 'Yandex Cloud Authorized API';
 

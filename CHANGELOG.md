@@ -9,6 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Credentials: YandexCloudFomoApi and YandexCloudGptApi**
+  - Added "Disable Data Logging" option to control request data logging
+  - New checkbox in credential configuration to set `x-data-logging-enabled: false` header
+  - Applies globally to all workflows using the credentials
+  - Default: false (logging enabled) - maintains current behavior
+
 ### Changed
 
 ### Fixed

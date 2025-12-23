@@ -1,4 +1,5 @@
 import type {
+	Icon,
 	ICredentialDataDecryptedObject,
 	ICredentialTestRequest,
 	ICredentialType,
@@ -8,6 +9,8 @@ import type {
 
 export class YandexCloudFomoApi implements ICredentialType {
 	name = 'yandexCloudFomoApi';
+
+	icon = `file:yandexCloudFomoApi.svg` as Icon;
 
 	displayName = 'Yandex Cloud Foundation Models API';
 
@@ -38,6 +41,13 @@ export class YandexCloudFomoApi implements ICredentialType {
 			default: 'https://llm.api.cloud.yandex.net',
 			description: 'Override the default base URL for the API',
 		},
+		{
+			displayName: 'Disable Data Logging',
+			name: 'disableDataLogging',
+			type: 'boolean',
+			default: false,
+			description: 'Whether to disable logging of request data to Yandex Cloud. When enabled, request data will not be logged.',
+		},
 	];
 
 	test: ICredentialTestRequest = {
@@ -56,6 +66,11 @@ export class YandexCloudFomoApi implements ICredentialType {
 
 		requestOptions.headers['Authorization'] = `Api-Key ${credentials.apiKey}`;
 		requestOptions.headers['x-folder-id'] = credentials.folderId as string;
+
+		// Add x-data-logging-enabled header if disabled
+		if (credentials.disableDataLogging === true) {
+			requestOptions.headers['x-data-logging-enabled'] = 'false';
+		}
 
 		return requestOptions;
 	}
