@@ -1,10 +1,13 @@
 import type {
+	Icon,
 	ICredentialType,
 	INodeProperties,
 } from 'n8n-workflow';
 
 export class YandexCloudYdbApi implements ICredentialType {
 	name = 'yandexCloudYdbApi';
+
+	icon = `file:yandexCloudYdbApi.svg` as Icon;
 
 	displayName = 'Yandex Cloud YDB API';
 

@@ -1,4 +1,5 @@
 import type {
+	Icon,
 	ICredentialDataDecryptedObject,
 	ICredentialTestRequest,
 	ICredentialType,
@@ -8,6 +9,8 @@ import type {
 
 export class YandexCloudGptApi implements ICredentialType {
 	name = 'yandexCloudGptApi';
+
+	icon = `file:yandexCloudGptApi.svg` as Icon;
 
 	displayName = 'Yandex Cloud GPT API (OpenAI-Compatible) API';
 

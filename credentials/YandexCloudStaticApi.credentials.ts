@@ -1,10 +1,9 @@
-import type {
-	ICredentialType,
-	INodeProperties,
-} from 'n8n-workflow';
+import type { Icon, ICredentialType, INodeProperties } from 'n8n-workflow';
 
 export class YandexCloudStaticApi implements ICredentialType {
 	name = 'yandexCloudStaticApi';
+
+	icon = `file:IAM.svg` as Icon;
 
 	displayName = 'Yandex Cloud Static Access Key API';
 
@@ -30,4 +29,3 @@ export class YandexCloudStaticApi implements ICredentialType {
 		},
 	];
 }
-

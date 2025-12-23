@@ -1,4 +1,5 @@
 import type {
+	Icon,
 	ICredentialDataDecryptedObject,
 	ICredentialTestRequest,
 	ICredentialType,
@@ -8,6 +9,8 @@ import type {
 
 export class YandexCloudFomoApi implements ICredentialType {
 	name = 'yandexCloudFomoApi';
+
+	icon = `file:yandexCloudFomoApi.svg` as Icon;
 
 	displayName = 'Yandex Cloud Foundation Models API';
 
