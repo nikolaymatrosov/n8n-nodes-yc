@@ -15,6 +15,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 
+## [0.12.0] - 2026-02-09
+
+### Added
+
+- **Yandex Cloud Vision OCR**: Asynchronous text recognition with polling support
+  - New "Recognize Async" operation for starting asynchronous text recognition
+  - Support for multipage PDFs and larger files (no 10MB size limit unlike synchronous mode)
+  - New "Get Recognition Results" operation with automatic polling
+  - Configurable polling options: interval (1-60s), max attempts (1-300), partial results on timeout
+  - Race condition handling for operations not yet ready
+  - File size validation (10MB limit) for synchronous recognition
+
+### Changed
+
+### Fixed
+
+### Removed
+
 ## [0.11.0] - 2025-12-23
 
 ### Added
