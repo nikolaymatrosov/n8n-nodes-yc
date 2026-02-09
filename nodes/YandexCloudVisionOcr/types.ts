@@ -42,6 +42,33 @@ export const OCR_MODELS = {
 } as const;
 
 /**
+ * Operations for the text recognition resource
+ */
+export const OPERATIONS = {
+	RECOGNIZE: 'recognize',
+	RECOGNIZE_ASYNC: 'recognizeAsync',
+	GET_RECOGNITION_RESULTS: 'getRecognitionResults',
+} as const;
+
+export type Operation = (typeof OPERATIONS)[keyof typeof OPERATIONS];
+
+/**
+ * Default polling configuration for async recognition
+ */
+export const ASYNC_DEFAULTS = {
+	POLL_INTERVAL_SECONDS: 5,
+	MAX_ATTEMPTS: 60,
+} as const;
+
+/**
+ * File size limits
+ * Sync: 10MB (single page)
+ */
+export const FILE_SIZE_LIMITS = {
+	SYNC_MAX_BYTES: 10 * 1024 * 1024,
+} as const;
+
+/**
  * Common language codes for OCR (ISO 639-1 format)
  * Based on Yandex Cloud Vision OCR supported languages
  */

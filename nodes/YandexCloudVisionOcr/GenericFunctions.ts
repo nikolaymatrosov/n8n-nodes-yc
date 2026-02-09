@@ -9,18 +9,39 @@ import {
 export { parseServiceAccountJson };
 
 /**
- * Creates OCR service client using Session
+ * Creates OCR service client using Session (synchronous recognition)
  */
 export function createOcrClient(credentials: IIAmCredentials) {
 	const session = createYandexSession(credentials);
 
-	// Create TextRecognitionService client
 	const client = session.client(
 		ocrService.TextRecognitionServiceClient,
 		'ocr.api.cloud.yandex.net:443',
 	);
 
 	return client;
+}
+
+/**
+ * Creates async OCR service client using Session (asynchronous recognition)
+ * Used for multipage PDFs and large files
+ */
+export function createAsyncOcrClient(credentials: IIAmCredentials) {
+	const session = createYandexSession(credentials);
+
+	const client = session.client(
+		ocrService.TextRecognitionAsyncServiceClient,
+		'ocr.api.cloud.yandex.net:443',
+	);
+
+	return client;
+}
+
+/**
+ * Sleep utility for polling
+ */
+export function sleep(ms: number): Promise<void> {
+	return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 /**
