@@ -351,6 +351,13 @@ export class YandexCloudSpeechKitStt implements INodeType {
 				default: 8000,
 				description: 'Sample rate in Hz (e.g., 8000, 16000, 48000)',
 			},
+			{
+				displayName: 'Speaker Labeling',
+				name: 'speakerLabeling',
+				type: 'boolean',
+				default: false,
+				description: 'Whether to enable speaker diarization (labeling) in the recognition results',
+			},
 		],
 	},
 
@@ -483,6 +490,7 @@ export class YandexCloudSpeechKitStt implements INodeType {
 					audioChannelCount?: number;
 					profanityFilter?: boolean;
 					literatureText?: boolean;
+					speakerLabeling?: boolean;
 				};
 
 					// Model is hardcoded to 'general'
@@ -550,6 +558,12 @@ export class YandexCloudSpeechKitStt implements INodeType {
 					const request = stt.RecognizeFileRequest.fromPartial({
 						uri: audioUrl,
 						recognitionModel,
+						...(recognitionOptions.speakerLabeling && {
+							speakerLabeling: stt.SpeakerLabelingOptions.fromPartial({
+								speakerLabeling:
+									stt.SpeakerLabelingOptions_SpeakerLabeling.SPEAKER_LABELING_ENABLED,
+							}),
+						}),
 					});
 
 					// Start recognition

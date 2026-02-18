@@ -45,6 +45,13 @@ jest.mock('@yandex-cloud/nodejs-sdk/dist/clients/ai-stt-v3/index', () => {
 			RecognizeFileRequest: {
 				fromPartial: jest.fn((data: any) => data),
 			},
+			SpeakerLabelingOptions: {
+				fromPartial: jest.fn((data: any) => data),
+			},
+			SpeakerLabelingOptions_SpeakerLabeling: {
+				SPEAKER_LABELING_ENABLED: 1,
+				SPEAKER_LABELING_DISABLED: 2,
+			},
 		},
 		sttService: {
 			AsyncRecognizerClient: jest.fn(),
@@ -402,6 +409,50 @@ describe('YandexCloudSpeechKitStt Node', () => {
 		expect(result[0][0].json).toMatchObject({
 			error: 'Yandex Cloud SDK error in recognize audio file',
 			success: false,
+		});
+	});
+
+	it('should not pass speakerLabeling when not enabled', async () => {
+		(mockExecuteFunctions.getNodeParameter as jest.Mock)
+			.mockReturnValueOnce('https://storage.yandexcloud.net/bucket/audio.wav')
+			.mockReturnValueOnce('ru-RU')
+			.mockReturnValueOnce('audioFormat')
+			.mockReturnValueOnce('LPCM')
+			.mockReturnValueOnce({});
+
+		mockAsyncRecognizerClient.recognizeFile.mockResolvedValue({
+			id: 'operation-no-speaker',
+		});
+
+		const result = await node.execute.call(mockExecuteFunctions as IExecuteFunctions);
+
+		expect(result[0][0].json.success).toBe(true);
+
+		const { stt } = require('@yandex-cloud/nodejs-sdk/dist/clients/ai-stt-v3/index');
+		const requestCall = stt.RecognizeFileRequest.fromPartial.mock.calls[0][0];
+		expect(requestCall.speakerLabeling).toBeUndefined();
+	});
+
+	it('should pass speakerLabeling with ENABLED when option is true', async () => {
+		(mockExecuteFunctions.getNodeParameter as jest.Mock)
+			.mockReturnValueOnce('https://storage.yandexcloud.net/bucket/audio.wav')
+			.mockReturnValueOnce('ru-RU')
+			.mockReturnValueOnce('audioFormat')
+			.mockReturnValueOnce('LPCM')
+			.mockReturnValueOnce({ speakerLabeling: true });
+
+		mockAsyncRecognizerClient.recognizeFile.mockResolvedValue({
+			id: 'operation-with-speaker',
+		});
+
+		const result = await node.execute.call(mockExecuteFunctions as IExecuteFunctions);
+
+		expect(result[0][0].json.success).toBe(true);
+
+		const { stt } = require('@yandex-cloud/nodejs-sdk/dist/clients/ai-stt-v3/index');
+		const requestCall = stt.RecognizeFileRequest.fromPartial.mock.calls[0][0];
+		expect(requestCall.speakerLabeling).toEqual({
+			speakerLabeling: 1,
 		});
 	});
 	});
