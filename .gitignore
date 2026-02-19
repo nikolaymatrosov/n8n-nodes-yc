@@ -8,3 +8,6 @@ yarn.lock
 .vscode/launch.json
 .idea
 docs
+task_plan.md
+findings.md
+progress.md
