@@ -15,6 +15,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 
+## [0.13.0] - 2026-02-19
+
+### Added
+
+- **Yandex Cloud SpeechKit STT**: Speaker labeling (diarization) support
+  - New "Speaker Labeling" boolean option in recognition settings
+  - Enables speaker diarization to identify different speakers in audio
+  - Applies to asynchronous file recognition via URL
+
+### Changed
+
+### Fixed
+
+### Removed
+
 ## [0.12.0] - 2026-02-09
 
 ### Added
