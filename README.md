@@ -3,6 +3,15 @@
 
 # n8n-nodes-yc Package Description
 
+> **Update workaround:** If updating the package via the n8n UI does not work correctly, use the following steps:
+>
+> 1. Uninstall the old version
+> 2. Clean the `.n8n/nodes` folder
+> 3. Restart n8n
+> 4. Install the new version
+>
+> A more reliable upgrade path is being investigated.
+
 Integration package for working with Yandex Cloud services in n8n.
 
 ## Table of Contents
