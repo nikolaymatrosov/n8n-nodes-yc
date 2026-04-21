@@ -1,6 +1,6 @@
 {
   "name": "@nikolaymatrosov/n8n-nodes-yc",
-  "version": "0.13.1",
+  "version": "0.13.2",
   "description": "n8n nodes for Yandex Cloud services",
   "keywords": [
     "n8n-community-node-package"
@@ -105,8 +105,8 @@
     "@langchain/core": "^0.3.33",
     "@langchain/openai": "^0.6.16",
     "@n8n/json-schema-to-zod": "^1.5.0",
-    "@yandex-cloud/nodejs-sdk": "3.0.0-beta.1",
-    "@ydbjs/core": "^6.0.7",
+    "@yandex-cloud/nodejs-sdk": "^3.1.0",
+    "@ydbjs/core": "^6.1.0",
     "@ydbjs/query": "^6.0.7",
     "@ydbjs/value": "^6.0.5",
     "generate-schema": "^2.6.0",
